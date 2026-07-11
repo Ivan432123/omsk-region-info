@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// Правила безопасности Firestore для ОМСКРЕГИОН ИНФО.
+//
+// Принципы:
+// 1. Приложение работает без авторизации пользователей — значит, ВСЕ
+//    операции записи с клиента запрещены. Единственный источник записи
+//    контента (news, organizations, districts) — Cloud Functions / Admin SDK
+//    с сервисным аккаунтом, который правила Firestore не ограничивают.
+// 2. Единственная операция записи, разрешённая клиенту — пометка
+//    уведомления как прочитанного (isRead), и только этого поля.
+// 3. Минимально необходимые права на чтение, без раскрытия служебных полей.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Районы ----------
+    match /districts/{districtId} {
+      allow read: if true;
+      allow write: if false; // только через Admin SDK / Cloud Functions
+    }
+
+    // ---------- Новости ----------
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ---------- Организации ----------
+    match /organizations/{orgId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ---------- Уведомления ----------
+    match /notifications/{notificationId} {
+      allow read: if true;
+
+      // Разрешаем клиенту обновлять ТОЛЬКО поле isRead, и только в true.
+      // Запрещаем менять title/body/category/district задним числом —
+      // это защита от подмены контента уведомления с клиента.
+      allow update: if request.resource.data.diff(resource.data)
+                        .affectedKeys().hasOnly(['isRead']) &&
+                    request.resource.data.isRead == true;
+
+      allow create, delete: if false;
+    }
+  }
+}

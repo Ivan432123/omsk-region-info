@@ -1,0 +1,150 @@
+import 'package:flutter/material.dart';
+
+/// Единая тема приложения.
+/// Стиль: премиальный государственный сервис — синий основной цвет,
+/// белый фон, красный акцентный цвет для ключевых действий,
+/// скруглённые карточки, мягкие тени, Material 3.
+class AppTheme {
+  AppTheme._();
+
+  // ---------- Палитра ----------
+  static const Color primaryBlue = Color(0xFF1B4F9C);
+  static const Color primaryBlueDark = Color(0xFF123A73);
+  static const Color primaryBlueLight = Color(0xFFE8F0FB);
+  static const Color accentRed = Color(0xFFD32F2F);
+  static const Color backgroundWhite = Color(0xFFFFFFFF);
+  static const Color surfaceGrey = Color(0xFFF6F7F9);
+  static const Color textPrimary = Color(0xFF1A1D1F);
+  static const Color textSecondary = Color(0xFF6B7280);
+  static const Color divider = Color(0xFFE5E7EB);
+  static const Color success = Color(0xFF2E7D32);
+  static const Color warning = Color(0xFFF9A825);
+
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Color(0x14000000),
+      blurRadius: 16,
+      offset: Offset(0, 6),
+    ),
+  ];
+
+  static ThemeData get lightTheme {
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      fontFamily: 'Roboto',
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryBlue,
+        brightness: Brightness.light,
+        primary: primaryBlue,
+        secondary: accentRed,
+        surface: backgroundWhite,
+      ),
+      scaffoldBackgroundColor: backgroundWhite,
+    );
+
+    return base.copyWith(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: backgroundWhite,
+        foregroundColor: textPrimary,
+        elevation: 0,
+        centerTitle: false,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          color: textPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textTheme: base.textTheme.copyWith(
+        headlineLarge: const TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w800,
+          color: textPrimary,
+          height: 1.2,
+        ),
+        headlineMedium: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: textPrimary,
+        ),
+        titleLarge: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: textPrimary,
+        ),
+        titleMedium: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+        ),
+        bodyLarge: const TextStyle(fontSize: 16, color: textPrimary, height: 1.4),
+        bodyMedium: const TextStyle(fontSize: 14, color: textSecondary, height: 1.4),
+        labelLarge: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+      cardTheme: CardThemeData(
+        color: backgroundWhite,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: divider, width: 1),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentRed,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(56),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryBlue,
+          side: const BorderSide(color: primaryBlue, width: 1.4),
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: surfaceGrey,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: primaryBlue, width: 1.6),
+        ),
+        hintStyle: const TextStyle(color: textSecondary),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: backgroundWhite,
+        selectedItemColor: primaryBlue,
+        unselectedItemColor: textSecondary,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+      ),
+      dividerTheme: const DividerThemeData(color: divider, thickness: 1),
+      chipTheme: base.chipTheme.copyWith(
+        backgroundColor: primaryBlueLight,
+        labelStyle: const TextStyle(color: primaryBlue, fontWeight: FontWeight.w600, fontSize: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        side: BorderSide.none,
+      ),
+    );
+  }
+}

@@ -1,0 +1,16 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+
+# Firebase
+seed/serviceAccountKey.json
+functions/node_modules/
+firebase-debug.log
+
+# macOS
+.DS_Store

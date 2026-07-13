@@ -27,11 +27,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_YOUR_ANDROID_API_KEY',
-    appId: 'REPLACE_WITH_YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
+    apiKey: 'AIzaSyD08pFtZbcfqs1z59SmGYRJawZAOtVgQxM',
+    appId: '1:500185933703:android:c16432d3b87e29055f1522',
+    messagingSenderId: '500185933703',
     projectId: 'omsk-region-info',
-    storageBucket: 'omsk-region-info.appspot.com',
+    storageBucket: 'omsk-region-info.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

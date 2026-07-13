@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -45,6 +46,11 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
       routerConfig: AppRouter.router,
       locale: const Locale('ru', 'RU'),
       supportedLocales: const [Locale('ru', 'RU')],
+      localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                        GlobalWidgetsLocalizations.delegate,
+                                GlobalCupertinoLocalizations.delegate,
+                                      ],
     );
   }
 }

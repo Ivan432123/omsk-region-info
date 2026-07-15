@@ -8,11 +8,12 @@
  *   2. node seed/seed.js
  */
 
-const admin = require('firebase-admin');
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const serviceAccount = require('./serviceAccountKey.json');
 
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-const db = admin.firestore();
+initializeApp({ credential: cert(serviceAccount) });
+const db = getFirestore();
 
 const districts = [
   { id: 'sherbakulsky', name: 'Шербакульский район', order: 1 },
@@ -86,7 +87,7 @@ const organizations = [
     district: 'sherbakulsky',
     name: 'Администрация Шербакульского района',
     category: 'Администрация района',
-    phone: '+73816521234',
+    phone: '+73816521000',
     address: 'р.п. Шербакуль, ул. Ленина, 1',
     workingHours: 'Пн–Пт: 08:00–17:00, обед 12:00–13:00',
     description: 'Орган местного самоуправления Шербакульского района.',
@@ -167,7 +168,7 @@ async function seed() {
       ...n,
       image: null,
       sendPush: ['water', 'gas', 'electricity', 'emergency'].includes(n.category),
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
   });
 

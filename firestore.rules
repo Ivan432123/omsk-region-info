@@ -17,19 +17,19 @@ service cloud.firestore {
     // ---------- Районы ----------
     match /districts/{districtId} {
       allow read: if true;
-      allow write: if false; // только через Admin SDK / Cloud Functions
+      allow write: if request.auth != null;
     }
 
     // ---------- Новости ----------
     match /news/{newsId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if request.auth != null;
     }
 
     // ---------- Организации ----------
     match /organizations/{orgId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if request.auth != null;
     }
 
     // ---------- Уведомления ----------

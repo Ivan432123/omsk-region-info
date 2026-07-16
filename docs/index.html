@@ -321,4 +321,121 @@
             document.getElementById('news-description').value = '';
             document.getElementById('news-content').value = '';
             document.getElementById('news-image').value = '';
-            showStatus('Новость');}
+            showStatus('Новость опубликована');
+            loadNews();
+        }
+
+        async function loadNews() {
+            const container = document.getElementById('news-list');
+            container.innerHTML = 'Загрузка...';
+            const snapshot = await db.collection('news')
+                .where('district', '==', currentDistrictId)
+                .orderBy('createdAt', 'desc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="item-sub">Пока нет новостей в этом районе</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const n = doc.data();
+                const row = document.createElement('div');
+                row.className = 'item';
+                row.innerHTML = `
+                                                                                                                                                                                                                                                                                                                <div>
+                                                                                                                                                                                                                                                                                                                                        <div class="item-title">${escapeHtml(n.title)}</div>
+                                                                                                                                                                                                                                                                                                                                                                <div class="item-sub">${escapeHtml(n.category)}</div>
+                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                        <button class="danger" onclick="deleteNews('${doc.id}')">Удалить</button>
+                                                                                                                                                                                                                                                                                                                                                                                                                        `;
+                container.appendChild(row);
+            });
+        }
+
+        async function deleteNews(id) {
+            if (!confirm('Удалить эту новость?')) return;
+            await db.collection('news').doc(id).delete();
+            loadNews();
+        }
+
+        async function addOrganization() {
+            const name = document.getElementById('org-name').value.trim();
+            const category = document.getElementById('org-category').value.trim();
+            const phone = document.getElementById('org-phone').value.trim();
+            const address = document.getElementById('org-address').value.trim();
+            const workingHours = document.getElementById('org-hours').value.trim();
+            const website = document.getElementById('org-website').value.trim();
+            const description = document.getElementById('org-description').value.trim();
+
+            if (!name || !phone) {
+                alert('Заполните хотя бы название и телефон');
+                return;
+            }
+
+            await db.collection('organizations').add({
+                name, category, phone, address, workingHours,
+                website: website || null,
+                description,
+                logoUrl: null,
+                gallery: [],
+                district: currentDistrictId
+            });
+
+            document.getElementById('org-name').value = '';
+            document.getElementById('org-category').value = '';
+            document.getElementById('org-phone').value = '';
+            document.getElementById('org-address').value = '';
+            document.getElementById('org-hours').value = '';
+            document.getElementById('org-website').value = '';
+            document.getElementById('org-description').value = '';
+            showStatus('Организация добавлена');
+            loadOrganizations();
+        }
+
+        async function loadOrganizations() {
+            const container = document.getElementById('org-list');
+            container.innerHTML = 'Загрузка...';
+            const snapshot = await db.collection('organizations')
+                .where('district', '==', currentDistrictId)
+                .orderBy('name')
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="item-sub">Пока нет организаций в этом районе</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const o = doc.data();
+                const row = document.createElement('div');
+                row.className = 'item';
+                row.innerHTML = `
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="item-title">${escapeHtml(o.name)}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="item-sub">${escapeHtml(o.category || '')}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <button class="danger" onclick="deleteOrganization('${doc.id}')">Удалить</button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
+                container.appendChild(row);
+            });
+        }
+
+        async function deleteOrganization(id) {
+            if (!confirm('Удалить эту организацию?')) return;
+            await db.collection('organizations').doc(id).delete();
+            loadOrganizations();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+    </script>
+</body>
+
+</html>

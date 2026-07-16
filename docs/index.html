@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-<meta charset>="UTF-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ОМСКРЕГИОН ИНФО — Админ-панель</title>
 <style>
-* {
-box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
 font-family: -apple-system, Roboto, Arial, sans-serif;
 background: #F6F3EC;
@@ -17,19 +13,8 @@ color: #1E2A22;
 margin: 0;
 padding: 16px;
 }
-
-h1 {
-font-size: 20px;
-margin: 0 0 16px;
-}
-
-h2 {
-font-size: 16px;
-margin: 24px 0 8px;
-border-top: 1px solid #DEDACD;
-padding-top: 16px;
-}
-
+h1 { font-size: 20px; margin: 0 0 16px; }
+h2 { font-size: 16px; margin: 24px 0 8px; border-top: 1px solid #DEDACD; padding-top: 16px; }
 .card {
 background: #fff;
 border: 1px solid #DEDACD;
@@ -37,17 +22,8 @@ border-radius: 14px;
 padding: 16px;
 margin-bottom: 12px;
 }
-
-label {
-display: block;
-font-size: 13px;
-color: #5A5A4E;
-margin: 10px 0 4px;
-}
-
-input,
-select,
-textarea {
+label { display: block; font-size: 13px; color: #5A5A4E; margin: 10px 0 4px; }
+input, select, textarea {
 width: 100%;
 padding: 10px;
 border: 1px solid #DEDACD;
@@ -55,12 +31,7 @@ border-radius: 8px;
 font-size: 15px;
 background: #FAFAF7;
 }
-
-textarea {
-min-height: 80px;
-resize: vertical;
-}
-
+textarea { min-height: 80px; resize: vertical; }
 button {
 background: #1E2A22;
 color: #F6F3EC;
@@ -72,17 +43,14 @@ font-weight: 600;
 margin-top: 12px;
 width: 100%;
 }
-
 button.secondary {
 background: transparent;
 color: #9C3F2E;
 border: 1px solid #9C3F2E;
 }
-
 button.danger {
 background: #9C3F2E;
 }
-
 .item {
 display: flex;
 justify-content: space-between;
@@ -91,412 +59,372 @@ gap: 8px;
 padding: 10px 0;
 border-bottom: 1px solid #DEDACD;
 }
-
-.item:last-child {
-border-bottom: none;
-}
-
-.item-title {
-font-weight: 600;
-font-size: 14px;
-}
-
-.item-sub {
-font-size: 12px;
-color: #8C8571;
-}
-
+.item:last-child { border-bottom: none; }
+.item-title { font-weight: 600; font-size: 14px; }
+.item-sub { font-size: 12px; color: #8C8571; }
 .item button {
 width: auto;
-margin: 0;
+margin: 0 0 6px 0;
 padding: 6px 10px;
 font-size: 12px;
+display: block;
+}
+#error-msg { color: #9C3F2E; font-size: 13px; margin-top: 8px; display: none; }
+#status-msg { color: #5F7A5F; font-size: 13px; margin-top: 8px; display: none; }
+#admin-screen { display: none; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.top-bar button { width: auto; padding: 8px 14px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+<h1>ОМСКРЕГИОН ИНФО — вход</h1>
+<div class="card">
+<label>Email</label>
+<input type="email" id="login-email" autocomplete="username">
+<label>Пароль</label>
+<input type="password" id="login-password" autocomplete="current-password">
+<button onclick="doLogin()">Войти</button>
+<div id="error-msg"></div>
+</div>
+</div>
+
+<div id="admin-screen">
+<div class="top-bar">
+<h1>Админ-панель</h1>
+<button onclick="doLogout()">Выйти</button>
+</div>
+
+<div class="card">
+<label>Район</label>
+<select id="district-select" onchange="onDistrictChange()"></select>
+</div>
+
+<div id="status-msg"></div>
+
+<h2>Добавить новость</h2>
+<div class="card">
+<label>Заголовок</label>
+<input type="text" id="news-title">
+<label>Краткое описание (для карточки в списке)</label>
+<textarea id="news-description"></textarea>
+<label>Полный текст</label>
+<textarea id="news-content"></textarea>
+<label>Категория</label>
+<select id="news-category">
+<option value="general">Общее</option>
+<option value="water">Водоснабжение</option>
+<option value="gas">Газоснабжение</option>
+<option value="electricity">Электроснабжение</option>
+<option value="road">Дороги</option>
+<option value="emergency">Экстренное</option>
+<option value="events">Мероприятия</option>
+</select>
+<label>Ссылка на изображение (необязательно)</label>
+<input type="text" id="news-image" placeholder="https://...">
+<button id="news-submit-btn" onclick="addNews()">Опубликовать новость</button>
+</div>
+<div class="card" id="news-list"></div>
+
+<h2>Добавить организацию</h2>
+<div class="card">
+<label>Название</label>
+<input type="text" id="org-name">
+<label>Категория</label>
+<input type="text" id="org-category" placeholder="МФЦ, Больница, Школа...">
+<label>Телефон</label>
+<input type="text" id="org-phone" placeholder="79135551234">
+<label>Адрес</label>
+<input type="text" id="org-address">
+<label>Часы работы</label>
+<input type="text" id="org-hours" placeholder="Пн–Пт: 08:00–17:00">
+<label>Сайт (необязательно)</label>
+<input type="text" id="org-website" placeholder="https://...">
+<label>Описание</label>
+<textarea id="org-description"></textarea>
+<button id="org-submit-btn" onclick="addOrganization()">Добавить организацию</button>
+</div>
+<div class="card" id="org-list"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+apiKey: "AIzaSyCiUChcrSO8Vt46S84TaPhLRLcqIXAJOPs",
+authDomain: "omsk-region-info.firebaseapp.com",
+projectId: "omsk-region-info",
+storageBucket: "omsk-region-info.firebasestorage.app",
+messagingSenderId: "500185933703",
+appId: "1:500185933703:web:8bc71f35db8377235f1522"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentDistrictId = null;
+let newsCache = {};
+let orgCache = {};
+let editingNewsId = null;
+let editingOrgId = null;
+
+auth.onAuthStateChanged((user) => {
+if (user) {
+document.getElementById('login-screen').style.display = 'none';
+document.getElementById('admin-screen').style.display = 'block';
+loadDistricts();
+} else {
+document.getElementById('login-screen').style.display = 'block';
+document.getElementById('admin-screen').style.display = 'none';
+}
+});
+
+function doLogin() {
+const email = document.getElementById('login-email').value.trim();
+const password = document.getElementById('login-password').value;
+const errorEl = document.getElementById('error-msg');
+errorEl.style.display = 'none';
+auth.signInWithEmailAndPassword(email, password).catch((err) => {
+errorEl.textContent = 'Ошибка входа: неверный email или пароль';
+errorEl.style.display = 'block';
+});
 }
 
-#error-msg {
-color: #9C3F2E;
-font-size: 13px;
-margin-top: 8px;
-display: none;
+function doLogout() {
+auth.signOut();
 }
 
-#status-msg {
-    color: #5F7A5F;
-    font-size: 13px;
-    margin-top: 8px;
-    display: none;
-    }
+function showStatus(text) {
+const el = document.getElementById('status-msg');
+el.textContent = text;
+el.style.display = 'block';
+setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
 
-    #admin-screen {
-    display: none;
-    }
+async function loadDistricts() {
+const select = document.getElementById('district-select');
+select.innerHTML = '<option>Загрузка...</option>';
+const snapshot = await db.collection('districts').orderBy('order').get();
+select.innerHTML = '';
+snapshot.forEach((doc) => {
+const opt = document.createElement('option');
+opt.value = doc.id;
+opt.textContent = doc.data().name;
+select.appendChild(opt);
+});
+if (!snapshot.empty) {
+currentDistrictId = snapshot.docs[0].id;
+onDistrictChange();
+}
+}
 
-    .top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    }
+function onDistrictChange() {
+currentDistrictId = document.getElementById('district-select').value;
+loadNews();
+loadOrganizations();
+}
 
-    .top-bar button {
-    width: auto;
-    padding: 8px 14px;
-    font-size: 13px;
-    }
-    </style>
-    </head>
+async function addNews() {
+const title = document.getElementById('news-title').value.trim();
+const description = document.getElementById('news-description').value.trim();
+const content = document.getElementById('news-content').value.trim();
+const category = document.getElementById('news-category').value;
+const image = document.getElementById('news-image').value.trim();
 
-    <body>
-    <!-- Экран входа -->
-    <div id="login-screen">
-    <h1>ОМСКРЕГИОН ИНФО — вход</h1>
-    <div class="card">
-    <label>Email</label>
-    <input type="email" id="login-email" autocomplete="username">
-    <label>Пароль</label>
-    <input type="password" id="login-password" autocomplete="current-password">
-    <button onclick="doLogin()">Войти</button>
-    <div id="error-msg"></div>
-    </div>
-    </div>
+if (!title || !description) {
+alert('Заполните хотя бы заголовок и краткое описание');
+return;
+}
 
-    <!-- Основной экран -->
-    <div id="admin-screen">
-    <div class="top-bar">
-    <h1>Админ-панель</h1>
-    <button onclick="doLogout()">Выйти</button>
-    </div>
-    
-    <div class="card">
-    <label>Район</label>
-    <select id="district-select" onchange="onDistrictChange()"></select>
-    </div>
-    
-    <div id="status-msg"></div>
-    
-    <h2>Добавить новость</h2>
-    <div class="card">
-    <label>Заголовок</label>
-    <input type="text" id="news-title">
-    <label>Краткое описание (для карточки в списке)</label>
-    <textarea id="news-description"></textarea>
-    <label>Полный текст</label>
-    <textarea id="news-content"></textarea>
-    <label>Категория</label>
-    <select id="news-category">
-    <option value="general">Общее</option>
-    <option value="water">Водоснабжение</option>
-    <option value="gas">Газоснабжение</option>
-    <option value="electricity">Электроснабжение</option>
-    <option value="road">Дороги</option>
-    <option value="emergency">Экстренное</option>
-    <option value="events">Мероприятия</option>
-    </select>
-    <label>Ссылка на изображение (необязательно)</label>
-    <input type="text" id="news-image" placeholder="https://...">
-    <button id="news-submit-btn" onclick="addNews()">Опубликовать новость</button>
-    </div>
-    <div class="card" id="news-list"></div>
-    
-    <h2>Добавить организацию</h2>
-    <div class="card">
-    <label>Название</label>
-    <input type="text" id="org-name">
-    <label>Категория</label>
-    <input type="text" id="org-category" placeholder="МФЦ, Больница, Школа...">
-    <label>Телефон</label>
-    <input type="text" id="org-phone" placeholder="79135551234">
-    <label>Адрес</label>
-    <input type="text" id="org-address">
-    <label>Часы работы</label>
-    <input type="text" id="org-hours" placeholder="Пн–Пт: 08:00–17:00">
-    <label>Сайт (необязательно)</label>
-    <input type="text" id="org-website" placeholder="https://...">
-    <label>Описание</label>
-    <textarea id="org-description"></textarea>
-    <button id="org-submit-btn" onclick="addOrganization()">Добавить организацию</button>
-    </div>
-    <div class="card" id="org-list"></div>
-    </div>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script>
-    // ЗАМЕНИТЕ значения ниже на конфигурацию вашего Web-приложения из Firebase Console
-    const firebaseConfig = {
-    apiKey: "AIzaSyCiUChcrSO8Vt46S84TaPhLRLcqIXAJOPs",
-    authDomain: "omsk-region-info.firebaseapp.com",
-    projectId: "omsk-region-info",
-    storageBucket: "omsk-region-info.firebasestorage.app",
-    messagingSenderId: "500185933703",
-    appId: "1:500185933703:web:8bc71f35db8377235f1522"
-    };
+if (editingNewsId) {
+await db.collection('news').doc(editingNewsId).update({
+title, description, content, category,
+image: image || null
+});
+editingNewsId = null;
+document.getElementById('news-submit-btn').textContent = 'Опубликовать новость';
+showStatus('Новость обновлена');
+} else {
+await db.collection('news').add({
+title, description, content,
+category,
+image: image || null,
+district: currentDistrictId,
+village: null,
+sendPush: false,
+createdAt: firebase.firestore.FieldValue.serverTimestamp()
+});
+showStatus('Новость опубликована');
+}
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+document.getElementById('news-title').value = '';
+document.getElementById('news-description').value = '';
+document.getElementById('news-content').value = '';
+document.getElementById('news-image').value = '';
+loadNews();
+}
 
-    let currentDistrictId = null;
-    let newsCache = {};
-    let orgCache = {};
-    let editingNewsId = null;
-    let editingOrgId = null;
+async function loadNews() {
+const container = document.getElementById('news-list');
+container.innerHTML = 'Загрузка...';
+const snapshot = await db.collection('news')
+.where('district', '==', currentDistrictId)
+.orderBy('createdAt', 'desc')
+.limit(20)
+.get();
 
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-screen').style.display = 'block';
-        loadDistricts();
-        } else {
-        document.getElementById('login-screen').style.display = 'block';
-        document.getElementById('admin-screen').style.display = 'none';
-        }
-        });
-
-        function doLogin() {
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-password').value;
-        const errorEl = document.getElementById('error-msg');
-        errorEl.style.display = 'none';
-        auth.signInWithEmailAndPassword(email, password).catch((err) => {
-        errorEl.textContent = 'Ошибка входа: неверный email или пароль';
-        errorEl.style.display = 'block';
-        });
-        }
-
-        function doLogout() {
-        auth.signOut();
-        }
-
-        function showStatus(text) {
-        const el = document.getElementById('status-msg');
-        el.textContent = text;
-        el.style.display = 'block';
-        setTimeout(() => { el.style.display = 'none'; }, 3000);
-        }
-
-        async function loadDistricts() {
-        const select = document.getElementById('district-select');
-        select.innerHTML = '<option>Загрузка...</option>';
-        const snapshot = await db.collection('districts').orderBy('order').get();
-        select.innerHTML = '';
-        snapshot.forEach((doc) => {
-        const opt = document.createElement('option');
-        opt.value = doc.id;
-        opt.textContent = doc.data().name;
-        select.appendChild(opt);
-        });
-        if (!snapshot.empty) {
-        currentDistrictId = snapshot.docs[0].id;
-        onDistrictChange();
-        }
-        }
-
-        function onDistrictChange() {
-        currentDistrictId = document.getElementById('district-select').value;
-        loadNews();
-        loadOrganizations();
-        }
-
-        async function addNews() {
-        const title = document.getElementById('news-title').value.trim();
-        const description = document.getElementById('news-description').value.trim();
-        const content = document.getElementById('news-content').value.trim();
-        const category = document.getElementById('news-category').value;
-        const image = document.getElementById('news-image').value.trim();
-
-        if (!title || !description) {
-            alert('Заполните хотя бы заголовок и краткое описание');
-            return;
-            }
-
-            if (editingNewsId) {
-                await db.collection('news').doc(editingNewsId).update({
-                    title, description, content, category,
-                    image: image || null
-                });
-                editingNewsId = null;
-                document.getElementById('news-submit-btn').textContent = 'Опубликовать новость';
-                showStatus('Новость обновлена');
-            } else {
-                await db.collection('news').add({
-                    title, description, content,
-                    category,
-                    image: image || null,
-                    district: currentDistrictId,
-                    village: null,
-                    sendPush: false,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                showStatus('Новость опубликована');
-            }
-
-            document.getElementById('news-title').value = '';
-            document.getElementById('news-description').value = '';
-            document.getElementById('news-content').value = '';
-            document.getElementById('news-image').value = '';
-            loadNews();
-        }
-
-            async function loadNews() {
-            const container = document.getElementById('news-list');
-            container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('news')
-            .where('district', '==', currentDistrictId)
-            .orderBy('createdAt', 'desc')
-            .limit(20)
-            .get();
-
-            if (snapshot.empty) {
-            container.innerHTML = '<div class="item-sub">Пока нет новостей в этом районе</div>';
-            return;
-            }
+if (snapshot.empty) {
+container.innerHTML = '<div class="item-sub">Пока нет новостей в этом районе</div>';
+return;
+}
 
 container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const n = doc.data();
-                newsCache[doc.id] = n;
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
-                    <div>
-                        <div class="item-title">${escapeHtml(n.title)}</div>
-                        <div class="item-sub">${escapeHtml(n.category)}</div>
-                    </div>
-                    <div>
-                        <button class="secondary" onclick="editNews('${doc.id}')">Изменить</button>
-                        <button class="danger" onclick="deleteNews('${doc.id}')">Удалить</button>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
+snapshot.forEach((doc) => {
+const n = doc.data();
+newsCache[doc.id] = n;
+const row = document.createElement('div');
+row.className = 'item';
+row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(n.title)}</div>
+<div class="item-sub">${escapeHtml(n.category)}</div>
+</div>
+<div>
+<button class="secondary" onclick="editNews('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteNews('${doc.id}')">Удалить</button>
+</div>
+`;
+container.appendChild(row);
+});
+}
 
-        function editNews(id) {
-            const n = newsCache[id];
-            if (!n) return;
-            editingNewsId = id;
-            document.getElementById('news-title').value = n.title || '';
-            document.getElementById('news-description').value = n.description || '';
-            document.getElementById('news-content').value = n.content || '';
-            document.getElementById('news-category').value = n.category || 'general';
-            document.getElementById('news-image').value = n.image || '';
-            document.getElementById('news-submit-btn').textContent = 'Сохранить изменения';
-            document.getElementById('news-title').scrollIntoView({ behavior: 'smooth' });
-        }
+function editNews(id) {
+const n = newsCache[id];
+if (!n) return;
+editingNewsId = id;
+document.getElementById('news-title').value = n.title || '';
+document.getElementById('news-description').value = n.description || '';
+document.getElementById('news-content').value = n.content || '';
+document.getElementById('news-category').value = n.category || 'general';
+document.getElementById('news-image').value = n.image || '';
+document.getElementById('news-submit-btn').textContent = 'Сохранить изменения';
+document.getElementById('news-title').scrollIntoView({ behavior: 'smooth' });
+}
 
-        async function deleteNews(id) {
-            if (!confirm('Удалить эту новость?')) return;
-            await db.collection('news').doc(id).delete();
-            loadNews();
-            }
+async function deleteNews(id) {
+if (!confirm('Удалить эту новость?')) return;
+await db.collection('news').doc(id).delete();
+loadNews();
+}
 
-            async function addOrganization() {
-            const name = document.getElementById('org-name').value.trim();
-            const category = document.getElementById('org-category').value.trim();
-            const phone = document.getElementById('org-phone').value.trim();
-            const address = document.getElementById('org-address').value.trim();
-            const workingHours = document.getElementById('org-hours').value.trim();
-            const website = document.getElementById('org-website').value.trim();
-            const description = document.getElementById('org-description').value.trim();
+async function addOrganization() {
+const name = document.getElementById('org-name').value.trim();
+const category = document.getElementById('org-category').value.trim();
+const phone = document.getElementById('org-phone').value.trim();
+const address = document.getElementById('org-address').value.trim();
+const workingHours = document.getElementById('org-hours').value.trim();
+const website = document.getElementById('org-website').value.trim();
+const description = document.getElementById('org-description').value.trim();
 
-            if (!name || !phone) {
-            alert('Заполните хотя бы название и телефон');
-            return;
-            }
+if (!name || !phone) {
+alert('Заполните хотя бы название и телефон');
+return;
+}
 
-            if (editingOrgId) {
-                await db.collection('organizations').doc(editingOrgId).update({
-                    name, category, phone, address, workingHours,
-                    website: website || null,
-                    description
-                });
-                editingOrgId = null;
-                document.getElementById('org-submit-btn').textContent = 'Добавить организацию';
-                showStatus('Организация обновлена');
-            } else {
-                await db.collection('organizations').add({
-                    name, category, phone, address, workingHours,
-                    website: website || null,
-                    description,
-                    logoUrl: null,
-                    gallery: [],
-                    district: currentDistrictId
-                });
-                showStatus('Организация добавлена');
-            }
+if (editingOrgId) {
+await db.collection('organizations').doc(editingOrgId).update({
+name, category, phone, address, workingHours,
+website: website || null,
+description
+});
+editingOrgId = null;
+document.getElementById('org-submit-btn').textContent = 'Добавить организацию';
+showStatus('Организация обновлена');
+} else {
+await db.collection('organizations').add({
+name, category, phone, address, workingHours,
+website: website || null,
+description,
+logoUrl: null,
+gallery: [],
+district: currentDistrictId
+});
+showStatus('Организация добавлена');
+}
 
-            document.getElementById('org-name').value = '';
-            document.getElementById('org-category').value = '';
-            document.getElementById('org-phone').value = '';
-            document.getElementById('org-address').value = '';
-            document.getElementById('org-hours').value = '';
-            document.getElementById('org-website').value = '';
-            document.getElementById('org-description').value = '';
-            loadOrganizations();
-        }
+document.getElementById('org-name').value = '';
+document.getElementById('org-category').value = '';
+document.getElementById('org-phone').value = '';
+document.getElementById('org-address').value = '';
+document.getElementById('org-hours').value = '';
+document.getElementById('org-website').value = '';
+document.getElementById('org-description').value = '';
+loadOrganizations();
+}
 
-            async function loadOrganizations() {
-            const container = document.getElementById('org-list');
-            container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('organizations')
-            .where('district', '==', currentDistrictId)
-            .orderBy('name')
-            .get();
+async function loadOrganizations() {
+const container = document.getElementById('org-list');
+container.innerHTML = 'Загрузка...';
+const snapshot = await db.collection('organizations')
+.where('district', '==', currentDistrictId)
+.orderBy('name')
+.get();
 
-            if (snapshot.empty) {
-            container.innerHTML = '<div class="item-sub">Пока нет организаций в этом районе</div>';
-            return;
-            }
+if (snapshot.empty) {
+container.innerHTML = '<div class="item-sub">Пока нет организаций в этом районе</div>';
+return;
+}
 
-            container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const o = doc.data();
-                orgCache[doc.id] = o;
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
-                    <div>
-                        <div class="item-title">${escapeHtml(o.name)}</div>
-                        <div class="item-sub">${escapeHtml(o.category || '')}</div>
-                    </div>
-                    <div>
-                        <button class="secondary" onclick="editOrganization('${doc.id}')">Изменить</button>
-                        <button class="danger" onclick="deleteOrganization('${doc.id}')">Удалить</button>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
+container.innerHTML = '';
+snapshot.forEach((doc) => {
+const o = doc.data();
+orgCache[doc.id] = o;
+const row = document.createElement('div');
+row.className = 'item';
+row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(o.name)}</div>
+<div class="item-sub">${escapeHtml(o.category || '')}</div>
+</div>
+<div>
+<button class="secondary" onclick="editOrganization('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteOrganization('${doc.id}')">Удалить</button>
+</div>
+`;
+container.appendChild(row);
+});
+}
 
-        function editOrganization(id) {
-            const o = orgCache[id];
-            if (!o) return;
-            editingOrgId = id;
-            document.getElementById('org-name').value = o.name || '';
-            document.getElementById('org-category').value = o.category || '';
-            document.getElementById('org-phone').value = o.phone || '';
-            document.getElementById('org-address').value = o.address || '';
-            document.getElementById('org-hours').value = o.workingHours || '';
-            document.getElementById('org-website').value = o.website || '';
-            document.getElementById('org-description').value = o.description || '';
-            document.getElementById('org-submit-btn').textContent = 'Сохранить изменения';
-            document.getElementById('org-name').scrollIntoView({ behavior: 'smooth' });
-        }
+function editOrganization(id) {
+    const o = orgCache[id];
+    if (!o) return;
+    editingOrgId = id;
+    document.getElementById('org-name').value = o.name || '';
+    document.getElementById('org-category').value = o.category || '';
+    document.getElementById('org-phone').value = o.phone || '';
+    document.getElementById('org-address').value = o.address || '';
+    document.getElementById('org-hours').value = o.workingHours || '';
+    document.getElementById('org-website').value = o.website || '';
+    document.getElementById('org-description').value = o.description || '';
+    document.getElementById('org-submit-btn').textContent = 'Сохранить изменения';
+    document.getElementById('org-name').scrollIntoView({ behavior: 'smooth' });
+    }
 
-        async function deleteOrganization(id) {
-            if (!confirm('Удалить эту организацию?')) return;
-            await db.collection('organizations').doc(id).delete();
-            loadOrganizations();
-            }
+    async function deleteOrganization(id) {
+    if (!confirm('Удалить эту организацию?')) return;
+    await db.collection('organizations').doc(id).delete();
+    loadOrganizations();
+    }
 
-            function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str || '';
-            return div.innerHTML;
-            }
-            </script>
-            </body>
+    function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+    }
+    </script>
+    </body>
+    </html>
 
-            </html>
-        

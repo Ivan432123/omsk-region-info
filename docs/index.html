@@ -223,6 +223,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
+
+        window.addEventListener('unhandledrejection', function (event) {
+          alert('ОШИБКА: ' + (event.reason && event.reason.message ? event.reason.message : event.reason));
+          });
         const firebaseConfig = {
             apiKey: "AIzaSyCiUChcrSO8Vt46S84TaPhLRLcqIXAJOPs",
             authDomain: "omsk-region-info.firebaseapp.com",

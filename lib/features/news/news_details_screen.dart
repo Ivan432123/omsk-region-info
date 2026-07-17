@@ -49,7 +49,7 @@ class NewsDetailsScreen extends ConsumerWidget {
                 foregroundColor: AppTheme.textPrimary,
                 surfaceTintColor: Colors.transparent,
                 actions: [
-                  IconButton(
+                                          IconButton(
                     icon: const Icon(Icons.share_outlined),
                     onPressed: () => Share.share(
                       '${news.title}\n\n${news.description}',
@@ -59,17 +59,26 @@ class NewsDetailsScreen extends ConsumerWidget {
                 ],
                 flexibleSpace: news.imageUrl != null
                     ? FlexibleSpaceBar(
-                            background: Container(
-                                      color: AppTheme.surfaceGrey,
-                                                child: CachedNetworkImage(
-                                                            imageUrl: news.imageUrl!,
-                                                                        fit: BoxFit.contain,
-                                                                                    placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
-                                                                                                errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
-                                                                                                          ),
-                                                                                                                  ),
-                                                                                                                        )
-                                                                                                                            : null,
+                        background: GestureDetector(
+                          onTap: () =>
+                              _openFullScreenImage(context, news.imageUrl!),
+                          child: Container(
+                            color: AppTheme.surfaceGrey,
+                            child: Hero(
+                              tag: news.imageUrl!,
+                              child: CachedNetworkImage(
+                                imageUrl: news.imageUrl!,
+                                fit: BoxFit.contain,
+                                placeholder: (_, __) =>
+                                    Container(color: AppTheme.surfaceGrey),
+                                errorWidget: (_, __, ___) =>
+                                    Container(color: AppTheme.surfaceGrey),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : null,
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -79,22 +88,33 @@ class NewsDetailsScreen extends ConsumerWidget {
                     children: [
                       CategoryChip(category: news.category),
                       const SizedBox(height: 12),
-                      Text(news.title, style: Theme.of(context).textTheme.headlineMedium),
+                      Text(
+                        news.title,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today_outlined,
-                              size: 14, color: AppTheme.textSecondary),
-                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 14,
+                            color: AppTheme.textSecondary,
+                          ),
+                                                    const SizedBox(width: 6),
                           Text(
                             DateFormatter.formatDateTime(news.createdAt),
-                            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        news.content.isNotEmpty ? news.content : news.description,
+                        news.content.isNotEmpty
+                            ? news.content
+                            : news.description,
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
@@ -107,4 +127,54 @@ class NewsDetailsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  void _openFullScreenImage(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (_, __, ___) => _FullScreenImageViewer(imageUrl: imageUrl),
+      ),
+    );
+  }
 }
+
+class _FullScreenImageViewer extends StatelessWidget {
+  final String imageUrl;
+
+  const _FullScreenImageViewer({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Center(
+            child: Hero(
+              tag: imageUrl,
+              child: InteractiveViewer(
+                minScale: 0.8,
+                maxScale: 4,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

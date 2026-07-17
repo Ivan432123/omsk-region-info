@@ -59,14 +59,17 @@ class NewsDetailsScreen extends ConsumerWidget {
                 ],
                 flexibleSpace: news.imageUrl != null
                     ? FlexibleSpaceBar(
-                        background: CachedNetworkImage(
-                          imageUrl: news.imageUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
-                          errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
-                        ),
-                      )
-                    : null,
+                            background: Container(
+                                      color: AppTheme.surfaceGrey,
+                                                child: CachedNetworkImage(
+                                                            imageUrl: news.imageUrl!,
+                                                                        fit: BoxFit.contain,
+                                                                                    placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                                                                                                errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
+                                                                                                          ),
+                                                                                                                  ),
+                                                                                                                        )
+                                                                                                                            : null,
               ),
               SliverToBoxAdapter(
                 child: Padding(

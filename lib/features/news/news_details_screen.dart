@@ -67,8 +67,10 @@ class NewsDetailsScreen extends ConsumerWidget {
                             child: Hero(
                               tag: news.imageUrl!,
                               child: CachedNetworkImage(
-                                imageUrl: news.imageUrl!,
-                                fit: BoxFit.contain,
+                              imageUrl: news.imageUrl!,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                              )
                                 placeholder: (_, __) =>
                                     Container(color: AppTheme.surfaceGrey),
                                 errorWidget: (_, __, ___) =>

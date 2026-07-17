@@ -160,6 +160,7 @@ storageBucket: "omsk-region-info.firebasestorage.app",
 messagingSenderId: "500185933703",
 appId: "1:500185933703:web:8bc71f35db8377235f1522"
 };
+window.onerror = function(msg, url, line) { alert('ОШИБКА: ' + msg + ' | строка ' + line); return true; };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -400,31 +401,31 @@ container.appendChild(row);
 
 function editOrganization(id) {
     const o = orgCache[id];
-    if (!o) return;
-    editingOrgId = id;
-    document.getElementById('org-name').value = o.name || '';
-    document.getElementById('org-category').value = o.category || '';
-    document.getElementById('org-phone').value = o.phone || '';
-    document.getElementById('org-address').value = o.address || '';
-    document.getElementById('org-hours').value = o.workingHours || '';
-    document.getElementById('org-website').value = o.website || '';
-    document.getElementById('org-description').value = o.description || '';
-    document.getElementById('org-submit-btn').textContent = 'Сохранить изменения';
-    document.getElementById('org-name').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    async function deleteOrganization(id) {
-    if (!confirm('Удалить эту организацию?')) return;
-    await db.collection('organizations').doc(id).delete();
-    loadOrganizations();
-    }
-
-    function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-    }
-    </script>
-    </body>
-    </html>
+        if (!o) return;
+            editingOrgId = id;
+                document.getElementById('org-name').value = o.name || '';
+                    document.getElementById('org-category').value = o.category || '';
+                        document.getElementById('org-phone').value = o.phone || '';
+                            document.getElementById('org-address').value = o.address || '';
+                                document.getElementById('org-hours').value = o.workingHours || '';
+                                    document.getElementById('org-website').value = o.website || '';
+                                        document.getElementById('org-description').value = o.description || '';
+                                            document.getElementById('org-submit-btn').textContent = 'Сохранить изменения';
+                                                document.getElementById('org-name').scrollIntoView({ behavior: 'smooth' });
+                                                    }
+                                                    
+                                                        async function deleteOrganization(id) {
+                                                            if (!confirm('Удалить эту организацию?')) return;
+                                                                await db.collection('organizations').doc(id).delete();
+                                                                    loadOrganizations();
+                                                                        }
+                                                                        
+                                                                            function escapeHtml(str) {
+                                                                                const div = document.createElement('div');
+                                                                                    div.textContent = str || '';
+                                                                                        return div.innerHTML;
+                                                                                            }
+                                                                                                </script>
+                                                                                                    </body>
+                                                                                                        </html>>
 

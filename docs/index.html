@@ -497,13 +497,6 @@
             loadOrganizations();
         }
         async function uploadNewsImage() {
-            const fileInput = document.getElementById('news-image-file');
-            const file = fileInput.files[0];
-            if (!file) {
-                alert('Сначала выберите файл');
-                return;
-            }
-            async function uploadNewsImage() {
                 const fileInput = document.getElementById('news-image-file');
                 const file = fileInput.files[0];
                 if (!file) {
@@ -529,7 +522,7 @@
                     alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
                 }
             }
-        }
+        
 
         function escapeHtml(str) {
             const div = document.createElement('div');

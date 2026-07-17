@@ -49,7 +49,7 @@ class NewsDetailsScreen extends ConsumerWidget {
                 foregroundColor: AppTheme.textPrimary,
                 surfaceTintColor: Colors.transparent,
                 actions: [
-                                          IconButton(
+                  IconButton(
                     icon: const Icon(Icons.share_outlined),
                     onPressed: () => Share.share(
                       '${news.title}\n\n${news.description}',
@@ -67,10 +67,9 @@ class NewsDetailsScreen extends ConsumerWidget {
                             child: Hero(
                               tag: news.imageUrl!,
                               child: CachedNetworkImage(
-                              imageUrl: news.imageUrl!,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                              )
+                                imageUrl: news.imageUrl!,
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
                                 placeholder: (_, __) =>
                                     Container(color: AppTheme.surfaceGrey),
                                 errorWidget: (_, __, ___) =>
@@ -102,7 +101,7 @@ class NewsDetailsScreen extends ConsumerWidget {
                             size: 14,
                             color: AppTheme.textSecondary,
                           ),
-                                                    const SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Text(
                             DateFormatter.formatDateTime(news.createdAt),
                             style: const TextStyle(
@@ -135,7 +134,8 @@ class NewsDetailsScreen extends ConsumerWidget {
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black,
-        pageBuilder: (_, __, ___) => _FullScreenImageViewer(imageUrl: imageUrl),
+        pageBuilder: (_, __, ___) =>
+            _FullScreenImageViewer(imageUrl: imageUrl),
       ),
     );
   }
@@ -179,4 +179,3 @@ class _FullScreenImageViewer extends StatelessWidget {
     );
   }
 }
-

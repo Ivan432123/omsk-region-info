@@ -265,7 +265,7 @@
             <label>Ссылка на изображение (необязательно)</label>
             <input type="text" id="news-image" placeholder="https://...">
             <input type="file" id="news-image-file" accept="image/*" style="margin-top:8px;">
-            <button type="button" class="secondary" onclick="uploadNewsImage()">Загрузить фото</button>
+            <button type="button" class="secondary" onclick="uploadNewsImage(this)">Загрузить фото</button>
             <button id="news-submit-btn" onclick="addNews()">Опубликовать новость</button>
         </div>
         <div class="card" id="news-list"></div>
@@ -303,11 +303,11 @@
             <label>Логотип (необязательно)</label>
             <input type="text" id="org-logo" placeholder="https://...">
             <input type="file" id="org-logo-file" accept="image/*" style="margin-top:8px;">
-            <button type="button" class="secondary" onclick="uploadOrgLogo()">Загрузить лого</button>
+            <button type="button" class="secondary" onclick="uploadOrgLogo(this)">Загрузить лого</button>
             <label>Фото в галерею (через запятую — уже загруженные ссылки)</label>
             <input type="text" id="org-gallery" placeholder="url1, url2, url3">
             <input type="file" id="org-gallery-file" accept="image/*" style="margin-top:8px;">
-            <button type="button" class="secondary" onclick="uploadOrgGalleryImage()">Добавить фото в галерею</button>
+            <button type="button" class="secondary" onclick="uploadOrgGalleryImage(this)">Добавить фото в галерею</button>
             <button id="org-submit-btn" onclick="addOrganization()">Добавить организацию</button>
         </div>
         <div class="card" id="org-list"></div>
@@ -353,7 +353,7 @@
             <label>Изображение события (необязательно)</label>
             <input type="text" id="event-image" placeholder="https://...">
             <input type="file" id="event-image-file" accept="image/*" style="margin-top:8px;">
-            <button type="button" class="secondary" onclick="uploadEventImage()">Загрузить фото</button>
+            <button type="button" class="secondary" onclick="uploadEventImage(this)">Загрузить фото</button>
             <button id="event-submit-btn" onclick="addEvent()">Опубликовать событие</button>
         </div>
         <div class="card" id="event-list"></div>
@@ -691,13 +691,15 @@
             loadOrganizations();
         }
 
-        async function uploadNewsImage() {
+        async function uploadNewsImage(btn) {
             const fileInput = document.getElementById('news-image-file');
             const file = fileInput.files[0];
             if (!file) {
                 alert('Сначала выберите файл');
                 return;
             }
+            const originalText = btn ? btn.textContent : null;
+            if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
             try {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -710,21 +712,28 @@
                 if (data.secure_url) {
                     document.getElementById('news-image').value = data.secure_url;
                     showStatus('Фото загружено');
+                    if (btn) btn.textContent = '✓ Загружено';
                 } else {
                     alert('Ошибка загрузки: ' + JSON.stringify(data));
                 }
             } catch (err) {
                 alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
+            } finally {
+                if (btn) {
+                    setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 1500);
+                }
             }
         }
 
-        async function uploadOrgLogo() {
+        async function uploadOrgLogo(btn) {
             const fileInput = document.getElementById('org-logo-file');
             const file = fileInput.files[0];
             if (!file) {
                 alert('Сначала выберите файл');
                 return;
             }
+            const originalText = btn ? btn.textContent : null;
+            if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
             try {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -737,21 +746,28 @@
                 if (data.secure_url) {
                     document.getElementById('org-logo').value = data.secure_url;
                     showStatus('Лого загружено');
+                    if (btn) btn.textContent = '✓ Загружено';
                 } else {
                     alert('Ошибка загрузки: ' + JSON.stringify(data));
                 }
             } catch (err) {
                 alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
+            } finally {
+                if (btn) {
+                    setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 1500);
+                }
             }
         }
 
-        async function uploadOrgGalleryImage() {
+        async function uploadOrgGalleryImage(btn) {
             const fileInput = document.getElementById('org-gallery-file');
             const file = fileInput.files[0];
             if (!file) {
                 alert('Сначала выберите файл');
                 return;
             }
+            const originalText = btn ? btn.textContent : null;
+            if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
             try {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -767,21 +783,28 @@
                         ? field.value.trim() + ', ' + data.secure_url
                         : data.secure_url;
                     showStatus('Фото добавлено в галерею');
+                    if (btn) btn.textContent = '✓ Добавлено';
                 } else {
                     alert('Ошибка загрузки: ' + JSON.stringify(data));
                 }
             } catch (err) {
                 alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
+            } finally {
+                if (btn) {
+                    setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 1500);
+                }
             }
         }
 
-        async function uploadEventImage() {
+        async function uploadEventImage(btn) {
             const fileInput = document.getElementById('event-image-file');
             const file = fileInput.files[0];
             if (!file) {
                 alert('Сначала выберите файл');
                 return;
             }
+            const originalText = btn ? btn.textContent : null;
+            if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
             try {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -794,11 +817,16 @@
                 if (data.secure_url) {
                     document.getElementById('event-image').value = data.secure_url;
                     showStatus('Фото загружено');
+                    if (btn) btn.textContent = '✓ Загружено';
                 } else {
                     alert('Ошибка загрузки: ' + JSON.stringify(data));
                 }
             } catch (err) {
                 alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
+            } finally {
+                if (btn) {
+                    setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 1500);
+                }
             }
         }
 

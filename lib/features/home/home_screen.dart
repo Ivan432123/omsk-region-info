@@ -42,9 +42,6 @@ class HomeScreen extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                   child: _QuickNavRow(
-                    onNews: () => context.go('/news'),
-                    onOrganizations: () => context.go('/organizations'),
-                    onNotifications: () => context.go('/notifications'),
                     onVacancies: () => context.push('/vacancies'),
                     onAnnouncements: () => context.push('/announcements'),
                     onEvents: () => context.push('/events'),
@@ -256,17 +253,11 @@ class _HeroHeader extends StatelessWidget {
 }
 
 class _QuickNavRow extends StatelessWidget {
-  final VoidCallback onNews;
-  final VoidCallback onOrganizations;
-  final VoidCallback onNotifications;
   final VoidCallback onVacancies;
   final VoidCallback onAnnouncements;
   final VoidCallback onEvents;
 
   const _QuickNavRow({
-    required this.onNews,
-    required this.onOrganizations,
-    required this.onNotifications,
     required this.onVacancies,
     required this.onAnnouncements,
     required this.onEvents,
@@ -274,61 +265,32 @@ class _QuickNavRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 84,
-            child: _QuickNavButton(icon: Icons.article_rounded, label: 'Новости', onTap: onNews),
+    return Row(
+      children: [
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.work_rounded,
+            label: 'Вакансии',
+            onTap: onVacancies,
           ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 84,
-            child: _QuickNavButton(
-              icon: Icons.apartment_rounded,
-              label: 'Организации',
-              onTap: onOrganizations,
-            ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.campaign_rounded,
+            label: 'Объявления',
+            onTap: onAnnouncements,
           ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 84,
-            child: _QuickNavButton(
-              icon: Icons.notifications_rounded,
-              label: 'Уведомления',
-              onTap: onNotifications,
-            ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.event_rounded,
+            label: 'Афиша',
+            onTap: onEvents,
           ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 84,
-            child: _QuickNavButton(
-              icon: Icons.work_rounded,
-              label: 'Вакансии',
-              onTap: onVacancies,
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 84,
-            child: _QuickNavButton(
-              icon: Icons.campaign_rounded,
-              label: 'Объявления',
-              onTap: onAnnouncements,
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 84,
-            child: _QuickNavButton(
-              icon: Icons.event_rounded,
-              label: 'Афиша',
-              onTap: onEvents,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

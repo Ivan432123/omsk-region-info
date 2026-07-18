@@ -219,6 +219,48 @@
             <button id="org-submit-btn" onclick="addOrganization()">Добавить организацию</button>
         </div>
         <div class="card" id="org-list"></div>
+
+        <h2>Добавить вакансию</h2>
+        <div class="card">
+            <label>Должность</label>
+            <input type="text" id="vacancy-title">
+            <label>Компания</label>
+            <input type="text" id="vacancy-company">
+            <label>Описание</label>
+            <textarea id="vacancy-description"></textarea>
+            <label>Зарплата (необязательно)</label>
+            <input type="text" id="vacancy-salary" placeholder="от 40 000 руб.">
+            <label>Контактный телефон (необязательно)</label>
+            <input type="text" id="vacancy-phone" placeholder="79135551234">
+            <button id="vacancy-submit-btn" onclick="addVacancy()">Опубликовать вакансию</button>
+        </div>
+        <div class="card" id="vacancy-list"></div>
+
+        <h2>Добавить объявление</h2>
+        <div class="card">
+            <label>Заголовок</label>
+            <input type="text" id="announcement-title">
+            <label>Текст объявления</label>
+            <textarea id="announcement-description"></textarea>
+            <label>Контактный телефон (необязательно)</label>
+            <input type="text" id="announcement-phone" placeholder="79135551234">
+            <button id="announcement-submit-btn" onclick="addAnnouncement()">Опубликовать объявление</button>
+        </div>
+        <div class="card" id="announcement-list"></div>
+
+        <h2>Добавить событие в афишу</h2>
+        <div class="card">
+            <label>Название события</label>
+            <input type="text" id="event-title">
+            <label>Описание</label>
+            <textarea id="event-description"></textarea>
+            <label>Место проведения (необязательно)</label>
+            <input type="text" id="event-location" placeholder="Дом культуры, ул. Ленина 1">
+            <label>Дата и время проведения</label>
+            <input type="datetime-local" id="event-date">
+            <button id="event-submit-btn" onclick="addEvent()">Опубликовать событие</button>
+        </div>
+        <div class="card" id="event-list"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -246,8 +288,14 @@
         let currentDistrictId = null;
         let newsCache = {};
         let orgCache = {};
+        let vacancyCache = {};
+        let announcementCache = {};
+        let eventCache = {};
         let editingNewsId = null;
         let editingOrgId = null;
+        let editingVacancyId = null;
+        let editingAnnouncementId = null;
+        let editingEventId = null;
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -303,6 +351,9 @@
             currentDistrictId = document.getElementById('district-select').value;
             loadNews();
             loadOrganizations();
+            loadVacancies();
+            loadAnnouncements();
+            loadEvents();
         }
 
         async function addNews() {
@@ -496,33 +547,316 @@
             await db.collection('organizations').doc(id).delete();
             loadOrganizations();
         }
+
         async function uploadNewsImage() {
-                const fileInput = document.getElementById('news-image-file');
-                const file = fileInput.files[0];
-                if (!file) {
-                    alert('Сначала выберите файл');
-                    return;
-                }
-                try {
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('upload_preset', 'my_preset');
-                    const response = await fetch('https://api.cloudinary.com/v1_1/agidf3gy/image/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const data = await response.json();
-                    if (data.secure_url) {
-                        document.getElementById('news-image').value = data.secure_url;
-                        showStatus('Фото загружено');
-                    } else {
-                        alert('Ошибка загрузки: ' + JSON.stringify(data));
-                    }
-                } catch (err) {
-                    alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
-                }
+            const fileInput = document.getElementById('news-image-file');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Сначала выберите файл');
+                return;
             }
-        
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'my_preset');
+                const response = await fetch('https://api.cloudinary.com/v1_1/agidf3gy/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.secure_url) {
+                    document.getElementById('news-image').value = data.secure_url;
+                    showStatus('Фото загружено');
+                } else {
+                    alert('Ошибка загрузки: ' + JSON.stringify(data));
+                }
+            } catch (err) {
+                alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
+            }
+        }
+
+        // ---------- Вакансии ----------
+
+        async function addVacancy() {
+            const title = document.getElementById('vacancy-title').value.trim();
+            const company = document.getElementById('vacancy-company').value.trim();
+            const description = document.getElementById('vacancy-description').value.trim();
+            const salary = document.getElementById('vacancy-salary').value.trim();
+            const contactPhone = document.getElementById('vacancy-phone').value.trim();
+
+            if (!title || !company) {
+                alert('Заполните хотя бы должность и компанию');
+                return;
+            }
+
+            if (editingVacancyId) {
+                await db.collection('vacancies').doc(editingVacancyId).update({
+                    title, company, description,
+                    salary: salary || null,
+                    contactPhone: contactPhone || null
+                });
+                editingVacancyId = null;
+                document.getElementById('vacancy-submit-btn').textContent = 'Опубликовать вакансию';
+                showStatus('Вакансия обновлена');
+            } else {
+                await db.collection('vacancies').add({
+                    title, company, description,
+                    salary: salary || null,
+                    contactPhone: contactPhone || null,
+                    district: currentDistrictId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatus('Вакансия опубликована');
+            }
+
+            document.getElementById('vacancy-title').value = '';
+            document.getElementById('vacancy-company').value = '';
+            document.getElementById('vacancy-description').value = '';
+            document.getElementById('vacancy-salary').value = '';
+            document.getElementById('vacancy-phone').value = '';
+            loadVacancies();
+        }
+
+        async function loadVacancies() {
+            const container = document.getElementById('vacancy-list');
+            container.innerHTML = 'Загрузка...';
+            const snapshot = await db.collection('vacancies')
+                .where('district', '==', currentDistrictId)
+                .orderBy('createdAt', 'desc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="item-sub">Пока нет вакансий в этом районе</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const v = doc.data();
+                vacancyCache[doc.id] = v;
+                const row = document.createElement('div');
+                row.className = 'item';
+                row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(v.title)}</div>
+<div class="item-sub">${escapeHtml(v.company || '')}</div>
+</div>
+<div>
+<button class="secondary" onclick="editVacancy('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteVacancy('${doc.id}')">Удалить</button>
+</div>
+`;
+                container.appendChild(row);
+            });
+        }
+
+        function editVacancy(id) {
+            const v = vacancyCache[id];
+            if (!v) return;
+            editingVacancyId = id;
+            document.getElementById('vacancy-title').value = v.title || '';
+            document.getElementById('vacancy-company').value = v.company || '';
+            document.getElementById('vacancy-description').value = v.description || '';
+            document.getElementById('vacancy-salary').value = v.salary || '';
+            document.getElementById('vacancy-phone').value = v.contactPhone || '';
+            document.getElementById('vacancy-submit-btn').textContent = 'Сохранить изменения';
+            document.getElementById('vacancy-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteVacancy(id) {
+            if (!confirm('Удалить эту вакансию?')) return;
+            await db.collection('vacancies').doc(id).delete();
+            loadVacancies();
+        }
+
+        // ---------- Объявления ----------
+
+        async function addAnnouncement() {
+            const title = document.getElementById('announcement-title').value.trim();
+            const description = document.getElementById('announcement-description').value.trim();
+            const contactPhone = document.getElementById('announcement-phone').value.trim();
+
+            if (!title || !description) {
+                alert('Заполните хотя бы заголовок и текст объявления');
+                return;
+            }
+
+            if (editingAnnouncementId) {
+                await db.collection('announcements').doc(editingAnnouncementId).update({
+                    title, description,
+                    contactPhone: contactPhone || null
+                });
+                editingAnnouncementId = null;
+                document.getElementById('announcement-submit-btn').textContent = 'Опубликовать объявление';
+                showStatus('Объявление обновлено');
+            } else {
+                await db.collection('announcements').add({
+                    title, description,
+                    contactPhone: contactPhone || null,
+                    district: currentDistrictId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatus('Объявление опубликовано');
+            }
+
+            document.getElementById('announcement-title').value = '';
+            document.getElementById('announcement-description').value = '';
+            document.getElementById('announcement-phone').value = '';
+            loadAnnouncements();
+        }
+
+        async function loadAnnouncements() {
+            const container = document.getElementById('announcement-list');
+            container.innerHTML = 'Загрузка...';
+            const snapshot = await db.collection('announcements')
+                .where('district', '==', currentDistrictId)
+                .orderBy('createdAt', 'desc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="item-sub">Пока нет объявлений в этом районе</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const a = doc.data();
+                announcementCache[doc.id] = a;
+                const row = document.createElement('div');
+                row.className = 'item';
+                row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(a.title)}</div>
+</div>
+<div>
+<button class="secondary" onclick="editAnnouncement('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteAnnouncement('${doc.id}')">Удалить</button>
+</div>
+`;
+                container.appendChild(row);
+            });
+        }
+
+        function editAnnouncement(id) {
+            const a = announcementCache[id];
+            if (!a) return;
+            editingAnnouncementId = id;
+            document.getElementById('announcement-title').value = a.title || '';
+            document.getElementById('announcement-description').value = a.description || '';
+            document.getElementById('announcement-phone').value = a.contactPhone || '';
+            document.getElementById('announcement-submit-btn').textContent = 'Сохранить изменения';
+            document.getElementById('announcement-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteAnnouncement(id) {
+            if (!confirm('Удалить это объявление?')) return;
+            await db.collection('announcements').doc(id).delete();
+            loadAnnouncements();
+        }
+
+        // ---------- Афиша (события) ----------
+
+        async function addEvent() {
+            const title = document.getElementById('event-title').value.trim();
+            const description = document.getElementById('event-description').value.trim();
+            const location = document.getElementById('event-location').value.trim();
+            const eventDateValue = document.getElementById('event-date').value;
+
+            if (!title || !eventDateValue) {
+                alert('Заполните хотя бы название и дату события');
+                return;
+            }
+
+            const eventDate = firebase.firestore.Timestamp.fromDate(new Date(eventDateValue));
+
+            if (editingEventId) {
+                await db.collection('events').doc(editingEventId).update({
+                    title, description,
+                    location: location || null,
+                    eventDate
+                });
+                editingEventId = null;
+                document.getElementById('event-submit-btn').textContent = 'Опубликовать событие';
+                showStatus('Событие обновлено');
+            } else {
+                await db.collection('events').add({
+                    title, description,
+                    location: location || null,
+                    eventDate,
+                    district: currentDistrictId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatus('Событие опубликовано');
+            }
+
+            document.getElementById('event-title').value = '';
+            document.getElementById('event-description').value = '';
+            document.getElementById('event-location').value = '';
+            document.getElementById('event-date').value = '';
+            loadEvents();
+        }
+
+        async function loadEvents() {
+            const container = document.getElementById('event-list');
+            container.innerHTML = 'Загрузка...';
+            const snapshot = await db.collection('events')
+                .where('district', '==', currentDistrictId)
+                .orderBy('eventDate', 'asc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="item-sub">Пока нет событий в этом районе</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const e = doc.data();
+                eventCache[doc.id] = e;
+                const dateStr = e.eventDate && e.eventDate.toDate
+                    ? e.eventDate.toDate().toLocaleString('ru-RU')
+                    : '';
+                const row = document.createElement('div');
+                row.className = 'item';
+                row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(e.title)}</div>
+<div class="item-sub">${escapeHtml(dateStr)}</div>
+</div>
+<div>
+<button class="secondary" onclick="editEvent('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteEvent('${doc.id}')">Удалить</button>
+</div>
+`;
+                container.appendChild(row);
+            });
+        }
+
+        function editEvent(id) {
+            const e = eventCache[id];
+            if (!e) return;
+            editingEventId = id;
+            document.getElementById('event-title').value = e.title || '';
+            document.getElementById('event-description').value = e.description || '';
+            document.getElementById('event-location').value = e.location || '';
+            if (e.eventDate && e.eventDate.toDate) {
+                const d = e.eventDate.toDate();
+                const pad = (n) => String(n).padStart(2, '0');
+                const localValue = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                document.getElementById('event-date').value = localValue;
+            }
+            document.getElementById('event-submit-btn').textContent = 'Сохранить изменения';
+            document.getElementById('event-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteEvent(id) {
+            if (!confirm('Удалить это событие?')) return;
+            await db.collection('events').doc(id).delete();
+            loadEvents();
+        }
 
         function escapeHtml(str) {
             const div = document.createElement('div');

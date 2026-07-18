@@ -12,6 +12,8 @@ import '../../features/vacancies/vacancies_list_screen.dart';
 import '../../features/vacancies/vacancy_details_screen.dart';
 import '../../features/announcements/announcements_list_screen.dart';
 import '../../features/announcements/announcement_details_screen.dart';
+import '../../features/events/events_list_screen.dart';
+import '../../features/events/event_details_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -76,6 +78,15 @@ class AppRouter {
         path: '/announcements/:id',
         builder: (context, state) =>
             AnnouncementDetailsScreen(announcementId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/events',
+        builder: (context, state) => const EventsListScreen(),
+      ),
+      GoRoute(
+        path: '/events/:id',
+        builder: (context, state) =>
+            EventDetailsScreen(eventId: state.pathParameters['id']!),
       ),
     ],
   );

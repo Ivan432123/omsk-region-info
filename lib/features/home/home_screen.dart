@@ -47,6 +47,7 @@ class HomeScreen extends ConsumerWidget {
                     onNotifications: () => context.push('/notifications'),
                     onVacancies: () => context.push('/vacancies'),
                     onAnnouncements: () => context.push('/announcements'),
+                    onEvents: () => context.push('/events'),
                   ),
                 ),
               ),
@@ -260,6 +261,7 @@ class _QuickNavRow extends StatelessWidget {
   final VoidCallback onNotifications;
   final VoidCallback onVacancies;
   final VoidCallback onAnnouncements;
+  final VoidCallback onEvents;
 
   const _QuickNavRow({
     required this.onNews,
@@ -267,6 +269,7 @@ class _QuickNavRow extends StatelessWidget {
     required this.onNotifications,
     required this.onVacancies,
     required this.onAnnouncements,
+    required this.onEvents,
   });
 
   @override
@@ -313,6 +316,15 @@ class _QuickNavRow extends StatelessWidget {
               icon: Icons.campaign_rounded,
               label: 'Объявления',
               onTap: onAnnouncements,
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 84,
+            child: _QuickNavButton(
+              icon: Icons.event_rounded,
+              label: 'Афиша',
+              onTap: onEvents,
             ),
           ),
         ],

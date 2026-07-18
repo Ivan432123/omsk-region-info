@@ -46,6 +46,7 @@ class HomeScreen extends ConsumerWidget {
                     onNews: () => context.push('/news'),
                     onOrganizations: () => context.push('/organizations'),
                     onNotifications: () => context.push('/notifications'),
+                    onVacancies: () => context.push('/vacancies'),
                   ),
                 ),
               ),
@@ -257,37 +258,54 @@ class _QuickNavRow extends StatelessWidget {
   final VoidCallback onNews;
   final VoidCallback onOrganizations;
   final VoidCallback onNotifications;
+  final VoidCallback onVacancies;
 
   const _QuickNavRow({
     required this.onNews,
     required this.onOrganizations,
     required this.onNotifications,
+    required this.onVacancies,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _QuickNavButton(icon: Icons.article_rounded, label: 'Новости', onTap: onNews),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickNavButton(
-            icon: Icons.apartment_rounded,
-            label: 'Организации',
-            onTap: onOrganizations,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 84,
+            child: _QuickNavButton(icon: Icons.article_rounded, label: 'Новости', onTap: onNews),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickNavButton(
-            icon: Icons.notifications_rounded,
-            label: 'Уведомления',
-            onTap: onNotifications,
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 84,
+            child: _QuickNavButton(
+              icon: Icons.apartment_rounded,
+              label: 'Организации',
+              onTap: onOrganizations,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 84,
+            child: _QuickNavButton(
+              icon: Icons.notifications_rounded,
+              label: 'Уведомления',
+              onTap: onNotifications,
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 84,
+            child: _QuickNavButton(
+              icon: Icons.work_rounded,
+              label: 'Вакансии',
+              onTap: onVacancies,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

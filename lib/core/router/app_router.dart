@@ -8,6 +8,8 @@ import '../../features/organizations/organizations_list_screen.dart';
 import '../../features/organizations/organization_details_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/vacancies/vacancies_list_screen.dart';
+import '../../features/vacancies/vacancy_details_screen.dart';
 
 /// Единая точка навигации приложения.
 /// Плоская схема маршрутов сознательно выбрана для MVP; при расширении на
@@ -59,6 +61,15 @@ class AppRouter {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/vacancies',
+        builder: (context, state) => const VacanciesListScreen(),
+      ),
+      GoRoute(
+        path: '/vacancies/:id',
+        builder: (context, state) =>
+            VacancyDetailsScreen(vacancyId: state.pathParameters['id']!),
       ),
     ],
   );

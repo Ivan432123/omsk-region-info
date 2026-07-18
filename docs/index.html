@@ -1225,11 +1225,16 @@
 
         async function withButtonLock(btn, fn) {
             if (btn.disabled) return;
+            const originalText = btn.textContent;
             btn.disabled = true;
+            btn.textContent = 'Сохранение...';
             try {
                 await fn();
             } finally {
                 btn.disabled = false;
+                if (btn.textContent === 'Сохранение...') {
+                    btn.textContent = originalText;
+                }
             }
         }
 

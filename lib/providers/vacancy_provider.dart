@@ -63,7 +63,7 @@ class VacancyListNotifier extends StateNotifier<VacancyListState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Не удалось загрузить вакансии. Проверьте подключение к интернету.',
+        error: 'ОТЛАДКА: $e',
       );
     }
   }

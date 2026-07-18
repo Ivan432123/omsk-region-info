@@ -205,7 +205,15 @@
             <label>Название</label>
             <input type="text" id="org-name">
             <label>Категория</label>
-            <input type="text" id="org-category" placeholder="МФЦ, Больница, Школа...">
+            <input type="text" id="org-category" list="org-category-options" placeholder="МФЦ, Больница, Школа...">
+            <datalist id="org-category-options">
+                <option value="Госучреждения">
+                <option value="Медицина">
+                <option value="Образование">
+                <option value="Культура">
+                <option value="Спорт">
+                <option value="Почта">
+            </datalist>
             <label>Телефон</label>
             <input type="text" id="org-phone" placeholder="79135551234">
             <label>Адрес</label>

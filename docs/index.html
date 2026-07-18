@@ -337,6 +337,11 @@
             <textarea id="announcement-description"></textarea>
             <label>Контактный телефон (необязательно)</label>
             <input type="text" id="announcement-phone" placeholder="79135551234">
+            <label>Фото (через запятую — уже загруженные ссылки, необязательно)</label>
+            <input type="text" id="announcement-images" placeholder="url1, url2, url3" oninput="updateAnnouncementImagesCount()">
+            <div id="announcement-images-count" style="font-size:12px;color:#8C8571;margin-top:4px;">Фото: 0</div>
+            <input type="file" id="announcement-images-file" accept="image/*" multiple style="margin-top:8px;">
+            <button type="button" class="secondary" onclick="uploadAnnouncementImages(this)">Загрузить фото</button>
             <button id="announcement-submit-btn" onclick="addAnnouncement()">Опубликовать объявление</button>
         </div>
         <div class="card" id="announcement-list"></div>
@@ -946,6 +951,10 @@
             const title = document.getElementById('announcement-title').value.trim();
             const description = document.getElementById('announcement-description').value.trim();
             const contactPhone = document.getElementById('announcement-phone').value.trim();
+            const imagesRaw = document.getElementById('announcement-images').value.trim();
+            const images = imagesRaw
+                ? imagesRaw.split(',').map((s) => s.trim()).filter(Boolean)
+                : [];
 
             if (!title || !description) {
                 alert('Заполните хотя бы заголовок и текст объявления');
@@ -955,7 +964,8 @@
             if (editingAnnouncementId) {
                 await db.collection('announcements').doc(editingAnnouncementId).update({
                     title, description,
-                    contactPhone: contactPhone || null
+                    contactPhone: contactPhone || null,
+                    images
                 });
                 editingAnnouncementId = null;
                 document.getElementById('announcement-submit-btn').textContent = 'Опубликовать объявление';
@@ -964,6 +974,7 @@
                 await db.collection('announcements').add({
                     title, description,
                     contactPhone: contactPhone || null,
+                    images,
                     district: currentDistrictId,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -973,6 +984,8 @@
             document.getElementById('announcement-title').value = '';
             document.getElementById('announcement-description').value = '';
             document.getElementById('announcement-phone').value = '';
+            document.getElementById('announcement-images').value = '';
+            updateAnnouncementImagesCount();
             loadAnnouncements();
         }
 
@@ -1016,6 +1029,8 @@
             document.getElementById('announcement-title').value = a.title || '';
             document.getElementById('announcement-description').value = a.description || '';
             document.getElementById('announcement-phone').value = a.contactPhone || '';
+            document.getElementById('announcement-images').value = (a.images || []).join(', ');
+            updateAnnouncementImagesCount();
             document.getElementById('announcement-submit-btn').textContent = 'Сохранить изменения';
             document.getElementById('announcement-title').scrollIntoView({ behavior: 'smooth' });
         }
@@ -1151,6 +1166,61 @@
             const value = document.getElementById('org-gallery').value.trim();
             const count = value ? value.split(',').map((s) => s.trim()).filter(Boolean).length : 0;
             document.getElementById('org-gallery-count').textContent = 'Фото в галерее: ' + count;
+        }
+
+        function updateAnnouncementImagesCount() {
+            const value = document.getElementById('announcement-images').value.trim();
+            const count = value ? value.split(',').map((s) => s.trim()).filter(Boolean).length : 0;
+            document.getElementById('announcement-images-count').textContent = 'Фото: ' + count;
+        }
+
+        async function uploadAnnouncementImages(btn) {
+            const fileInput = document.getElementById('announcement-images-file');
+            const files = Array.from(fileInput.files || []);
+            if (files.length === 0) {
+                alert('Сначала выберите файл (можно сразу несколько)');
+                return;
+            }
+            const originalText = btn ? btn.textContent : null;
+            if (btn) { btn.disabled = true; }
+            const field = document.getElementById('announcement-images');
+            let uploaded = 0;
+            let failed = 0;
+            for (let i = 0; i < files.length; i++) {
+                if (btn) { btn.textContent = `Загрузка ${i + 1} из ${files.length}...`; }
+                try {
+                    const formData = new FormData();
+                    formData.append('file', files[i]);
+                    formData.append('upload_preset', 'my_preset');
+                    const response = await fetch('https://api.cloudinary.com/v1_1/agidf3gy/image/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.secure_url) {
+                        field.value = field.value.trim()
+                            ? field.value.trim() + ', ' + data.secure_url
+                            : data.secure_url;
+                        updateAnnouncementImagesCount();
+                        uploaded++;
+                    } else {
+                        failed++;
+                    }
+                } catch (err) {
+                    failed++;
+                }
+            }
+            if (failed === 0) {
+                showStatus(`Загружено фото: ${uploaded}`);
+                if (btn) btn.textContent = `✓ Загружено: ${uploaded}`;
+            } else {
+                alert(`Загружено: ${uploaded}, не удалось: ${failed}`);
+                if (btn) btn.textContent = originalText;
+            }
+            fileInput.value = '';
+            if (btn) {
+                setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 2000);
+            }
         }
 
         function escapeHtml(str) {

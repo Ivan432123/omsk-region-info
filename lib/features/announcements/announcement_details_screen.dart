@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -53,6 +54,29 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(announcement.title, style: Theme.of(context).textTheme.headlineMedium),
+                if (announcement.images.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: announcement.images.length == 1 ? 200 : 140,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: announcement.images.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) => ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: AspectRatio(
+                          aspectRatio: announcement.images.length == 1 ? 16 / 10 : 4 / 3,
+                          child: CachedNetworkImage(
+                            imageUrl: announcement.images[index],
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                            errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 Text(announcement.description, style: Theme.of(context).textTheme.bodyLarge),
                 if (announcement.contactPhone != null) ...[

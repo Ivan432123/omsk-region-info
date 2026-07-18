@@ -181,6 +181,39 @@
         #confirm-box button {
             margin-top: 0;
         }
+
+        #alert-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 42, 34, 0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #alert-overlay.visible {
+            display: flex;
+        }
+
+        #alert-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        #alert-message {
+            font-size: 15px;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+        }
+
+        #alert-box button {
+            margin-top: 0;
+        }
     </style>
 </head>
 
@@ -336,6 +369,13 @@
         </div>
     </div>
 
+    <div id="alert-overlay">
+        <div id="alert-box">
+            <div id="alert-message"></div>
+            <button onclick="document.getElementById('alert-overlay').classList.remove('visible')">Понятно</button>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -357,6 +397,11 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+
+        window.alert = function (message) {
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('alert-overlay').classList.add('visible');
+        };
 
         let currentDistrictId = null;
         let newsCache = {};

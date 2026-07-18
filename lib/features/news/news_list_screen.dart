@@ -8,6 +8,17 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/news/news_card.dart';
 
+const Map<String?, String> _kCategoryLabels = {
+  null: 'Все',
+  'general': 'Общее',
+  'water': 'Водоснабжение',
+  'gas': 'Газоснабжение',
+  'electricity': 'Электроснабжение',
+  'road': 'Дороги',
+  'emergency': 'Экстренное',
+  'events': 'Мероприятия',
+};
+
 class NewsListScreen extends ConsumerStatefulWidget {
   const NewsListScreen({super.key});
 
@@ -17,6 +28,7 @@ class NewsListScreen extends ConsumerStatefulWidget {
 
 class _NewsListScreenState extends ConsumerState<NewsListScreen> {
   final ScrollController _scrollController = ScrollController();
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -28,7 +40,11 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final districtId = ref.read(selectedDistrictProvider).id ?? '';
-      ref.read(newsListProvider(districtId).notifier).loadMore();
+      ref
+          .read(newsListByCategoryProvider(
+            (districtId: districtId, category: _selectedCategory),
+          ).notifier)
+          .loadMore();
     }
   }
 
@@ -41,54 +57,101 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
   @override
   Widget build(BuildContext context) {
     final districtId = ref.watch(selectedDistrictProvider).id ?? '';
-    final newsState = ref.watch(newsListProvider(districtId));
+    final newsState = ref.watch(
+      newsListByCategoryProvider((districtId: districtId, category: _selectedCategory)),
+    );
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Новости')),
-      body: Builder(
-        builder: (context) {
-          if (newsState.isLoading) return const LoadingListWidget();
-          if (newsState.error != null) {
-            return EmptyStateWidget.error(
-              onRetry: () => ref.read(newsListProvider(districtId).notifier).refresh(),
-            );
-          }
-          if (newsState.items.isEmpty) return const EmptyStateWidget.noNews();
-
-          return RefreshIndicator(
-            color: AppTheme.primaryBlue,
-            onRefresh: () => ref.read(newsListProvider(districtId).notifier).refresh(),
+      body: Column(
+        children: [
+          SizedBox(
+            height: 44,
             child: ListView.separated(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: newsState.items.length + (newsState.hasMore ? 1 : 0),
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _kCategoryLabels.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
-                if (index >= newsState.items.length) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.4,
-                          color: AppTheme.primaryBlue,
-                        ),
-                      ),
-                    ),
-                  );
-                }
-                final news = newsState.items[index];
-                return NewsCard(
-                  news: news,
-                  onTap: () => context.push('/news/${news.id}'),
+                final category = _kCategoryLabels.keys.elementAt(index);
+                final label = _kCategoryLabels[category]!;
+                final isSelected = _selectedCategory == category;
+                return ChoiceChip(
+                  label: Text(label),
+                  selected: isSelected,
+                  onSelected: (_) {
+                    setState(() => _selectedCategory = category);
+                  },
+                  selectedColor: AppTheme.primaryBlue,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : AppTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  backgroundColor: Colors.white,
+                  side: BorderSide(
+                    color: isSelected ? AppTheme.primaryBlue : AppTheme.divider,
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                if (newsState.isLoading) return const LoadingListWidget();
+                if (newsState.error != null) {
+                  return EmptyStateWidget.error(
+                    onRetry: () => ref
+                        .read(newsListByCategoryProvider(
+                          (districtId: districtId, category: _selectedCategory),
+                        ).notifier)
+                        .refresh(),
+                  );
+                }
+                if (newsState.items.isEmpty) return const EmptyStateWidget.noNews();
+
+                return RefreshIndicator(
+                  color: AppTheme.primaryBlue,
+                  onRefresh: () => ref
+                      .read(newsListByCategoryProvider(
+                        (districtId: districtId, category: _selectedCategory),
+                      ).notifier)
+                      .refresh(),
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: newsState.items.length + (newsState.hasMore ? 1 : 0),
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      if (index >= newsState.items.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: AppTheme.primaryBlue,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      final news = newsState.items[index];
+                      return NewsCard(
+                        news: news,
+                        onTap: () => context.push('/news/${news.id}'),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

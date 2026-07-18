@@ -144,6 +144,43 @@
             padding: 8px 14px;
             font-size: 13px;
         }
+
+        #confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 42, 34, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #confirm-overlay.visible {
+            display: flex;
+        }
+
+        #confirm-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        #confirm-message {
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        #confirm-box .confirm-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        #confirm-box button {
+            margin-top: 0;
+        }
     </style>
 </head>
 
@@ -287,6 +324,16 @@
             <button id="event-submit-btn" onclick="addEvent()">Опубликовать событие</button>
         </div>
         <div class="card" id="event-list"></div>
+    </div>
+
+    <div id="confirm-overlay">
+        <div id="confirm-box">
+            <div id="confirm-message"></div>
+            <div class="confirm-buttons">
+                <button class="secondary" onclick="_confirmResolve(false)" style="flex:1;">Отмена</button>
+                <button class="danger" onclick="_confirmResolve(true)" style="flex:1;">Удалить</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -470,7 +517,7 @@
         }
 
         async function deleteNews(id) {
-            if (!confirm('Удалить эту новость?')) return;
+            if (!(await showConfirmDialog('Удалить эту новость?'))) return;
             await db.collection('news').doc(id).delete();
             loadNews();
         }
@@ -594,7 +641,7 @@
         }
 
         async function deleteOrganization(id) {
-            if (!confirm('Удалить эту организацию?')) return;
+            if (!(await showConfirmDialog('Удалить эту организацию?'))) return;
             await db.collection('organizations').doc(id).delete();
             loadOrganizations();
         }
@@ -800,7 +847,7 @@
         }
 
         async function deleteVacancy(id) {
-            if (!confirm('Удалить эту вакансию?')) return;
+            if (!(await showConfirmDialog('Удалить эту вакансию?'))) return;
             await db.collection('vacancies').doc(id).delete();
             loadVacancies();
         }
@@ -886,7 +933,7 @@
         }
 
         async function deleteAnnouncement(id) {
-            if (!confirm('Удалить это объявление?')) return;
+            if (!(await showConfirmDialog('Удалить это объявление?'))) return;
             await db.collection('announcements').doc(id).delete();
             loadAnnouncements();
         }
@@ -993,9 +1040,23 @@
         }
 
         async function deleteEvent(id) {
-            if (!confirm('Удалить это событие?')) return;
+            if (!(await showConfirmDialog('Удалить это событие?'))) return;
             await db.collection('events').doc(id).delete();
             loadEvents();
+        }
+
+        let _confirmResolve = null;
+
+        function showConfirmDialog(message) {
+            return new Promise((resolve) => {
+                document.getElementById('confirm-message').textContent = message;
+                document.getElementById('confirm-overlay').classList.add('visible');
+                _confirmResolve = (result) => {
+                    document.getElementById('confirm-overlay').classList.remove('visible');
+                    _confirmResolve = null;
+                    resolve(result);
+                };
+            });
         }
 
         function escapeHtml(str) {

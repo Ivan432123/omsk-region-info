@@ -8,6 +8,7 @@ import '../../providers/news_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/category_chip.dart';
+import '../../widgets/common/fullscreen_gallery_viewer.dart';
 
 String _formatViewCount(int count) {
   if (count >= 1000) {
@@ -104,7 +105,7 @@ class NewsDetailsScreen extends ConsumerWidget {
                 if (news.imageUrl != null) ...[
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: () => _openFullScreenImage(context, news.imageUrl!),
+                    onTap: () => FullscreenGalleryViewer.open(context, [news.imageUrl!]),
                     child: Hero(
                       tag: news.imageUrl!,
                       child: ClipRRect(
@@ -133,56 +134,6 @@ class NewsDetailsScreen extends ConsumerWidget {
             ),
           );
         },
-      ),
-    );
-  }
-
-  void _openFullScreenImage(BuildContext context, String imageUrl) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: false,
-        barrierColor: Colors.black,
-        pageBuilder: (_, __, ___) =>
-            _FullScreenImageViewer(imageUrl: imageUrl),
-      ),
-    );
-  }
-}
-
-class _FullScreenImageViewer extends StatelessWidget {
-  final String imageUrl;
-
-  const _FullScreenImageViewer({required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Center(
-            child: Hero(
-              tag: imageUrl,
-              child: InteractiveViewer(
-                minScale: 0.8,
-                maxScale: 4,
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

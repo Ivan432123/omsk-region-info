@@ -7,6 +7,7 @@ import '../../core/utils/date_formatter.dart';
 import '../../providers/announcement_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
+import '../../widgets/common/fullscreen_gallery_viewer.dart';
 
 class AnnouncementDetailsScreen extends ConsumerWidget {
   final String announcementId;
@@ -62,15 +63,26 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                       scrollDirection: Axis.horizontal,
                       itemCount: announcement.images.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) => ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: AspectRatio(
-                          aspectRatio: announcement.images.length == 1 ? 16 / 10 : 4 / 3,
-                          child: CachedNetworkImage(
-                            imageUrl: announcement.images[index],
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
-                            errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
+                      itemBuilder: (context, index) => GestureDetector(
+                        onTap: () => FullscreenGalleryViewer.open(
+                          context,
+                          announcement.images,
+                          initialIndex: index,
+                        ),
+                        child: Hero(
+                          tag: announcement.images[index],
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: AspectRatio(
+                              aspectRatio: announcement.images.length == 1 ? 16 / 10 : 4 / 3,
+                              child: CachedNetworkImage(
+                                imageUrl: announcement.images[index],
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                                errorWidget: (_, __, ___) =>
+                                    Container(color: AppTheme.surfaceGrey),
+                              ),
+                            ),
                           ),
                         ),
                       ),

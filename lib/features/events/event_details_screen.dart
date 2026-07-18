@@ -6,6 +6,7 @@ import '../../core/utils/date_formatter.dart';
 import '../../providers/event_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
+import '../../widgets/common/fullscreen_gallery_viewer.dart';
 
 class EventDetailsScreen extends ConsumerWidget {
   final String eventId;
@@ -63,15 +64,21 @@ class EventDetailsScreen extends ConsumerWidget {
                 ],
                 if (event.imageUrl != null) ...[
                   const SizedBox(height: 20),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 10,
-                      child: CachedNetworkImage(
-                        imageUrl: event.imageUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
-                        errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
+                  GestureDetector(
+                    onTap: () => FullscreenGalleryViewer.open(context, [event.imageUrl!]),
+                    child: Hero(
+                      tag: event.imageUrl!,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: AspectRatio(
+                          aspectRatio: 16 / 10,
+                          child: CachedNetworkImage(
+                            imageUrl: event.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                            errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
+                          ),
+                        ),
                       ),
                     ),
                   ),

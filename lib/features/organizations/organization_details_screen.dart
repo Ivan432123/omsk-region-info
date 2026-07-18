@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/utils/date_formatter.dart';
 import '../../core/utils/organization_icon_helper.dart';
 import '../../providers/organization_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
+import '../../widgets/common/fullscreen_gallery_viewer.dart';
 
 class OrganizationDetailsScreen extends ConsumerStatefulWidget {
   final String organizationId;
@@ -157,12 +157,22 @@ class _OrganizationDetailsScreenState
                       scrollDirection: Axis.horizontal,
                       itemCount: org.gallery.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) => ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: CachedNetworkImage(
-                          imageUrl: org.gallery[index],
-                          width: 140,
-                          fit: BoxFit.cover,
+                      itemBuilder: (context, index) => GestureDetector(
+                        onTap: () => FullscreenGalleryViewer.open(
+                          context,
+                          org.gallery,
+                          initialIndex: index,
+                        ),
+                        child: Hero(
+                          tag: org.gallery[index],
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: CachedNetworkImage(
+                              imageUrl: org.gallery[index],
+                              width: 140,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       ),
                     ),

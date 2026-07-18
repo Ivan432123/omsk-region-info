@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/district_provider.dart';
 import '../../providers/news_provider.dart';
-import '../../providers/notification_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/news/news_card.dart';
 
@@ -17,7 +16,6 @@ class HomeScreen extends ConsumerWidget {
     final districtId = district.id ?? '';
     final newsState = ref.watch(newsListProvider(districtId));
     final announcementsAsync = ref.watch(importantAnnouncementsProvider(districtId));
-    final unreadCount = ref.watch(unreadNotificationsCountProvider(districtId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -33,9 +31,7 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: _HeroHeader(
                   districtName: district.name ?? '',
-                  unreadCount: unreadCount,
                   onSearchTap: () => context.push('/search'),
-                  onNotificationsTap: () => context.go('/notifications'),
                   onSettingsTap: () => context.push('/settings'),
                 ),
               ),
@@ -144,16 +140,12 @@ class HomeScreen extends ConsumerWidget {
 
 class _HeroHeader extends StatelessWidget {
   final String districtName;
-  final int unreadCount;
   final VoidCallback onSearchTap;
-  final VoidCallback onNotificationsTap;
   final VoidCallback onSettingsTap;
 
   const _HeroHeader({
     required this.districtName,
-    required this.unreadCount,
     required this.onSearchTap,
-    required this.onNotificationsTap,
     required this.onSettingsTap,
   });
 
@@ -176,75 +168,59 @@ class _HeroHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 18),
                     ),
-                    child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 18),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    districtName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        districtName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              Row(
-                children: [
-                  InkWell(
-                    onTap: onSearchTap,
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.search_rounded, color: Colors.white),
-                    ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: onSearchTap,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: onNotificationsTap,
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Badge(
-                        isLabelVisible: unreadCount > 0,
-                        label: Text('$unreadCount'),
-                        backgroundColor: AppTheme.accentRed,
-                        child: const Icon(Icons.notifications_outlined, color: Colors.white),
-                      ),
-                    ),
+                  child: const Icon(Icons.search_rounded, color: Colors.white),
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: onSettingsTap,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: onSettingsTap,
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.settings_outlined, color: Colors.white),
-                    ),
-                  ),
-                ],
+                  child: const Icon(Icons.settings_outlined, color: Colors.white),
+                ),
               ),
             ],
           ),

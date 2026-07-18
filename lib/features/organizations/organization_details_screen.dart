@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/date_formatter.dart';
 import '../../core/utils/organization_icon_helper.dart';
 import '../../providers/organization_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';

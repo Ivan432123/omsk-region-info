@@ -305,7 +305,8 @@
             <input type="file" id="org-logo-file" accept="image/*" style="margin-top:8px;">
             <button type="button" class="secondary" onclick="uploadOrgLogo(this)">Загрузить лого</button>
             <label>Фото в галерею (через запятую — уже загруженные ссылки)</label>
-            <input type="text" id="org-gallery" placeholder="url1, url2, url3">
+            <input type="text" id="org-gallery" placeholder="url1, url2, url3" oninput="updateGalleryCount()">
+            <div id="org-gallery-count" style="font-size:12px;color:#8C8571;margin-top:4px;">Фото в галерее: 0</div>
             <input type="file" id="org-gallery-file" accept="image/*" style="margin-top:8px;">
             <button type="button" class="secondary" onclick="uploadOrgGalleryImage(this)">Добавить фото в галерею</button>
             <button id="org-submit-btn" onclick="addOrganization()">Добавить организацию</button>
@@ -629,6 +630,7 @@
             document.getElementById('org-services').value = '';
             document.getElementById('org-logo').value = '';
             document.getElementById('org-gallery').value = '';
+            updateGalleryCount();
             loadOrganizations();
         }
 
@@ -681,6 +683,7 @@
             document.getElementById('org-services').value = (o.services || []).join(', ');
             document.getElementById('org-logo').value = o.logoUrl || '';
             document.getElementById('org-gallery').value = (o.gallery || []).join(', ');
+            updateGalleryCount();
             document.getElementById('org-submit-btn').textContent = 'Сохранить изменения';
             document.getElementById('org-name').scrollIntoView({ behavior: 'smooth' });
         }
@@ -782,6 +785,7 @@
                     field.value = field.value.trim()
                         ? field.value.trim() + ', ' + data.secure_url
                         : data.secure_url;
+                    updateGalleryCount();
                     showStatus('Фото добавлено в галерею');
                     if (btn) btn.textContent = '✓ Добавлено';
                 } else {
@@ -1130,6 +1134,12 @@
                     resolve(result);
                 };
             });
+        }
+
+        function updateGalleryCount() {
+            const value = document.getElementById('org-gallery').value.trim();
+            const count = value ? value.split(',').map((s) => s.trim()).filter(Boolean).length : 0;
+            document.getElementById('org-gallery-count').textContent = 'Фото в галерее: ' + count;
         }
 
         function escapeHtml(str) {

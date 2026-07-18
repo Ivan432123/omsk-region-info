@@ -266,7 +266,7 @@
             <input type="text" id="news-image" placeholder="https://...">
             <input type="file" id="news-image-file" accept="image/*" style="margin-top:8px;">
             <button type="button" class="secondary" onclick="uploadNewsImage(this)">Загрузить фото</button>
-            <button id="news-submit-btn" onclick="addNews()">Опубликовать новость</button>
+            <button id="news-submit-btn" onclick="withButtonLock(this, addNews)">Опубликовать новость</button>
         </div>
         <div class="card" id="news-list"></div>
 
@@ -309,7 +309,7 @@
             <div id="org-gallery-count" style="font-size:12px;color:#8C8571;margin-top:4px;">Фото в галерее: 0</div>
             <input type="file" id="org-gallery-file" accept="image/*" multiple style="margin-top:8px;">
             <button type="button" class="secondary" onclick="uploadOrgGalleryImage(this)">Добавить фото в галерею</button>
-            <button id="org-submit-btn" onclick="addOrganization()">Добавить организацию</button>
+            <button id="org-submit-btn" onclick="withButtonLock(this, addOrganization)">Добавить организацию</button>
         </div>
         <div class="card" id="org-list"></div>
 
@@ -325,7 +325,7 @@
             <input type="text" id="vacancy-salary" placeholder="от 40 000 руб.">
             <label>Контактный телефон (необязательно)</label>
             <input type="text" id="vacancy-phone" placeholder="79135551234">
-            <button id="vacancy-submit-btn" onclick="addVacancy()">Опубликовать вакансию</button>
+            <button id="vacancy-submit-btn" onclick="withButtonLock(this, addVacancy)">Опубликовать вакансию</button>
         </div>
         <div class="card" id="vacancy-list"></div>
 
@@ -342,7 +342,7 @@
             <div id="announcement-images-count" style="font-size:12px;color:#8C8571;margin-top:4px;">Фото: 0</div>
             <input type="file" id="announcement-images-file" accept="image/*" multiple style="margin-top:8px;">
             <button type="button" class="secondary" onclick="uploadAnnouncementImages(this)">Загрузить фото</button>
-            <button id="announcement-submit-btn" onclick="addAnnouncement()">Опубликовать объявление</button>
+            <button id="announcement-submit-btn" onclick="withButtonLock(this, addAnnouncement)">Опубликовать объявление</button>
         </div>
         <div class="card" id="announcement-list"></div>
 
@@ -360,7 +360,7 @@
             <input type="text" id="event-image" placeholder="https://...">
             <input type="file" id="event-image-file" accept="image/*" style="margin-top:8px;">
             <button type="button" class="secondary" onclick="uploadEventImage(this)">Загрузить фото</button>
-            <button id="event-submit-btn" onclick="addEvent()">Опубликовать событие</button>
+            <button id="event-submit-btn" onclick="withButtonLock(this, addEvent)">Опубликовать событие</button>
         </div>
         <div class="card" id="event-list"></div>
     </div>
@@ -1220,6 +1220,16 @@
             fileInput.value = '';
             if (btn) {
                 setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 2000);
+            }
+        }
+
+        async function withButtonLock(btn, fn) {
+            if (btn.disabled) return;
+            btn.disabled = true;
+            try {
+                await fn();
+            } finally {
+                btn.disabled = false;
             }
         }
 

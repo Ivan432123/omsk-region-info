@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/utils/date_formatter.dart';
+import '../../core/utils/organization_icon_helper.dart';
 import '../../providers/organization_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -88,6 +88,10 @@ class _OrganizationDetailsScreenState
             );
           }
 
+          final icon = OrganizationIconHelper.iconFor(org.category);
+          final color = OrganizationIconHelper.colorFor(org.category);
+          final background = OrganizationIconHelper.backgroundFor(org.category);
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -103,9 +107,8 @@ class _OrganizationDetailsScreenState
                         child: org.logoUrl != null
                             ? CachedNetworkImage(imageUrl: org.logoUrl!, fit: BoxFit.cover)
                             : Container(
-                                color: AppTheme.primaryBlueLight,
-                                child: const Icon(Icons.apartment_rounded,
-                                    color: AppTheme.primaryBlue, size: 32),
+                                color: background,
+                                child: Icon(icon, color: color, size: 32),
                               ),
                       ),
                     ),
@@ -118,10 +121,7 @@ class _OrganizationDetailsScreenState
                           const SizedBox(height: 4),
                           Text(
                             org.category,
-                            style: const TextStyle(
-                              color: AppTheme.primaryBlue,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(color: color, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),

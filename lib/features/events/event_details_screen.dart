@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
@@ -58,6 +59,21 @@ class EventDetailsScreen extends ConsumerWidget {
                   Text(
                     event.location!,
                     style: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                  ),
+                ],
+                if (event.imageUrl != null) ...[
+                  const SizedBox(height: 20),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: AspectRatio(
+                      aspectRatio: 16 / 10,
+                      child: CachedNetworkImage(
+                        imageUrl: event.imageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                        errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
+                      ),
+                    ),
                   ),
                 ],
                 const SizedBox(height: 20),

@@ -28,123 +28,109 @@ class NewsDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
+      appBar: AppBar(
+        title: const Text('Новость'),
+        actions: [
+          if (newsAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () {
+                final news = newsAsync.value!;
+                Share.share(
+                  '${news.title}\n\n${news.description}',
+                  subject: news.title,
+                );
+              },
+            ),
+        ],
+      ),
       body: newsAsync.when(
         loading: () => const LoadingIndicatorWidget(),
-        error: (_, __) => Scaffold(
-          appBar: AppBar(),
-          body: EmptyStateWidget.error(
-            onRetry: () => ref.invalidate(newsDetailsProvider(newsId)),
-          ),
+        error: (_, __) => EmptyStateWidget.error(
+          onRetry: () => ref.invalidate(newsDetailsProvider(newsId)),
         ),
         data: (news) {
           if (news == null) {
-            return Scaffold(
-              appBar: AppBar(),
-              body: const EmptyStateWidget(
-                icon: Icons.article_outlined,
-                title: 'Новость не найдена',
-                subtitle: 'Возможно, она была удалена',
-              ),
+            return const EmptyStateWidget(
+              icon: Icons.article_outlined,
+              title: 'Новость не найдена',
+              subtitle: 'Возможно, она была удалена',
             );
           }
 
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                expandedHeight: news.imageUrl != null ? 260 : 0,
-                backgroundColor: AppTheme.backgroundWhite,
-                foregroundColor: AppTheme.textPrimary,
-                surfaceTintColor: Colors.transparent,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.share_outlined),
-                    onPressed: () => Share.share(
-                      '${news.title}\n\n${news.description}',
-                      subject: news.title,
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CategoryChip(category: news.category),
+                const SizedBox(height: 12),
+                Text(
+                  news.title,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: AppTheme.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      DateFormatter.formatDateTime(news.createdAt),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Icon(
+                      Icons.visibility_outlined,
+                      size: 14,
+                      color: AppTheme.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_formatViewCount(news.viewCount)} просмотров',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                if (news.imageUrl != null) ...[
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: () => _openFullScreenImage(context, news.imageUrl!),
+                    child: Hero(
+                      tag: news.imageUrl!,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: AspectRatio(
+                          aspectRatio: 16 / 10,
+                          child: CachedNetworkImage(
+                            imageUrl: news.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) =>
+                                Container(color: AppTheme.surfaceGrey),
+                            errorWidget: (_, __, ___) =>
+                                Container(color: AppTheme.surfaceGrey),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
-                flexibleSpace: news.imageUrl != null
-                    ? FlexibleSpaceBar(
-                        background: GestureDetector(
-                          onTap: () =>
-                              _openFullScreenImage(context, news.imageUrl!),
-                          child: Container(
-                            color: AppTheme.surfaceGrey,
-                            child: Hero(
-                              tag: news.imageUrl!,
-                              child: CachedNetworkImage(
-                                imageUrl: news.imageUrl!,
-                                fit: BoxFit.cover,
-                                alignment: Alignment.topCenter,
-                                placeholder: (_, __) =>
-                                    Container(color: AppTheme.surfaceGrey),
-                                errorWidget: (_, __, ___) =>
-                                    Container(color: AppTheme.surfaceGrey),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CategoryChip(category: news.category),
-                      const SizedBox(height: 12),
-                      Text(
-                        news.title,
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.calendar_today_outlined,
-                            size: 14,
-                            color: AppTheme.textSecondary,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            DateFormatter.formatDateTime(news.createdAt),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          const Icon(
-                            Icons.visibility_outlined,
-                            size: 14,
-                            color: AppTheme.textSecondary,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${_formatViewCount(news.viewCount)} просмотров',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        news.content.isNotEmpty
-                            ? news.content
-                            : news.description,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 20),
+                Text(
+                  news.content.isNotEmpty ? news.content : news.description,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),

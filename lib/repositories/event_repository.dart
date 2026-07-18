@@ -4,7 +4,10 @@ import '../services/firestore_service.dart';
 
 /// Репозиторий афиши (событий района).
 /// Сортировка по дате проведения (eventDate) по возрастанию — ближайшие
-/// события показываются первыми. Композитный индекс
+/// события показываются первыми. Прошедшие события (eventDate раньше
+/// текущего момента) автоматически скрываются из выдачи приложения —
+/// в админке при этом видны все события, фильтр применяется только
+/// здесь, в клиентском репозитории. Композитный индекс
 /// (district ASC, eventDate ASC) должен быть создан в Firestore Console.
 class EventRepository {
   static const String _collection = 'events';
@@ -19,6 +22,7 @@ class EventRepository {
     return _firestoreService
         .collection(_collection)
         .where('district', isEqualTo: districtId)
+        .where('eventDate', isGreaterThanOrEqualTo: Timestamp.now())
         .orderBy('eventDate', descending: false);
   }
 

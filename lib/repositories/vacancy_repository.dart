@@ -4,11 +4,15 @@ import '../services/firestore_service.dart';
 
 /// Репозиторий вакансий.
 /// Все запросы обязательно фильтруются по district — по аналогии с
-/// новостями. Композитный индекс (district ASC, createdAt DESC) должен
-/// быть создан в Firestore Console для коллекции vacancies.
+/// новостями. Вакансии старше 30 дней с момента публикации автоматически
+/// скрываются из выдачи приложения (админка видит все вакансии без
+/// ограничения по возрасту — фильтр применяется только здесь).
+/// Композитный индекс (district ASC, createdAt DESC) должен быть создан
+/// в Firestore Console для коллекции vacancies.
 class VacancyRepository {
   static const String _collection = 'vacancies';
   static const int _pageSize = 15;
+  static const Duration _maxAge = Duration(days: 30);
 
   final FirestoreService _firestoreService;
 
@@ -16,9 +20,11 @@ class VacancyRepository {
       : _firestoreService = firestoreService ?? FirestoreService();
 
   Query<Map<String, dynamic>> _baseQuery(String districtId) {
+    final cutoff = Timestamp.fromDate(DateTime.now().subtract(_maxAge));
     return _firestoreService
         .collection(_collection)
         .where('district', isEqualTo: districtId)
+        .where('createdAt', isGreaterThanOrEqualTo: cutoff)
         .orderBy('createdAt', descending: true);
   }
 

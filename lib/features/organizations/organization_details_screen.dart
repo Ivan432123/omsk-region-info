@@ -3,15 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/utils/date_formatter.dart';
 import '../../providers/organization_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 
-class OrganizationDetailsScreen extends ConsumerWidget {
+class OrganizationDetailsScreen extends ConsumerStatefulWidget {
   final String organizationId;
 
   const OrganizationDetailsScreen({super.key, required this.organizationId});
+
+  @override
+  ConsumerState<OrganizationDetailsScreen> createState() =>
+      _OrganizationDetailsScreenState();
+}
+
+class _OrganizationDetailsScreenState
+    extends ConsumerState<OrganizationDetailsScreen> {
+  bool _isBookmarked = false;
 
   Future<void> _call(BuildContext context, String phone) async {
     final uri = Uri(scheme: 'tel', path: PhoneFormatter.toDialFormat(phone));
@@ -40,17 +48,35 @@ class OrganizationDetailsScreen extends ConsumerWidget {
     );
   }
 
+  void _toggleBookmark() {
+    setState(() => _isBookmarked = !_isBookmarked);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isBookmarked ? 'Добавлено в закладки' : 'Убрано из закладок'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final orgAsync = ref.watch(organizationDetailsProvider(organizationId));
+  Widget build(BuildContext context) {
+    final orgAsync = ref.watch(organizationDetailsProvider(widget.organizationId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
-      appBar: AppBar(title: const Text('Организация')),
+      appBar: AppBar(
+        title: const Text('Организация'),
+        actions: [
+          IconButton(
+            icon: Icon(_isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded),
+            onPressed: _toggleBookmark,
+          ),
+        ],
+      ),
       body: orgAsync.when(
         loading: () => const LoadingIndicatorWidget(),
         error: (_, __) => EmptyStateWidget.error(
-          onRetry: () => ref.invalidate(organizationDetailsProvider(organizationId)),
+          onRetry: () => ref.invalidate(organizationDetailsProvider(widget.organizationId)),
         ),
         data: (org) {
           if (org == null) {
@@ -101,6 +127,26 @@ class OrganizationDetailsScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+                if (org.rating != null) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+                      const SizedBox(width: 4),
+                      Text(
+                        org.rating!.toStringAsFixed(1),
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                      ),
+                      if (org.reviewCount != null) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '${org.reviewCount} ${_reviewsWord(org.reviewCount!)}',
+                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
                 if (org.gallery.isNotEmpty) ...[
                   const SizedBox(height: 20),
                   SizedBox(
@@ -148,6 +194,27 @@ class OrganizationDetailsScreen extends ConsumerWidget {
                     label: 'Сайт',
                     value: org.website!,
                   ),
+                if (org.services.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Услуги', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: org.services
+                        .map((service) => Chip(
+                              label: Text(service),
+                              backgroundColor: AppTheme.primaryBlueLight,
+                              labelStyle: const TextStyle(
+                                color: AppTheme.primaryBlue,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                              side: BorderSide.none,
+                            ))
+                        .toList(),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 Row(
                   children: [
@@ -163,8 +230,8 @@ class OrganizationDetailsScreen extends ConsumerWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () => _openMap(context, org.latitude!, org.longitude!),
-                          icon: const Icon(Icons.map_outlined, size: 18),
-                          label: const Text('На карте'),
+                          icon: const Icon(Icons.directions_rounded, size: 18),
+                          label: const Text('Маршрут'),
                         ),
                       ),
                     ],
@@ -187,6 +254,15 @@ class OrganizationDetailsScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  String _reviewsWord(int count) {
+    final lastTwo = count % 100;
+    final last = count % 10;
+    if (lastTwo >= 11 && lastTwo <= 14) return 'оценок';
+    if (last == 1) return 'оценка';
+    if (last >= 2 && last <= 4) return 'оценки';
+    return 'оценок';
   }
 }
 

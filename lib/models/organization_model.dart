@@ -14,6 +14,9 @@ class OrganizationModel extends Equatable {
   final String workingHours;
   final double? latitude;
   final double? longitude;
+  final double? rating;
+  final int? reviewCount;
+  final List<String> services;
   final String districtId;
 
   const OrganizationModel({
@@ -29,6 +32,9 @@ class OrganizationModel extends Equatable {
     required this.workingHours,
     this.latitude,
     this.longitude,
+    this.rating,
+    this.reviewCount,
+    this.services = const [],
     required this.districtId,
   });
 
@@ -47,6 +53,9 @@ class OrganizationModel extends Equatable {
       workingHours: data['workingHours'] as String? ?? '',
       latitude: (data['latitude'] as num?)?.toDouble(),
       longitude: (data['longitude'] as num?)?.toDouble(),
+      rating: (data['rating'] as num?)?.toDouble(),
+      reviewCount: (data['reviewCount'] as num?)?.toInt(),
+      services: List<String>.from(data['services'] as List? ?? []),
       districtId: data['district'] as String? ?? '',
     );
   }
@@ -64,6 +73,9 @@ class OrganizationModel extends Equatable {
       'workingHours': workingHours,
       'latitude': latitude,
       'longitude': longitude,
+      'rating': rating,
+      'reviewCount': reviewCount,
+      'services': services,
       'district': districtId,
     };
   }
@@ -82,6 +94,9 @@ class OrganizationModel extends Equatable {
         workingHours,
         latitude,
         longitude,
+        rating,
+        reviewCount,
+        services,
         districtId,
       ];
 }

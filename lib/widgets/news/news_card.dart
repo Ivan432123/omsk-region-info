@@ -5,6 +5,14 @@ import '../../core/utils/date_formatter.dart';
 import '../../models/news_model.dart';
 import '../common/category_chip.dart';
 
+String _formatViewCount(int count) {
+  if (count >= 1000) {
+    final thousands = count / 1000;
+    return '${thousands.toStringAsFixed(thousands >= 10 ? 0 : 1)}K';
+  }
+  return '$count';
+}
+
 class NewsCard extends StatelessWidget {
   final NewsModel news;
   final VoidCallback onTap;
@@ -64,13 +72,29 @@ class NewsCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      DateFormatter.formatDate(news.createdAt),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          DateFormatter.formatDate(news.createdAt),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(Icons.visibility_outlined,
+                            size: 13, color: AppTheme.textSecondary),
+                        const SizedBox(width: 3),
+                        Text(
+                          _formatViewCount(news.viewCount),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

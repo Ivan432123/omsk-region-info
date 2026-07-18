@@ -216,6 +216,12 @@
             <input type="text" id="org-website" placeholder="https://...">
             <label>Описание</label>
             <textarea id="org-description"></textarea>
+            <label>Рейтинг (0-5, необязательно)</label>
+            <input type="number" id="org-rating" step="0.1" min="0" max="5" placeholder="4.6">
+            <label>Количество оценок (необязательно)</label>
+            <input type="number" id="org-review-count" min="0" placeholder="12">
+            <label>Услуги через запятую (необязательно)</label>
+            <input type="text" id="org-services" placeholder="Обращения граждан, Муниципальные услуги, Документы">
             <button id="org-submit-btn" onclick="addOrganization()">Добавить организацию</button>
         </div>
         <div class="card" id="org-list"></div>
@@ -457,6 +463,14 @@
             const workingHours = document.getElementById('org-hours').value.trim();
             const website = document.getElementById('org-website').value.trim();
             const description = document.getElementById('org-description').value.trim();
+            const ratingRaw = document.getElementById('org-rating').value.trim();
+            const reviewCountRaw = document.getElementById('org-review-count').value.trim();
+            const servicesRaw = document.getElementById('org-services').value.trim();
+            const rating = ratingRaw ? parseFloat(ratingRaw) : null;
+            const reviewCount = reviewCountRaw ? parseInt(reviewCountRaw, 10) : null;
+            const services = servicesRaw
+                ? servicesRaw.split(',').map((s) => s.trim()).filter(Boolean)
+                : [];
 
             if (!name || !phone) {
                 alert('Заполните хотя бы название и телефон');
@@ -467,7 +481,8 @@
                 await db.collection('organizations').doc(editingOrgId).update({
                     name, category, phone, address, workingHours,
                     website: website || null,
-                    description
+                    description,
+                    rating, reviewCount, services
                 });
                 editingOrgId = null;
                 document.getElementById('org-submit-btn').textContent = 'Добавить организацию';
@@ -477,6 +492,7 @@
                     name, category, phone, address, workingHours,
                     website: website || null,
                     description,
+                    rating, reviewCount, services,
                     logoUrl: null,
                     gallery: [],
                     district: currentDistrictId
@@ -491,6 +507,9 @@
             document.getElementById('org-hours').value = '';
             document.getElementById('org-website').value = '';
             document.getElementById('org-description').value = '';
+            document.getElementById('org-rating').value = '';
+            document.getElementById('org-review-count').value = '';
+            document.getElementById('org-services').value = '';
             loadOrganizations();
         }
 
@@ -538,6 +557,9 @@
             document.getElementById('org-hours').value = o.workingHours || '';
             document.getElementById('org-website').value = o.website || '';
             document.getElementById('org-description').value = o.description || '';
+            document.getElementById('org-rating').value = o.rating != null ? o.rating : '';
+            document.getElementById('org-review-count').value = o.reviewCount != null ? o.reviewCount : '';
+            document.getElementById('org-services').value = (o.services || []).join(', ');
             document.getElementById('org-submit-btn').textContent = 'Сохранить изменения';
             document.getElementById('org-name').scrollIntoView({ behavior: 'smooth' });
         }

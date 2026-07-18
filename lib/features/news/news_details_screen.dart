@@ -9,6 +9,14 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/category_chip.dart';
 
+String _formatViewCount(int count) {
+  if (count >= 1000) {
+    final thousands = count / 1000;
+    return '${thousands.toStringAsFixed(thousands >= 10 ? 0 : 1)}K';
+  }
+  return '$count';
+}
+
 class NewsDetailsScreen extends ConsumerWidget {
   final String newsId;
 
@@ -104,6 +112,20 @@ class NewsDetailsScreen extends ConsumerWidget {
                           const SizedBox(width: 6),
                           Text(
                             DateFormatter.formatDateTime(news.createdAt),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          const Icon(
+                            Icons.visibility_outlined,
+                            size: 14,
+                            color: AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_formatViewCount(news.viewCount)} просмотров',
                             style: const TextStyle(
                               fontSize: 13,
                               color: AppTheme.textSecondary,

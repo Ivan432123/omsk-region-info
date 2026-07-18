@@ -5,8 +5,8 @@ rules_version = '2';
 // Принципы:
 // 1. Приложение работает без авторизации пользователей — значит, ВСЕ
 //    операции записи с клиента запрещены. Единственный источник записи
-//    контента (news, organizations, districts) — Cloud Functions / Admin SDK
-//    с сервисным аккаунтом, который правила Firestore не ограничивают.
+//    контента (news, organizations, districts, vacancies, announcements) — Cloud Functions
+//    / Admin SDK с сервисным аккаунтом, который правила Firestore не ограничивают.
 // 2. Единственная операция записи, разрешённая клиенту — пометка
 //    уведомления как прочитанного (isRead), и только этого поля.
 // 3. Минимально необходимые права на чтение, без раскрытия служебных полей.
@@ -28,6 +28,18 @@ service cloud.firestore {
 
     // ---------- Организации ----------
     match /organizations/{orgId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ---------- Вакансии ----------
+    match /vacancies/{vacancyId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ---------- Объявления ----------
+    match /announcements/{announcementId} {
       allow read: if true;
       allow write: if request.auth != null;
     }

@@ -10,12 +10,9 @@ import '../../features/notifications/notifications_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/vacancies/vacancies_list_screen.dart';
 import '../../features/vacancies/vacancy_details_screen.dart';
+import '../../features/announcements/announcements_list_screen.dart';
+import '../../features/announcements/announcement_details_screen.dart';
 
-/// Единая точка навигации приложения.
-/// Плоская схема маршрутов сознательно выбрана для MVP; при расширении на
-/// весь регион/страну сюда добавляются новые вложенные маршруты без
-/// изменения существующих экранов (они принимают только districtId через
-/// провайдер, а не через путь URL).
 class AppRouter {
   AppRouter._();
 
@@ -70,6 +67,15 @@ class AppRouter {
         path: '/vacancies/:id',
         builder: (context, state) =>
             VacancyDetailsScreen(vacancyId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/announcements',
+        builder: (context, state) => const AnnouncementsListScreen(),
+      ),
+      GoRoute(
+        path: '/announcements/:id',
+        builder: (context, state) =>
+            AnnouncementDetailsScreen(announcementId: state.pathParameters['id']!),
       ),
     ],
   );

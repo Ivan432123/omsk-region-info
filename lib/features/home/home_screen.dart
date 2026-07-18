@@ -8,7 +8,6 @@ import '../../providers/notification_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/news/news_card.dart';
 
-/// Главный экран — информационный центр выбранного района.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -47,6 +46,7 @@ class HomeScreen extends ConsumerWidget {
                     onOrganizations: () => context.push('/organizations'),
                     onNotifications: () => context.push('/notifications'),
                     onVacancies: () => context.push('/vacancies'),
+                    onAnnouncements: () => context.push('/announcements'),
                   ),
                 ),
               ),
@@ -259,12 +259,14 @@ class _QuickNavRow extends StatelessWidget {
   final VoidCallback onOrganizations;
   final VoidCallback onNotifications;
   final VoidCallback onVacancies;
+  final VoidCallback onAnnouncements;
 
   const _QuickNavRow({
     required this.onNews,
     required this.onOrganizations,
     required this.onNotifications,
     required this.onVacancies,
+    required this.onAnnouncements,
   });
 
   @override
@@ -302,6 +304,15 @@ class _QuickNavRow extends StatelessWidget {
               icon: Icons.work_rounded,
               label: 'Вакансии',
               onTap: onVacancies,
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 84,
+            child: _QuickNavButton(
+              icon: Icons.campaign_rounded,
+              label: 'Объявления',
+              onTap: onAnnouncements,
             ),
           ),
         ],

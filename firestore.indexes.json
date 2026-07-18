@@ -1,93 +1,70 @@
 {
-      "indexes": [
-            {
-                  "collectionGroup": "districts",
-                  "queryScope": "COLLECTION",
-                  "fields": [
-                        {
-                              "fieldPath": "isActive",
-                              "order": "ASCENDING"
-                        },
-                        {
-                              "fieldPath": "order",
-                              "order": "ASCENDING"
-                        }
-                  ]
-            },
-            {
-                  "collectionGroup": "news",
-                  "queryScope": "COLLECTION",
-                  "fields": [
-                        {
-                              "fieldPath": "district",
-                              "order": "ASCENDING"
-                        },
-                        {
-                              "fieldPath": "createdAt",
-                              "order": "DESCENDING"
-                        }
-                  ]
-            },
-            {
-                  "collectionGroup": "news",
-                  "queryScope": "COLLECTION",
-                  "fields": [
-                        {
-                              "fieldPath": "district",
-                              "order": "ASCENDING"
-                        },
-                        {
-                              "fieldPath": "category",
-                              "order": "ASCENDING"
-                        },
-                        {
-                              "fieldPath": "createdAt",
-                              "order": "DESCENDING"
-                        }
-                  ]
-            },
-            {
-                  "collectionGroup": "organizations",
-                  "queryScope": "COLLECTION",
-                  "fields": [
-                        {
-                              "fieldPath": "district",
-                              "order": "ASCENDING"
-                        },
-                        {
-                              "fieldPath": "name",
-                              "order": "ASCENDING"
-                        }
-                  ]
-            },
-            {
-                  "collectionGroup": "notifications",
-                  "queryScope": "COLLECTION",
-                  "fields": [
-                        {
-                              "fieldPath": "district",
-                              "order": "ASCENDING"
-                        },
-                        {
-                              "fieldPath": "createdAt",
-                              "order": "DESCENDING"
-                        }
-                  ]
-            },
-            {
-                  "collectionGroup": "notifications",
-                  "queryScope": "COLLECTION",
-                  "fields": [
-                        {
-                              "fieldPath": "district",
-                              "order": "ASCENDING"
-                        },
-                        {
-                              "fieldPath": "isRead",
-                              "order": "ASCENDING"
-                        }
-                  ]
-            }
-      ],
-      "fieldOverrides": []
+  "indexes": [
+    {
+      "collectionGroup": "districts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "order", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "news",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "district", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "news",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "district", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "organizations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "district", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "district", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "district", "order": "ASCENDING" },
+        { "fieldPath": "isRead", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "vacancies",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "district", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "announcements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "district", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
 }

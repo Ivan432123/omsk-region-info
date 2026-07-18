@@ -34,6 +34,7 @@ class HomeScreen extends ConsumerWidget {
                 child: _HeroHeader(
                   districtName: district.name ?? '',
                   unreadCount: unreadCount,
+                  onSearchTap: () => context.push('/search'),
                   onNotificationsTap: () => context.go('/notifications'),
                   onSettingsTap: () => context.push('/settings'),
                 ),
@@ -144,12 +145,14 @@ class HomeScreen extends ConsumerWidget {
 class _HeroHeader extends StatelessWidget {
   final String districtName;
   final int unreadCount;
+  final VoidCallback onSearchTap;
   final VoidCallback onNotificationsTap;
   final VoidCallback onSettingsTap;
 
   const _HeroHeader({
     required this.districtName,
     required this.unreadCount,
+    required this.onSearchTap,
     required this.onNotificationsTap,
     required this.onSettingsTap,
   });
@@ -198,6 +201,19 @@ class _HeroHeader extends StatelessWidget {
               ),
               Row(
                 children: [
+                  InkWell(
+                    onTap: onSearchTap,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.search_rounded, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: onNotificationsTap,
                     borderRadius: BorderRadius.circular(20),

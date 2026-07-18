@@ -15,6 +15,7 @@ import '../../features/announcements/announcements_list_screen.dart';
 import '../../features/announcements/announcement_details_screen.dart';
 import '../../features/events/events_list_screen.dart';
 import '../../features/events/event_details_screen.dart';
+import '../../features/search/search_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
 class AppRouter {
@@ -36,6 +37,10 @@ class AppRouter {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => const SearchScreen(),
       ),
       GoRoute(
         path: '/vacancies',

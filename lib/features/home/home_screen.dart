@@ -34,7 +34,7 @@ class HomeScreen extends ConsumerWidget {
                 child: _HeroHeader(
                   districtName: district.name ?? '',
                   unreadCount: unreadCount,
-                  onNotificationsTap: () => context.push('/notifications'),
+                  onNotificationsTap: () => context.go('/notifications'),
                   onSettingsTap: () => context.push('/settings'),
                 ),
               ),
@@ -42,9 +42,9 @@ class HomeScreen extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                   child: _QuickNavRow(
-                    onNews: () => context.push('/news'),
-                    onOrganizations: () => context.push('/organizations'),
-                    onNotifications: () => context.push('/notifications'),
+                    onNews: () => context.go('/news'),
+                    onOrganizations: () => context.go('/organizations'),
+                    onNotifications: () => context.go('/notifications'),
                     onVacancies: () => context.push('/vacancies'),
                     onAnnouncements: () => context.push('/announcements'),
                     onEvents: () => context.push('/events'),
@@ -90,7 +90,7 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       Text('Последние новости', style: Theme.of(context).textTheme.titleLarge),
                       TextButton(
-                        onPressed: () => context.push('/news'),
+                        onPressed: () => context.go('/news'),
                         child: const Text('Все новости'),
                       ),
                     ],

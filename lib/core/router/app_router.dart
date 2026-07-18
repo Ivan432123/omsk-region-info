@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/district_selection/district_selection_screen.dart';
@@ -14,6 +15,7 @@ import '../../features/announcements/announcements_list_screen.dart';
 import '../../features/announcements/announcement_details_screen.dart';
 import '../../features/events/events_list_screen.dart';
 import '../../features/events/event_details_screen.dart';
+import 'scaffold_with_nav_bar.dart';
 
 class AppRouter {
   AppRouter._();
@@ -30,32 +32,6 @@ class AppRouter {
         builder: (context, state) => DistrictSelectionScreen(
           isChangeMode: state.extra as bool? ?? false,
         ),
-      ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/news',
-        builder: (context, state) => const NewsListScreen(),
-      ),
-      GoRoute(
-        path: '/news/:id',
-        builder: (context, state) =>
-            NewsDetailsScreen(newsId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/organizations',
-        builder: (context, state) => const OrganizationsListScreen(),
-      ),
-      GoRoute(
-        path: '/organizations/:id',
-        builder: (context, state) =>
-            OrganizationDetailsScreen(organizationId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: '/settings',
@@ -87,6 +63,59 @@ class AppRouter {
         path: '/events/:id',
         builder: (context, state) =>
             EventDetailsScreen(eventId: state.pathParameters['id']!),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            ScaffoldWithNavBar(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/news',
+                builder: (context, state) => const NewsListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) =>
+                        NewsDetailsScreen(newsId: state.pathParameters['id']!),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/organizations',
+                builder: (context, state) => const OrganizationsListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) => OrganizationDetailsScreen(
+                      organizationId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/notifications',
+                builder: (context, state) => const NotificationsScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

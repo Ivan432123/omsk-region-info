@@ -50,9 +50,15 @@ class PhoneFormatter {
     return '+7 ($code) $part1-$part2-$part3';
   }
 
-  /// Приводит к чистому виду для звонка через url_launcher (tel:)
+  /// Приводит к чистому виду для звонка через url_launcher (tel:).
+  /// Короткие местные номера (например, диспетчер такси на 5-6 цифр, без
+  /// кода города) набираются как есть — код страны +7 добавляется только
+  /// к полноценным российским номерам из 10-11 цифр, иначе он их портит.
   static String toDialFormat(String rawPhone) {
     final digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length < 10) {
+      return digits;
+    }
     if (digits.startsWith('8') && digits.length == 11) {
       return '+7${digits.substring(1)}';
     }

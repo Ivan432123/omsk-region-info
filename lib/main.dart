@@ -12,45 +12,45 @@ import 'providers/district_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Русская локализация форматов дат/времени (dd.MM.yyyy, 24ч).
-  await initializeDateFormatting(AppConstants.locale, null);
+      // Русская локализация форматов дат/времени (dd.MM.yyyy, 24ч).
+        await initializeDateFormatting(AppConstants.locale, null);
 
-  runApp(const ProviderScope(child: OmskRegionInfoApp()));
-}
+          runApp(const ProviderScope(child: OmskRegionInfoApp()));
+          }
 
-class OmskRegionInfoApp extends ConsumerStatefulWidget {
-  const OmskRegionInfoApp({super.key});
+          class OmskRegionInfoApp extends ConsumerStatefulWidget {
+            const OmskRegionInfoApp({super.key});
 
-  @override
-  ConsumerState<OmskRegionInfoApp> createState() => _OmskRegionInfoAppState();
-}
+              @override
+                ConsumerState<OmskRegionInfoApp> createState() => _OmskRegionInfoAppState();
+                }
 
-class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
-  @override
-  void initState() {
-    super.initState();
-    // Инициализация push-уведомлений (запрос разрешений) сразу при старте.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fcmServiceProvider).initialize();
-    });
-  }
+                class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
+                  @override
+                    void initState() {
+                        super.initState();
+                            // Инициализация push-уведомлений (запрос разрешений) сразу при старте.
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      ref.read(fcmServiceProvider).initialize();
+                                          });
+                                            }
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      routerConfig: AppRouter.router,
-      locale: const Locale('ru', 'RU'),
-      supportedLocales: const [Locale('ru', 'RU')],
-      localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                        GlobalWidgetsLocalizations.delegate,
-                                GlobalCupertinoLocalizations.delegate,
-                                      ],
-    );
-  }
-}
+                                              @override
+                                                Widget build(BuildContext context) {
+                                                    return MaterialApp.router(
+                                                          title: AppConstants.appName,
+                                                                debugShowCheckedModeBanner: false,
+                                                                      theme: AppTheme.lightTheme,
+                                                                            routerConfig: AppRouter.router,
+                                                                                  locale: const Locale('ru', 'RU'),
+                                                                                        supportedLocales: const [Locale('ru', 'RU')],
+                                                                                              localizationsDelegates: const [
+                                                                                                              GlobalMaterialLocalizations.delegate,
+                                                                                                                                      GlobalWidgetsLocalizations.delegate,
+                                                                                                                                                                      GlobalCupertinoLocalizations.delegate,
+                                                                                                                                                                                                            ],
+                                                                                                                                                                                                                );
+                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                  }

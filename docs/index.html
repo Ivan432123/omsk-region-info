@@ -480,6 +480,25 @@
             loadEvents();
         }
 
+        const PUSH_WORKER_URL = 'https://throbbing-bird-ef82.ivan55rwszzz.workers.dev/';
+        const PUSH_API_SECRET = 'jdkfkfdhh1973hs126FjG';
+        const PUSH_TRIGGERING_CATEGORIES = ['water', 'gas', 'electricity', 'emergency'];
+
+        async function sendPushNotification(districtId, title, body, newsId) {
+            try {
+                await fetch(PUSH_WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': PUSH_API_SECRET
+                    },
+                    body: JSON.stringify({ districtId, title, body, newsId })
+                });
+            } catch (err) {
+                console.error('Ошибка отправки push:', err);
+            }
+        }
+
         async function addNews() {
             const title = document.getElementById('news-title').value.trim();
             const description = document.getElementById('news-description').value.trim();
@@ -492,6 +511,8 @@
                 return;
             }
 
+            const isPushTriggering = PUSH_TRIGGERING_CATEGORIES.includes(category);
+
             if (editingNewsId) {
                 await db.collection('news').doc(editingNewsId).update({
                     title, description, content, category,
@@ -501,16 +522,21 @@
                 document.getElementById('news-submit-btn').textContent = 'Опубликовать новость';
                 showStatus('Новость обновлена');
             } else {
-                await db.collection('news').add({
+                const docRef = await db.collection('news').add({
                     title, description, content,
                     category,
                     image: image || null,
                     district: currentDistrictId,
                     village: null,
-                    sendPush: false,
+                    sendPush: isPushTriggering,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                showStatus('Новость опубликована');
+                if (isPushTriggering) {
+                    sendPushNotification(currentDistrictId, title, description, docRef.id);
+                    showStatus('Новость опубликована, push отправлен');
+                } else {
+                    showStatus('Новость опубликована');
+                }
             }
 
             document.getElementById('news-title').value = '';

@@ -13,40 +13,40 @@ import 'local_storage_service.dart';
 /// Клиентский код ниже только управляет подпиской/отпиской на topic.
 class FcmService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final LocalStorageService _storage = LocalStorageService();
+    final LocalStorageService _storage = LocalStorageService();
 
-  static String topicForDistrict(String districtId) => 'district_$districtId';
+      static String topicForDistrict(String districtId) => 'district_$districtId';
 
-  Future<void> initialize() async {
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-  }
+        Future<void> initialize() async {
+            await _messaging.requestPermission(
+                  alert: true,
+                        badge: true,
+                              sound: true,
+                                  );
+                                    }
 
-  /// Подписывает устройство на push конкретного района.
-  /// Идемпотентно — повторный вызов для того же района ничего не делает.
-  Future<void> subscribeToDistrict(String districtId) async {
-    final topic = topicForDistrict(districtId);
-    final alreadySubscribed = await _storage.isFcmTopicSubscribed(topic);
-    if (alreadySubscribed) return;
+                                      /// Подписывает устройство на push конкретного района.
+                                        /// Идемпотентно — повторный вызов для того же района ничего не делает.
+                                          Future<void> subscribeToDistrict(String districtId) async {
+                                              final topic = topicForDistrict(districtId);
+                                                  final alreadySubscribed = await _storage.isFcmTopicSubscribed(topic);
+                                                      if (alreadySubscribed) return;
 
-    await _messaging.subscribeToTopic(topic);
-    await _storage.markFcmTopicSubscribed(topic);
-  }
+                                                          await _messaging.subscribeToTopic(topic);
+                                                              await _storage.markFcmTopicSubscribed(topic);
+                                                                }
 
-  /// При смене района (future scope: настройки) — отписка от старого.
-  Future<void> unsubscribeFromDistrict(String districtId) async {
-    await _messaging.unsubscribeFromTopic(topicForDistrict(districtId));
-  }
+                                                                  /// При смене района (future scope: настройки) — отписка от старого.
+                                                                    Future<void> unsubscribeFromDistrict(String districtId) async {
+                                                                        await _messaging.unsubscribeFromTopic(topicForDistrict(districtId));
+                                                                          }
 
-  Future<String?> getToken() => _messaging.getToken();
+                                                                            Future<String?> getToken() => _messaging.getToken();
 
-  /// Поток входящих push-уведомлений, когда приложение открыто (foreground).
-  Stream<RemoteMessage> get onMessage => FirebaseMessaging.onMessage;
+                                                                              /// Поток входящих push-уведомлений, когда приложение открыто (foreground).
+                                                                                Stream<RemoteMessage> get onMessage => FirebaseMessaging.onMessage;
 
-  /// Событие открытия приложения через нажатие на push.
-  Stream<RemoteMessage> get onMessageOpenedApp =>
-      FirebaseMessaging.onMessageOpenedApp;
-}
+                                                                                  /// Событие открытия приложения через нажатие на push.
+                                                                                    Stream<RemoteMessage> get onMessageOpenedApp =>
+                                                                                          FirebaseMessaging.onMessageOpenedApp;
+                                                                                          }

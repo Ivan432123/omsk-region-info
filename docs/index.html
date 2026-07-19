@@ -612,6 +612,12 @@
         async function deleteNews(id) {
             if (!(await showConfirmDialog('Удалить эту новость?'))) return;
             await db.collection('news').doc(id).delete();
+
+            const relatedNotifications = await db.collection('notifications')
+                .where('relatedNewsId', '==', id)
+                .get();
+            await Promise.all(relatedNotifications.docs.map((doc) => doc.ref.delete()));
+
             loadNews();
         }
 

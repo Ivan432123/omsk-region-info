@@ -13,8 +13,7 @@ workflows:
           flutter create --platforms=android .
       - name: Добавить разрешение на push-уведомления
         script: |
-          sed -i 's#<uses-permission android:name="android.permission.INTERNET"/>#<uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>#' android/app/src/main/AndroidManifest.xml
+          sed -i '/<uses-permission android:name="android.permission.INTERNET"\/>/a\    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"\/>' android/app/src/main/AndroidManifest.xml
       - name: Установить зависимости
         script: |
           flutter pub get
@@ -23,3 +22,4 @@ workflows:
           flutter build apk --debug
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
+# push-уведомления настроены 1784444603

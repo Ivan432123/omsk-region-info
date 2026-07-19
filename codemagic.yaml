@@ -8,6 +8,10 @@ workflows:
       cache_paths:
         - $HOME/.android
     scripts:
+      - name: Установить постоянный debug-ключ подписи
+        script: |
+          mkdir -p $HOME/.android
+          cp ci_debug.keystore $HOME/.android/debug.keystore
       - name: Создать недостающие платформенные папки (android/ios)
         script: |
           flutter create --platforms=android .

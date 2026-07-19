@@ -32,6 +32,9 @@ class OrganizationIconHelper {
     if (c.contains('полиц') || c.contains('мчс') || c.contains('пожар')) {
       return Icons.local_police_rounded;
     }
+    if (c.contains('такси')) {
+      return Icons.local_taxi_rounded;
+    }
     return Icons.apartment_rounded;
   }
 
@@ -57,6 +60,9 @@ class OrganizationIconHelper {
     }
     if (c.contains('полиц') || c.contains('мчс') || c.contains('пожар')) {
       return AppTheme.accentRed;
+    }
+    if (c.contains('такси')) {
+      return const Color(0xFFFBC02D);
     }
     return AppTheme.primaryBlue;
   }

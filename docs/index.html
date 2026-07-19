@@ -481,16 +481,16 @@
         }
 
         const PUSH_WORKER_URL = 'https://throbbing-bird-ef82.ivan55rwszzz.workers.dev/';
-        const PUSH_API_SECRET = 'jdkfkfdhh1973hs126FjG';
         const PUSH_TRIGGERING_CATEGORIES = ['water', 'gas', 'electricity', 'emergency'];
 
         async function sendPushNotification(districtId, title, body, newsId) {
             try {
+                const idToken = await auth.currentUser.getIdToken();
                 await fetch(PUSH_WORKER_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-API-Key': PUSH_API_SECRET
+                        'Authorization': 'Bearer ' + idToken
                     },
                     body: JSON.stringify({ districtId, title, body, newsId })
                 });

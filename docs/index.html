@@ -486,7 +486,7 @@
         async function sendPushNotification(districtId, title, body, newsId) {
             try {
                 const idToken = await auth.currentUser.getIdToken();
-                await fetch(PUSH_WORKER_URL, {
+                const response = await fetch(PUSH_WORKER_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -494,8 +494,15 @@
                     },
                     body: JSON.stringify({ districtId, title, body, newsId })
                 });
+                if (!response.ok) {
+                    const text = await response.text();
+                    alert('Push НЕ отправлен. Ответ сервера: ' + text);
+                    return false;
+                }
+                return true;
             } catch (err) {
-                console.error('Ошибка отправки push:', err);
+                alert('Push НЕ отправлен (ошибка сети): ' + err.message);
+                return false;
             }
         }
 
@@ -532,8 +539,8 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 if (isPushTriggering) {
-                    sendPushNotification(currentDistrictId, title, description, docRef.id);
-                    showStatus('Новость опубликована, push отправлен');
+                    const pushOk = await sendPushNotification(currentDistrictId, title, description, docRef.id);
+                    showStatus(pushOk ? 'Новость опубликована, push отправлен' : 'Новость опубликована, НО push НЕ отправлен');
                 } else {
                     showStatus('Новость опубликована');
                 }

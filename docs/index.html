@@ -539,6 +539,15 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 if (isPushTriggering) {
+                    await db.collection('notifications').add({
+                        title,
+                        body: description,
+                        relatedNewsId: docRef.id,
+                        category,
+                        district: currentDistrictId,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        isRead: false
+                    });
                     const pushOk = await sendPushNotification(currentDistrictId, title, description, docRef.id);
                     showStatus(pushOk ? 'Новость опубликована, push отправлен' : 'Новость опубликована, НО push НЕ отправлен');
                 } else {

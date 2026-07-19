@@ -13,7 +13,17 @@ workflows:
           flutter create --platforms=android .
       - name: Добавить разрешение на push-уведомления
         script: |
-          sed -i '/<uses-permission android:name="android.permission.INTERNET"\/>/a\    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"\/>' android/app/src/main/AndroidManifest.xml
+          python3 << 'PYEOF'
+          path = 'android/app/src/main/AndroidManifest.xml'
+          with open(path, 'r', encoding='utf-8') as f:
+              content = f.read()
+          old = '<uses-permission android:name="android.permission.INTERNET"/>'
+          new = old + chr(10) + '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>'
+          content = content.replace(old, new, 1)
+          with open(path, 'w', encoding='utf-8') as f:
+              f.write(content)
+          print('Разрешение добавлено')
+          PYEOF
       - name: Установить зависимости
         script: |
           flutter pub get

@@ -539,7 +539,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
             });
 
             if (withPush) {
-                await sendPushNotification(currentDistrictId, r.title, r.description);
+                await sendPushNotification(currentDistrictId, r.title, r.description, docRef.id, 'announcement');
             }
 
             await db.collection('ad_requests').doc(id).update({ status: 'approved' });
@@ -567,7 +567,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
         const PUSH_WORKER_URL = 'https://throbbing-bird-ef82.ivan55rwszzz.workers.dev/';
         const PUSH_TRIGGERING_CATEGORIES = ['water', 'gas', 'electricity', 'emergency'];
 
-        async function sendPushNotification(districtId, title, body, newsId) {
+        async function sendPushNotification(districtId, title, body, newsId, type) {
             try {
                 const idToken = await auth.currentUser.getIdToken();
                 const response = await fetch(PUSH_WORKER_URL, {
@@ -576,7 +576,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + idToken
                     },
-                    body: JSON.stringify({ districtId, title, body, newsId })
+                    body: JSON.stringify({ districtId, title, body, newsId, type: type || 'news' })
                 });
                 if (!response.ok) {
                     const text = await response.text();

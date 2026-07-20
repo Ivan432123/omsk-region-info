@@ -3,14 +3,16 @@ import '../models/announcement_model.dart';
 import '../services/firestore_service.dart';
 
 /// Репозиторий объявлений. Фильтрация по district, как у новостей и
-/// вакансий. Композитный индекс (district ASC, createdAt DESC) должен
-/// быть создан в Firestore Console для коллекции announcements.
-/// Для продвигаемых объявлений (isPromoted) понадобится ещё один
-/// композитный индекс (district ASC, isPromoted ASC, createdAt DESC) —
-/// Firestore подскажет ссылку на его создание при первой ошибке запроса.
+/// вакансий. Объявления автоматически скрываются из общего списка через
+/// 14 дней после публикации (тот же приём, что уже применён к вакансиям)
+/// — админка при этом видит все записи без ограничения по возрасту.
+/// Композитные индексы (district ASC, createdAt DESC) и
+/// (district ASC, promotedUntil DESC) должны быть созданы в Firestore
+/// Console для коллекции announcements.
 class AnnouncementRepository {
   static const String _collection = 'announcements';
   static const int _pageSize = 15;
+  static const Duration _maxAge = Duration(days: 14);
 
   final FirestoreService _firestoreService;
 
@@ -18,9 +20,11 @@ class AnnouncementRepository {
       : _firestoreService = firestoreService ?? FirestoreService();
 
   Query<Map<String, dynamic>> _baseQuery(String districtId) {
+    final cutoff = Timestamp.fromDate(DateTime.now().subtract(_maxAge));
     return _firestoreService
         .collection(_collection)
         .where('district', isEqualTo: districtId)
+        .where('createdAt', isGreaterThanOrEqualTo: cutoff)
         .orderBy('createdAt', descending: true);
   }
 
@@ -49,9 +53,8 @@ class AnnouncementRepository {
     return AnnouncementModel.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
   }
 
-  /// Продвигаемые (оплаченные) объявления района — для отдельного блока
-  /// на главном экране. Ограничено небольшим количеством, так как это
-  /// витрина, а не полный список.
+  /// Продвигаемые (оплаченные, ещё не истёкшие) объявления района — для
+  /// отдельного блока на главном экране и в верхней части списка.
   Future<List<AnnouncementModel>> getPromotedAnnouncements(
     String districtId, {
     int limit = 5,
@@ -59,8 +62,8 @@ class AnnouncementRepository {
     final snapshot = await _firestoreService
         .collection(_collection)
         .where('district', isEqualTo: districtId)
-        .where('isPromoted', isEqualTo: true)
-        .orderBy('createdAt', descending: true)
+        .where('promotedUntil', isGreaterThan: Timestamp.now())
+        .orderBy('promotedUntil', descending: true)
         .limit(limit)
         .get();
 

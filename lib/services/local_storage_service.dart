@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
 
@@ -6,6 +7,9 @@ import '../core/constants/app_constants.dart';
 /// больше никогда не показывает экран выбора района, пока пользователь
 /// сам не сбросит его в настройках (future scope).
 class LocalStorageService {
+  static const String _keyMyAdRequests = 'my_ad_requests';
+  static const String _keyLastSeenAnnouncementsPrefix = 'last_seen_announcements_';
+
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
   Future<bool> hasSelectedDistrict() async {
@@ -47,5 +51,47 @@ class LocalStorageService {
   Future<void> markFcmTopicSubscribed(String topic) async {
     final prefs = await _prefs;
     await prefs.setString(AppConstants.prefsFcmTopicSubscribed, topic);
+  }
+
+  /// Сохраняет отправленную жителем заявку на объявление локально на
+  /// устройстве — чтобы реквизиты оплаты можно было посмотреть повторно
+  /// даже после закрытия приложения (в аккаунте это не хранится, входа
+  /// в приложение нет вообще).
+  Future<void> saveMyAdRequest(Map<String, dynamic> request) async {
+    final prefs = await _prefs;
+    final existing = await getMyAdRequests();
+    existing.insert(0, request);
+    // Храним не больше 10 последних заявок, чтобы список не рос бесконечно.
+    final trimmed = existing.take(10).toList();
+    await prefs.setString(_keyMyAdRequests, jsonEncode(trimmed));
+  }
+
+  Future<List<Map<String, dynamic>>> getMyAdRequests() async {
+    final prefs = await _prefs;
+    final raw = prefs.getString(_keyMyAdRequests);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List;
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Отметка "когда житель последний раз заходил в раздел Объявления
+  /// этого района" — используется для счётчика новых объявлений.
+  Future<DateTime?> getLastSeenAnnouncementsTime(String districtId) async {
+    final prefs = await _prefs;
+    final raw = prefs.getString('$_keyLastSeenAnnouncementsPrefix$districtId');
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<void> markAnnouncementsSeen(String districtId) async {
+    final prefs = await _prefs;
+    await prefs.setString(
+      '$_keyLastSeenAnnouncementsPrefix$districtId',
+      DateTime.now().toIso8601String(),
+    );
   }
 }

@@ -346,8 +346,10 @@
         </div>
         <div class="card" id="announcement-list"></div>
 
+        <div id="ad-requests-section" style="display:none;">
         <h2>Заявки на объявления от жителей</h2>
         <div class="card" id="ad-requests-list"></div>
+        </div>
 
         <h2>Добавить событие в афишу</h2>
         <div class="card">
@@ -373,7 +375,7 @@
             <div id="confirm-message"></div>
             <div class="confirm-buttons">
                 <button class="secondary" onclick="_confirmResolve(false)" style="flex:1;">Отмена</button>
-                <button class="danger" onclick="_confirmResolve(true)" style="flex:1;">Удалить</button>
+                <button class="danger" id="confirm-confirm-btn" onclick="_confirmResolve(true)" style="flex:1;">Удалить</button>
             </div>
         </div>
     </div>
@@ -424,10 +426,14 @@
         let editingAnnouncementId = null;
         let editingEventId = null;
 
+        const SUPER_ADMIN_EMAIL = 'ivansurmanov@yandex.ru';
+
         auth.onAuthStateChanged((user) => {
             if (user) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('admin-screen').style.display = 'block';
+                document.getElementById('ad-requests-section').style.display =
+                    (user.email === SUPER_ADMIN_EMAIL) ? 'block' : 'none';
                 loadDistricts();
             } else {
                 document.getElementById('login-screen').style.display = 'block';
@@ -477,6 +483,7 @@
         let adRequestCache = {};
 
         async function loadAdRequests() {
+            if (!auth.currentUser || auth.currentUser.email !== SUPER_ADMIN_EMAIL) return;
             const container = document.getElementById('ad-requests-list');
             container.innerHTML = 'Загрузка...';
             const snapshot = await db.collection('ad_requests')
@@ -518,7 +525,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
             const confirmText = withPush
                 ? 'Опубликовать и разослать push всем в районе?'
                 : 'Опубликовать это объявление?';
-            if (!(await showConfirmDialog(confirmText))) return;
+            if (!(await showConfirmDialog(confirmText, 'Опубликовать'))) return;
 
             const docRef = await db.collection('announcements').add({
                 title: r.title,
@@ -540,7 +547,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
         }
 
         async function rejectAdRequest(id) {
-            if (!(await showConfirmDialog('Отклонить эту заявку?'))) return;
+            if (!(await showConfirmDialog('Отклонить эту заявку?', 'Отклонить'))) return;
             await db.collection('ad_requests').doc(id).update({ status: 'rejected' });
             showStatus('Заявка отклонена');
             loadAdRequests();
@@ -1278,9 +1285,10 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
 
         let _confirmResolve = null;
 
-        function showConfirmDialog(message) {
+        function showConfirmDialog(message, confirmLabel) {
             return new Promise((resolve) => {
                 document.getElementById('confirm-message').textContent = message;
+                document.getElementById('confirm-confirm-btn').textContent = confirmLabel || 'Удалить';
                 document.getElementById('confirm-overlay').classList.add('visible');
                 _confirmResolve = (result) => {
                     document.getElementById('confirm-overlay').classList.remove('visible');

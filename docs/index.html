@@ -346,6 +346,9 @@
         </div>
         <div class="card" id="announcement-list"></div>
 
+        <h2>Заявки на объявления от жителей</h2>
+        <div class="card" id="ad-requests-list"></div>
+
         <h2>Добавить событие в афишу</h2>
         <div class="card">
             <label>Название события</label>
@@ -471,6 +474,78 @@
             }
         }
 
+        let adRequestCache = {};
+
+        async function loadAdRequests() {
+            const container = document.getElementById('ad-requests-list');
+            container.innerHTML = 'Загрузка...';
+            const snapshot = await db.collection('ad_requests')
+                .where('district', '==', currentDistrictId)
+                .where('status', '==', 'pending')
+                .orderBy('createdAt', 'desc')
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="item-sub">Нет новых заявок</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const r = doc.data();
+                adRequestCache[doc.id] = r;
+                const row = document.createElement('div');
+                row.className = 'item';
+                row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(r.title)}${r.wantsPush ? ' 🔥 (платное продвижение)' : ''}</div>
+<div class="item-sub">${escapeHtml(r.description)}</div>
+<div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>
+</div>
+<div>
+<button class="secondary" onclick="approveAdRequest('${doc.id}', false)">Опубликовать</button>
+${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опубликовать + push</button>` : ''}
+<button class="danger" onclick="rejectAdRequest('${doc.id}')">Отклонить</button>
+</div>
+`;
+                container.appendChild(row);
+            });
+        }
+
+        async function approveAdRequest(id, withPush) {
+            const r = adRequestCache[id];
+            if (!r) return;
+            const confirmText = withPush
+                ? 'Опубликовать и разослать push всем в районе?'
+                : 'Опубликовать это объявление?';
+            if (!(await showConfirmDialog(confirmText))) return;
+
+            const docRef = await db.collection('announcements').add({
+                title: r.title,
+                description: r.description,
+                contactPhone: r.phone || null,
+                images: [],
+                isPromoted: withPush,
+                district: currentDistrictId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            if (withPush) {
+                await sendPushNotification(currentDistrictId, r.title, r.description);
+            }
+
+            await db.collection('ad_requests').doc(id).update({ status: 'approved' });
+            showStatus('Объявление опубликовано');
+            loadAdRequests();
+        }
+
+        async function rejectAdRequest(id) {
+            if (!(await showConfirmDialog('Отклонить эту заявку?'))) return;
+            await db.collection('ad_requests').doc(id).update({ status: 'rejected' });
+            showStatus('Заявка отклонена');
+            loadAdRequests();
+        }
+
         function onDistrictChange() {
             currentDistrictId = document.getElementById('district-select').value;
             loadNews();
@@ -478,6 +553,7 @@
             loadVacancies();
             loadAnnouncements();
             loadEvents();
+            loadAdRequests();
         }
 
         const PUSH_WORKER_URL = 'https://throbbing-bird-ef82.ivan55rwszzz.workers.dev/';

@@ -57,6 +57,11 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Объявления')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/post-announcement'),
+        backgroundColor: AppTheme.primaryBlue,
+        child: const Icon(Icons.add_rounded, color: Colors.white),
+      ),
       body: state.isLoading
           ? const LoadingListWidget()
           : state.error != null
@@ -85,7 +90,7 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
 
     return ListView(
       controller: _scrollController,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
       children: [
         if (promoted.isNotEmpty) ...[
           Row(

@@ -44,11 +44,10 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                  child: _QuickNavGrid(
+                  child: _QuickNavRow(
                     onVacancies: () => context.push('/vacancies'),
                     onAnnouncements: () => context.push('/announcements'),
                     onEvents: () => context.push('/events'),
-                    onPostAnnouncement: () => context.push('/post-announcement'),
                     unreadAnnouncements: unreadAnnouncementsAsync.value ?? 0,
                   ),
                 ),
@@ -296,64 +295,46 @@ class _HeroHeader extends StatelessWidget {
   }
 }
 
-class _QuickNavGrid extends StatelessWidget {
+class _QuickNavRow extends StatelessWidget {
   final VoidCallback onVacancies;
   final VoidCallback onAnnouncements;
   final VoidCallback onEvents;
-  final VoidCallback onPostAnnouncement;
   final int unreadAnnouncements;
 
-  const _QuickNavGrid({
+  const _QuickNavRow({
     required this.onVacancies,
     required this.onAnnouncements,
     required this.onEvents,
-    required this.onPostAnnouncement,
     required this.unreadAnnouncements,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _QuickNavButton(
-                icon: Icons.work_rounded,
-                label: 'Вакансии',
-                onTap: onVacancies,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickNavButton(
-                icon: Icons.campaign_rounded,
-                label: 'Объявления',
-                onTap: onAnnouncements,
-                badgeCount: unreadAnnouncements,
-              ),
-            ),
-          ],
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.work_rounded,
+            label: 'Вакансии',
+            onTap: onVacancies,
+          ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _QuickNavButton(
-                icon: Icons.event_rounded,
-                label: 'Афиша',
-                onTap: onEvents,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickNavButton(
-                icon: Icons.add_circle_rounded,
-                label: 'Разместить\nобъявление',
-                onTap: onPostAnnouncement,
-              ),
-            ),
-          ],
+        const SizedBox(width: 12),
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.campaign_rounded,
+            label: 'Объявления',
+            onTap: onAnnouncements,
+            badgeCount: unreadAnnouncements,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.event_rounded,
+            label: 'Афиша',
+            onTap: onEvents,
+          ),
         ),
       ],
     );

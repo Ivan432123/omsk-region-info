@@ -539,15 +539,19 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 if (isPushTriggering) {
-                    await db.collection('notifications').add({
-                        title,
-                        body: description,
-                        relatedNewsId: docRef.id,
-                        category,
-                        district: currentDistrictId,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        isRead: false
-                    });
+                    try {
+                        await db.collection('notifications').add({
+                            title,
+                            body: description,
+                            relatedNewsId: docRef.id,
+                            category,
+                            district: currentDistrictId,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            isRead: false
+                        });
+                    } catch (err) {
+                        alert('Не удалось создать запись уведомления: ' + err.message);
+                    }
                     const pushOk = await sendPushNotification(currentDistrictId, title, description, docRef.id);
                     showStatus(pushOk ? 'Новость опубликована, push отправлен' : 'Новость опубликована, НО push НЕ отправлен');
                 } else {

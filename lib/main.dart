@@ -10,6 +10,7 @@ import 'core/constants/app_constants.dart';
 import 'firebase_options.dart';
 import 'providers/district_provider.dart';
 import 'providers/news_provider.dart';
+import 'providers/announcement_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,12 +42,15 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
   }
 
   /// Настраивает реакцию приложения на push-уведомления:
-  /// - тап по уведомлению (приложение было свёрнуто) -> переход к новости;
+  /// - тап по уведомлению (приложение было свёрнуто) -> переход к
+  ///   новости или объявлению, в зависимости от типа (data.type);
   /// - холодный запуск приложения именно через тап по уведомлению ->
   ///   тот же переход, как только приложение полностью откроется;
   /// - уведомление пришло, пока приложение уже открыто (foreground) ->
-  ///   не показываем системный баннер сами, но сразу обновляем список
-  ///   новостей текущего района, чтобы не пришлось тянуть вручную.
+  ///   не показываем системный баннер сами, но сразу обновляем все
+  ///   связанные блоки текущего района, чтобы новая запись сразу была
+  ///   видна (новости, важные объявления, продвигаемые объявления,
+  ///   счётчик непрочитанных объявлений).
   void _setupPushHandling() {
     final fcmService = ref.read(fcmServiceProvider);
 
@@ -59,22 +63,29 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
       if (message != null) _handleNotificationTap(message);
     });
 
-    // Уведомление пришло, пока приложение уже открыто — обновляем список
-    // новостей текущего района, чтобы новая запись сразу была видна.
-    fcmService.onMessage.listen((_) => _refreshCurrentDistrictNews());
+    // Уведомление пришло, пока приложение уже открыто — обновляем всё,
+    // что могло измениться, для текущего района.
+    fcmService.onMessage.listen((_) => _refreshCurrentDistrictData());
   }
 
   void _handleNotificationTap(RemoteMessage message) {
-    final newsId = message.data['newsId'];
-    if (newsId != null && newsId.toString().isNotEmpty) {
-      AppRouter.router.push('/news/$newsId');
+    final itemId = message.data['newsId'];
+    if (itemId == null || itemId.toString().isEmpty) return;
+
+    final type = message.data['type'];
+    if (type == 'announcement') {
+      AppRouter.router.push('/announcements/$itemId');
+    } else {
+      AppRouter.router.push('/news/$itemId');
     }
   }
 
-  void _refreshCurrentDistrictNews() {
+  void _refreshCurrentDistrictData() {
     final districtId = ref.read(selectedDistrictProvider).id;
     if (districtId == null || districtId.isEmpty) return;
     ref.invalidate(importantAnnouncementsProvider(districtId));
+    ref.invalidate(promotedAnnouncementsProvider(districtId));
+    ref.invalidate(unreadAnnouncementsCountProvider(districtId));
     ref.read(newsListProvider(districtId).notifier).refresh();
   }
 

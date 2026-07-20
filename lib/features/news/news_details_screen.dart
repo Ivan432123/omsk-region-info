@@ -105,7 +105,8 @@ class NewsDetailsScreen extends ConsumerWidget {
                 if (news.imageUrl != null) ...[
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: () => FullscreenGalleryViewer.open(context, [news.imageUrl!]),
+                    onTap: () =>
+                        FullscreenGalleryViewer.open(context, [news.imageUrl!]),
                     child: Hero(
                       tag: news.imageUrl!,
                       child: ClipRRect(

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/constants/app_constants.dart';
 import '../models/district_model.dart';
 import '../services/firestore_service.dart';
@@ -29,8 +28,6 @@ class DistrictRepository {
         .get();
 
     if (!doc.exists) return null;
-    return DistrictModel.fromFirestore(
-      doc as DocumentSnapshot<Map<String, dynamic>>,
-    );
+    return DistrictModel.fromFirestore(doc);
   }
 }

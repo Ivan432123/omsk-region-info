@@ -9,8 +9,11 @@ class OrganizationRepository {
   OrganizationRepository({FirestoreService? firestoreService})
       : _firestoreService = firestoreService ?? FirestoreService();
 
-  Future<({List<OrganizationModel> items, DocumentSnapshot<Map<String, dynamic>>? lastDoc})>
-      getOrganizationsPage({
+  Future<
+      ({
+        List<OrganizationModel> items,
+        DocumentSnapshot<Map<String, dynamic>>? lastDoc
+      })> getOrganizationsPage({
     required String districtId,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
   }) async {
@@ -38,8 +41,6 @@ class OrganizationRepository {
         .get();
 
     if (!doc.exists) return null;
-    return OrganizationModel.fromFirestore(
-      doc as DocumentSnapshot<Map<String, dynamic>>,
-    );
+    return OrganizationModel.fromFirestore(doc);
   }
 }

@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/constants/app_constants.dart';
 import '../models/organization_model.dart';
 import '../repositories/organization_repository.dart';
 
-final organizationRepositoryProvider = Provider((ref) => OrganizationRepository());
+final organizationRepositoryProvider =
+    Provider((ref) => OrganizationRepository());
 
 class OrganizationListState {
   final List<OrganizationModel> items;
@@ -54,11 +56,12 @@ class OrganizationListNotifier extends StateNotifier<OrganizationListState> {
   Future<void> loadFirstPage() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final result = await _repository.getOrganizationsPage(districtId: districtId);
+      final result =
+          await _repository.getOrganizationsPage(districtId: districtId);
       state = state.copyWith(
         items: result.items,
         isLoading: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc,
       );
     } catch (e) {
@@ -80,7 +83,7 @@ class OrganizationListNotifier extends StateNotifier<OrganizationListState> {
       state = state.copyWith(
         items: [...state.items, ...result.items],
         isLoadingMore: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,
       );
     } catch (e) {
@@ -91,9 +94,10 @@ class OrganizationListNotifier extends StateNotifier<OrganizationListState> {
   Future<void> refresh() => loadFirstPage();
 }
 
-final organizationListProvider = StateNotifierProvider.family<OrganizationListNotifier,
-    OrganizationListState, String>((ref, districtId) {
-  return OrganizationListNotifier(ref.watch(organizationRepositoryProvider), districtId);
+final organizationListProvider = StateNotifierProvider.family<
+    OrganizationListNotifier, OrganizationListState, String>((ref, districtId) {
+  return OrganizationListNotifier(
+      ref.watch(organizationRepositoryProvider), districtId);
 });
 
 final organizationDetailsProvider =

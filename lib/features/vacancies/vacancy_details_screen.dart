@@ -52,11 +52,13 @@ class VacancyDetailsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(vacancy.title, style: Theme.of(context).textTheme.headlineMedium),
+                Text(vacancy.title,
+                    style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 8),
                 Text(
                   vacancy.company,
-                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 15),
                 ),
                 if (vacancy.salary != null) ...[
                   const SizedBox(height: 16),
@@ -70,7 +72,8 @@ class VacancyDetailsScreen extends ConsumerWidget {
                   ),
                 ],
                 const SizedBox(height: 20),
-                Text(vacancy.description, style: Theme.of(context).textTheme.bodyLarge),
+                Text(vacancy.description,
+                    style: Theme.of(context).textTheme.bodyLarge),
                 if (vacancy.contactPhone != null) ...[
                   const SizedBox(height: 24),
                   InkWell(
@@ -90,7 +93,8 @@ class VacancyDetailsScreen extends ConsumerWidget {
                               color: AppTheme.primaryBlue,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.call_rounded, color: Colors.white, size: 20),
+                            child: const Icon(Icons.call_rounded,
+                                color: Colors.white, size: 20),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -99,7 +103,9 @@ class VacancyDetailsScreen extends ConsumerWidget {
                               children: [
                                 const Text(
                                   'Контактный телефон',
-                                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.textSecondary),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -113,7 +119,8 @@ class VacancyDetailsScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          const Icon(Icons.chevron_right_rounded, color: AppTheme.primaryBlue),
+                          const Icon(Icons.chevron_right_rounded,
+                              color: AppTheme.primaryBlue),
                         ],
                       ),
                     ),

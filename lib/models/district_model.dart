@@ -25,7 +25,8 @@ class DistrictModel extends Equatable {
     this.order = 0,
   });
 
-  factory DistrictModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory DistrictModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return DistrictModel(
       id: doc.id,
@@ -50,5 +51,6 @@ class DistrictModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, regionId, imageUrl, villages, isActive, order];
+  List<Object?> get props =>
+      [id, name, regionId, imageUrl, villages, isActive, order];
 }

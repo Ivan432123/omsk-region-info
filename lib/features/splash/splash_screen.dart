@@ -1,8 +1,10 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/district_provider.dart';
+import '../../services/fcm_service.dart';
 
 /// Экран загрузки.
 /// Показывает логотип и анимацию, параллельно проверяя, выбран ли уже
@@ -33,9 +35,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _decideNextRoute() async {
     // Минимальная задержка ради ощущения премиального, не мигающего запуска,
     // плюс достаточно времени, чтобы провайдер успел прочитать локальное
-    // хранилище.
-    await Future.delayed(const Duration(milliseconds: 1200));
+    // хранилище. Параллельно проверяем, не был ли этот холодный запуск
+    // вызван тапом по push-уведомлению — вместе, а не по отдельности,
+    // чтобы между решением "куда вести" (/home или /district-selection)
+    // и открытием конкретной новости/объявления не было гонки: если бы
+    // пуш обрабатывался отдельно (например, в main.dart сразу при
+    // старте), он почти всегда успевал бы открыть нужный экран раньше,
+    // чем сработает этот таймер, а последующий context.go() отсюда
+    // полностью стирал бы уже открытый пушем экран.
+    final results = await Future.wait([
+      Future.delayed(const Duration(milliseconds: 1200)),
+      ref.read(fcmServiceProvider).getInitialMessage(),
+    ]);
     if (!mounted) return;
+    final initialMessage = results[1] as RemoteMessage?;
 
     final selected = ref.read(selectedDistrictProvider);
 
@@ -49,10 +62,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     if (!mounted) return;
     final finalState = ref.read(selectedDistrictProvider);
-    if (finalState.hasSelection) {
-      context.go('/home');
-    } else {
+    if (!finalState.hasSelection) {
+      // Район ещё не выбран — деть-линк из пуша некуда вести (в реальности
+      // до выбора района подписки на push и не бывает), просто идём на
+      // выбор района как обычно.
       context.go('/district-selection');
+      return;
+    }
+
+    context.go('/home');
+    final deepLinkPath = initialMessage != null
+        ? notificationDeepLinkPath(initialMessage)
+        : null;
+    if (deepLinkPath != null && mounted) {
+      context.push(deepLinkPath);
     }
   }
 
@@ -82,7 +105,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 24,
                       offset: const Offset(0, 10),
                     ),
@@ -109,7 +132,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             Text(
               'Информационный сервис вашего района',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 13,
               ),
             ),
@@ -119,7 +142,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               height: 28,
               child: CircularProgressIndicator(
                 strokeWidth: 2.6,
-                valueColor: AlwaysStoppedAnimation(Colors.white.withOpacity(0.9)),
+                valueColor:
+                    AlwaysStoppedAnimation(Colors.white.withValues(alpha: 0.9)),
               ),
             ),
           ],

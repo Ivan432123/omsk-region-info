@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/notification_model.dart';
 import '../repositories/notification_repository.dart';
 
-final notificationRepositoryProvider = Provider((ref) => NotificationRepository());
+final notificationRepositoryProvider =
+    Provider((ref) => NotificationRepository());
 
 /// Живой поток уведомлений района — обновляется автоматически при получении
 /// нового push (документ создаётся в Firestore параллельно с отправкой FCM).

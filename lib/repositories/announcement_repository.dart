@@ -28,8 +28,11 @@ class AnnouncementRepository {
         .orderBy('createdAt', descending: true);
   }
 
-  Future<({List<AnnouncementModel> items, DocumentSnapshot<Map<String, dynamic>>? lastDoc})>
-      getAnnouncementsPage({
+  Future<
+      ({
+        List<AnnouncementModel> items,
+        DocumentSnapshot<Map<String, dynamic>>? lastDoc
+      })> getAnnouncementsPage({
     required String districtId,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
   }) async {
@@ -50,7 +53,7 @@ class AnnouncementRepository {
   Future<AnnouncementModel?> getAnnouncementById(String id) async {
     final doc = await _firestoreService.collection(_collection).doc(id).get();
     if (!doc.exists) return null;
-    return AnnouncementModel.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
+    return AnnouncementModel.fromFirestore(doc);
   }
 
   /// Продвигаемые (оплаченные, ещё не истёкшие) объявления района — для

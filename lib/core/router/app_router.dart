@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/district_selection/district_selection_screen.dart';
@@ -67,8 +66,8 @@ class AppRouter {
       ),
       GoRoute(
         path: '/announcements/:id',
-        builder: (context, state) =>
-            AnnouncementDetailsScreen(announcementId: state.pathParameters['id']!),
+        builder: (context, state) => AnnouncementDetailsScreen(
+            announcementId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/events',

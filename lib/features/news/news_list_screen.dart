@@ -58,7 +58,8 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
   Widget build(BuildContext context) {
     final districtId = ref.watch(selectedDistrictProvider).id ?? '';
     final newsState = ref.watch(
-      newsListByCategoryProvider((districtId: districtId, category: _selectedCategory)),
+      newsListByCategoryProvider(
+          (districtId: districtId, category: _selectedCategory)),
     );
 
     return Scaffold(
@@ -110,7 +111,8 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                         .refresh(),
                   );
                 }
-                if (newsState.items.isEmpty) return const EmptyStateWidget.noNews();
+                if (newsState.items.isEmpty)
+                  return const EmptyStateWidget.noNews();
 
                 return RefreshIndicator(
                   color: AppTheme.primaryBlue,
@@ -122,7 +124,8 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                   child: ListView.separated(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
-                    itemCount: newsState.items.length + (newsState.hasMore ? 1 : 0),
+                    itemCount:
+                        newsState.items.length + (newsState.hasMore ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       if (index >= newsState.items.length) {

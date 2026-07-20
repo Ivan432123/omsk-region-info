@@ -52,7 +52,9 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
           ? const LoadingListWidget()
           : state.error != null
               ? EmptyStateWidget.error(
-                  onRetry: () => ref.read(eventListProvider(districtId).notifier).refresh(),
+                  onRetry: () => ref
+                      .read(eventListProvider(districtId).notifier)
+                      .refresh(),
                 )
               : state.items.isEmpty
                   ? const EmptyStateWidget(
@@ -62,7 +64,9 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                     )
                   : RefreshIndicator(
                       color: AppTheme.primaryBlue,
-                      onRefresh: () => ref.read(eventListProvider(districtId).notifier).refresh(),
+                      onRefresh: () => ref
+                          .read(eventListProvider(districtId).notifier)
+                          .refresh(),
                       child: ListView.separated(
                         controller: _scrollController,
                         padding: const EdgeInsets.all(20),
@@ -73,7 +77,8 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                             return const Padding(
                               padding: EdgeInsets.symmetric(vertical: 16),
                               child: Center(
-                                child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+                                child: CircularProgressIndicator(
+                                    color: AppTheme.primaryBlue),
                               ),
                             );
                           }

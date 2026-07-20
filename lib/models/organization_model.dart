@@ -38,7 +38,8 @@ class OrganizationModel extends Equatable {
     required this.districtId,
   });
 
-  factory OrganizationModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory OrganizationModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return OrganizationModel(
       id: doc.id,

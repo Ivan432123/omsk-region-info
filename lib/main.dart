@@ -11,6 +11,7 @@ import 'firebase_options.dart';
 import 'providers/district_provider.dart';
 import 'providers/news_provider.dart';
 import 'providers/announcement_provider.dart';
+import 'services/fcm_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,27 +42,27 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
     });
   }
 
-  /// Настраивает реакцию приложения на push-уведомления:
+  /// Настраивает реакцию приложения на push-уведомления, когда оно уже
+  /// запущено (тёплый старт):
   /// - тап по уведомлению (приложение было свёрнуто) -> переход к
   ///   новости или объявлению, в зависимости от типа (data.type);
-  /// - холодный запуск приложения именно через тап по уведомлению ->
-  ///   тот же переход, как только приложение полностью откроется;
   /// - уведомление пришло, пока приложение уже открыто (foreground) ->
   ///   не показываем системный баннер сами, но сразу обновляем все
   ///   связанные блоки текущего района, чтобы новая запись сразу была
   ///   видна (новости, важные объявления, продвигаемые объявления,
   ///   счётчик непрочитанных объявлений).
+  ///
+  /// Холодный запуск через тап по уведомлению (когда приложение было
+  /// полностью закрыто) обрабатывается отдельно, внутри SplashScreen —
+  /// если решать его здесь, получается гонка: пуш успевает открыть
+  /// экран новости/объявления раньше, чем стартовый экран решит, куда
+  /// вести пользователя (/home или /district-selection), и это решение
+  /// через context.go() полностью стирает уже открытый пушем экран.
   void _setupPushHandling() {
     final fcmService = ref.read(fcmServiceProvider);
 
     // Приложение было в фоне, пользователь тапнул по уведомлению.
     fcmService.onMessageOpenedApp.listen(_handleNotificationTap);
-
-    // Приложение было полностью закрыто и открылось именно через тап
-    // по уведомлению — проверяем это один раз при старте.
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) _handleNotificationTap(message);
-    });
 
     // Уведомление пришло, пока приложение уже открыто — обновляем всё,
     // что могло измениться, для текущего района.
@@ -69,15 +70,8 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
   }
 
   void _handleNotificationTap(RemoteMessage message) {
-    final itemId = message.data['newsId'];
-    if (itemId == null || itemId.toString().isEmpty) return;
-
-    final type = message.data['type'];
-    if (type == 'announcement') {
-      AppRouter.router.push('/announcements/$itemId');
-    } else {
-      AppRouter.router.push('/news/$itemId');
-    }
+    final path = notificationDeepLinkPath(message);
+    if (path != null) AppRouter.router.push(path);
   }
 
   void _refreshCurrentDistrictData() {
@@ -99,10 +93,10 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
       locale: const Locale('ru', 'RU'),
       supportedLocales: const [Locale('ru', 'RU')],
       localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                        GlobalWidgetsLocalizations.delegate,
-                                GlobalCupertinoLocalizations.delegate,
-                                      ],
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

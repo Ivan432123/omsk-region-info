@@ -28,8 +28,11 @@ class VacancyRepository {
         .orderBy('createdAt', descending: true);
   }
 
-  Future<({List<VacancyModel> items, DocumentSnapshot<Map<String, dynamic>>? lastDoc})>
-      getVacanciesPage({
+  Future<
+      ({
+        List<VacancyModel> items,
+        DocumentSnapshot<Map<String, dynamic>>? lastDoc
+      })> getVacanciesPage({
     required String districtId,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
   }) async {
@@ -50,6 +53,6 @@ class VacancyRepository {
   Future<VacancyModel?> getVacancyById(String id) async {
     final doc = await _firestoreService.collection(_collection).doc(id).get();
     if (!doc.exists) return null;
-    return VacancyModel.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
+    return VacancyModel.fromFirestore(doc);
   }
 }

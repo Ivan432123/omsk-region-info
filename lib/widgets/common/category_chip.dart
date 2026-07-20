@@ -35,7 +35,8 @@ class CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = AppConstants.categoryLabelsRu[category] ?? 'Общее';
-    final backgroundColor = _backgroundColors[category] ?? AppTheme.primaryBlueLight;
+    final backgroundColor =
+        _backgroundColors[category] ?? AppTheme.primaryBlueLight;
     final textColor = _textColors[category] ?? AppTheme.primaryBlue;
 
     return Container(

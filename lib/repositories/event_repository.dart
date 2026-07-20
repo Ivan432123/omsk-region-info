@@ -26,8 +26,11 @@ class EventRepository {
         .orderBy('eventDate', descending: false);
   }
 
-  Future<({List<EventModel> items, DocumentSnapshot<Map<String, dynamic>>? lastDoc})>
-      getEventsPage({
+  Future<
+      ({
+        List<EventModel> items,
+        DocumentSnapshot<Map<String, dynamic>>? lastDoc
+      })> getEventsPage({
     required String districtId,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
   }) async {
@@ -48,6 +51,6 @@ class EventRepository {
   Future<EventModel?> getEventById(String id) async {
     final doc = await _firestoreService.collection(_collection).doc(id).get();
     if (!doc.exists) return null;
-    return EventModel.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
+    return EventModel.fromFirestore(doc);
   }
 }

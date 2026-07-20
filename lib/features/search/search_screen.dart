@@ -68,13 +68,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           : Consumer(
               builder: (context, ref, _) {
                 final resultsAsync = ref.watch(
-                  searchResultsProvider((districtId: districtId, query: _query)),
+                  searchResultsProvider(
+                      (districtId: districtId, query: _query)),
                 );
                 return resultsAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator(color: AppTheme.primaryBlue)),
+                  loading: () => const Center(
+                      child: CircularProgressIndicator(
+                          color: AppTheme.primaryBlue)),
                   error: (_, __) => const Center(
-                    child: Text('Не удалось выполнить поиск', style: TextStyle(color: AppTheme.textSecondary)),
+                    child: Text('Не удалось выполнить поиск',
+                        style: TextStyle(color: AppTheme.textSecondary)),
                   ),
                   data: (results) {
                     if (results.isEmpty) {
@@ -95,7 +98,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             results.news
                                 .map((n) => NewsCard(
                                       news: n,
-                                      onTap: () => context.push('/news/${n.id}'),
+                                      onTap: () =>
+                                          context.push('/news/${n.id}'),
                                     ))
                                 .toList(),
                           ),
@@ -106,7 +110,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             results.organizations
                                 .map((o) => OrganizationCard(
                                       organization: o,
-                                      onTap: () => context.push('/organizations/${o.id}'),
+                                      onTap: () => context
+                                          .push('/organizations/${o.id}'),
                                     ))
                                 .toList(),
                           ),
@@ -117,7 +122,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             results.vacancies
                                 .map((v) => VacancyCard(
                                       vacancy: v,
-                                      onTap: () => context.push('/vacancies/${v.id}'),
+                                      onTap: () =>
+                                          context.push('/vacancies/${v.id}'),
                                     ))
                                 .toList(),
                           ),
@@ -128,7 +134,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             results.announcements
                                 .map((a) => AnnouncementCard(
                                       announcement: a,
-                                      onTap: () => context.push('/announcements/${a.id}'),
+                                      onTap: () => context
+                                          .push('/announcements/${a.id}'),
                                     ))
                                 .toList(),
                           ),
@@ -139,7 +146,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             results.events
                                 .map((e) => EventCard(
                                       event: e,
-                                      onTap: () => context.push('/events/${e.id}'),
+                                      onTap: () =>
+                                          context.push('/events/${e.id}'),
                                     ))
                                 .toList(),
                           ),
@@ -152,13 +160,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  List<Widget> _section(BuildContext context, String title, List<Widget> cards) {
+  List<Widget> _section(
+      BuildContext context, String title, List<Widget> cards) {
     return [
       Padding(
         padding: const EdgeInsets.only(bottom: 10, top: 6),
         child: Text(title, style: Theme.of(context).textTheme.titleLarge),
       ),
-      ...cards.map((c) => Padding(padding: const EdgeInsets.only(bottom: 10), child: c)),
+      ...cards.map(
+          (c) => Padding(padding: const EdgeInsets.only(bottom: 10), child: c)),
       const SizedBox(height: 12),
     ];
   }

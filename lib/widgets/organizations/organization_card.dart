@@ -9,13 +9,15 @@ class OrganizationCard extends StatelessWidget {
   final OrganizationModel organization;
   final VoidCallback onTap;
 
-  const OrganizationCard({super.key, required this.organization, required this.onTap});
+  const OrganizationCard(
+      {super.key, required this.organization, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final icon = OrganizationIconHelper.iconFor(organization.category);
     final color = OrganizationIconHelper.colorFor(organization.category);
-    final background = OrganizationIconHelper.backgroundFor(organization.category);
+    final background =
+        OrganizationIconHelper.backgroundFor(organization.category);
 
     return InkWell(
       onTap: onTap,
@@ -39,7 +41,8 @@ class OrganizationCard extends StatelessWidget {
                     ? CachedNetworkImage(
                         imageUrl: organization.logoUrl!,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                        placeholder: (_, __) =>
+                            Container(color: AppTheme.surfaceGrey),
                         errorWidget: (_, __, ___) => Container(
                           color: background,
                           child: Icon(icon, color: color),
@@ -65,12 +68,16 @@ class OrganizationCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     organization.category,
-                    style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: color,
+                        fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.call_outlined, size: 14, color: AppTheme.textSecondary),
+                      const Icon(Icons.call_outlined,
+                          size: 14, color: AppTheme.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         PhoneFormatter.format(organization.phone),
@@ -81,7 +88,8 @@ class OrganizationCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppTheme.textSecondary),
           ],
         ),
       ),

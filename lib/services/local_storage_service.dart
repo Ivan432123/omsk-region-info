@@ -8,7 +8,9 @@ import '../core/constants/app_constants.dart';
 /// сам не сбросит его в настройках (future scope).
 class LocalStorageService {
   static const String _keyMyAdRequests = 'my_ad_requests';
-  static const String _keyLastSeenAnnouncementsPrefix = 'last_seen_announcements_';
+  static const String _keyLastSeenAnnouncementsPrefix =
+      'last_seen_announcements_';
+  static const String _keyBookmarkedOrganizations = 'bookmarked_organizations';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -93,5 +95,28 @@ class LocalStorageService {
       '$_keyLastSeenAnnouncementsPrefix$districtId',
       DateTime.now().toIso8601String(),
     );
+  }
+
+  /// Организации, добавленные жителем в закладки (хранится локально на
+  /// устройстве — входа в приложение нет, синхронизации между устройствами
+  /// тоже намеренно нет).
+  Future<bool> isOrganizationBookmarked(String organizationId) async {
+    final prefs = await _prefs;
+    final ids = prefs.getStringList(_keyBookmarkedOrganizations) ?? [];
+    return ids.contains(organizationId);
+  }
+
+  Future<void> setOrganizationBookmarked(
+    String organizationId,
+    bool bookmarked,
+  ) async {
+    final prefs = await _prefs;
+    final ids = prefs.getStringList(_keyBookmarkedOrganizations) ?? [];
+    if (bookmarked) {
+      if (!ids.contains(organizationId)) ids.add(organizationId);
+    } else {
+      ids.remove(organizationId);
+    }
+    await prefs.setStringList(_keyBookmarkedOrganizations, ids);
   }
 }

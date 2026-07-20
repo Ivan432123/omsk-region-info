@@ -5,7 +5,8 @@ class DateFormatter {
   DateFormatter._();
 
   static final DateFormat _dateFormat = DateFormat('dd.MM.yyyy', 'ru_RU');
-  static final DateFormat _dateTimeFormat = DateFormat('dd.MM.yyyy, HH:mm', 'ru_RU');
+  static final DateFormat _dateTimeFormat =
+      DateFormat('dd.MM.yyyy, HH:mm', 'ru_RU');
   static final DateFormat _timeFormat = DateFormat('HH:mm', 'ru_RU');
 
   static String formatDate(DateTime date) => _dateFormat.format(date);
@@ -36,9 +37,8 @@ class PhoneFormatter {
     final digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
     if (digits.length < 11) return rawPhone;
 
-    final normalized = digits.startsWith('8')
-        ? '7${digits.substring(1)}'
-        : digits;
+    final normalized =
+        digits.startsWith('8') ? '7${digits.substring(1)}' : digits;
 
     if (normalized.length != 11) return rawPhone;
 

@@ -42,7 +42,8 @@ class NewsCard extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: news.imageUrl!,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                  placeholder: (_, __) =>
+                      Container(color: AppTheme.surfaceGrey),
                   errorWidget: (_, __, ___) => Container(
                     color: AppTheme.surfaceGrey,
                     child: const Icon(Icons.image_not_supported_outlined,

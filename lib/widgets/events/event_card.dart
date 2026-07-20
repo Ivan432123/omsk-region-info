@@ -32,7 +32,8 @@ class EventCard extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: event.imageUrl!,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                  placeholder: (_, __) =>
+                      Container(color: AppTheme.surfaceGrey),
                   errorWidget: (_, __, ___) => Container(
                     color: AppTheme.surfaceGrey,
                     child: const Icon(Icons.image_not_supported_outlined,
@@ -47,7 +48,8 @@ class EventCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.event_rounded, size: 16, color: AppTheme.primaryBlue),
+                      const Icon(Icons.event_rounded,
+                          size: 16, color: AppTheme.primaryBlue),
                       const SizedBox(width: 6),
                       Text(
                         DateFormatter.formatDateTime(event.eventDate),
@@ -60,12 +62,14 @@ class EventCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(event.title, style: Theme.of(context).textTheme.titleMedium),
+                  Text(event.title,
+                      style: Theme.of(context).textTheme.titleMedium),
                   if (event.location != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       event.location!,
-                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      style: const TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 13),
                     ),
                   ],
                 ],

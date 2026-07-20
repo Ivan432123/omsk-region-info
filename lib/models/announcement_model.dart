@@ -30,7 +30,8 @@ class AnnouncementModel extends Equatable {
   bool get isPromoted =>
       promotedUntil != null && promotedUntil!.isAfter(DateTime.now());
 
-  factory AnnouncementModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory AnnouncementModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return AnnouncementModel(
       id: doc.id,
@@ -50,13 +51,22 @@ class AnnouncementModel extends Equatable {
       'description': description,
       'contactPhone': contactPhone,
       'images': images,
-      'promotedUntil': promotedUntil != null ? Timestamp.fromDate(promotedUntil!) : null,
+      'promotedUntil':
+          promotedUntil != null ? Timestamp.fromDate(promotedUntil!) : null,
       'district': districtId,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }
 
   @override
-  List<Object?> get props =>
-      [id, title, description, contactPhone, images, promotedUntil, districtId, createdAt];
+  List<Object?> get props => [
+        id,
+        title,
+        description,
+        contactPhone,
+        images,
+        promotedUntil,
+        districtId,
+        createdAt
+      ];
 }

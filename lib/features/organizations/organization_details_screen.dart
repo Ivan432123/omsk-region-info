@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../core/utils/organization_icon_helper.dart';
 import '../../providers/organization_provider.dart';
+import '../../services/local_storage_service.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/fullscreen_gallery_viewer.dart';
@@ -22,7 +23,16 @@ class OrganizationDetailsScreen extends ConsumerStatefulWidget {
 
 class _OrganizationDetailsScreenState
     extends ConsumerState<OrganizationDetailsScreen> {
+  final _storage = LocalStorageService();
   bool _isBookmarked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _storage.isOrganizationBookmarked(widget.organizationId).then((value) {
+      if (mounted) setState(() => _isBookmarked = value);
+    });
+  }
 
   Future<void> _call(BuildContext context, String phone) async {
     final uri = Uri(scheme: 'tel', path: PhoneFormatter.toDialFormat(phone));
@@ -52,10 +62,12 @@ class _OrganizationDetailsScreenState
   }
 
   void _toggleBookmark() {
-    setState(() => _isBookmarked = !_isBookmarked);
+    final newValue = !_isBookmarked;
+    setState(() => _isBookmarked = newValue);
+    _storage.setOrganizationBookmarked(widget.organizationId, newValue);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isBookmarked ? 'Добавлено в закладки' : 'Убрано из закладок'),
+        content: Text(newValue ? 'Добавлено в закладки' : 'Убрано из закладок'),
         duration: const Duration(seconds: 1),
       ),
     );
@@ -63,7 +75,8 @@ class _OrganizationDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final orgAsync = ref.watch(organizationDetailsProvider(widget.organizationId));
+    final orgAsync =
+        ref.watch(organizationDetailsProvider(widget.organizationId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -71,7 +84,9 @@ class _OrganizationDetailsScreenState
         title: const Text('Организация'),
         actions: [
           IconButton(
-            icon: Icon(_isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded),
+            icon: Icon(_isBookmarked
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_border_rounded),
             onPressed: _toggleBookmark,
           ),
         ],
@@ -79,7 +94,8 @@ class _OrganizationDetailsScreenState
       body: orgAsync.when(
         loading: () => const LoadingIndicatorWidget(),
         error: (_, __) => EmptyStateWidget.error(
-          onRetry: () => ref.invalidate(organizationDetailsProvider(widget.organizationId)),
+          onRetry: () => ref
+              .invalidate(organizationDetailsProvider(widget.organizationId)),
         ),
         data: (org) {
           if (org == null) {
@@ -107,7 +123,8 @@ class _OrganizationDetailsScreenState
                         width: 72,
                         height: 72,
                         child: org.logoUrl != null
-                            ? CachedNetworkImage(imageUrl: org.logoUrl!, fit: BoxFit.cover)
+                            ? CachedNetworkImage(
+                                imageUrl: org.logoUrl!, fit: BoxFit.cover)
                             : Container(
                                 color: background,
                                 child: Icon(icon, color: color, size: 32),
@@ -119,11 +136,14 @@ class _OrganizationDetailsScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(org.name, style: Theme.of(context).textTheme.headlineMedium),
+                          Text(org.name,
+                              style:
+                                  Theme.of(context).textTheme.headlineMedium),
                           const SizedBox(height: 4),
                           Text(
                             org.category,
-                            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                color: color, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -134,17 +154,20 @@ class _OrganizationDetailsScreenState
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+                      const Icon(Icons.star_rounded,
+                          color: Colors.amber, size: 20),
                       const SizedBox(width: 4),
                       Text(
                         org.rating!.toStringAsFixed(1),
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 15),
                       ),
                       if (org.reviewCount != null) ...[
                         const SizedBox(width: 6),
                         Text(
                           '${org.reviewCount} ${_reviewsWord(org.reviewCount!)}',
-                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                          style: const TextStyle(
+                              color: AppTheme.textSecondary, fontSize: 13),
                         ),
                       ],
                     ],
@@ -181,9 +204,11 @@ class _OrganizationDetailsScreenState
                 ],
                 const SizedBox(height: 20),
                 if (org.description.isNotEmpty) ...[
-                  Text('Описание', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Описание',
+                      style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 6),
-                  Text(org.description, style: Theme.of(context).textTheme.bodyLarge),
+                  Text(org.description,
+                      style: Theme.of(context).textTheme.bodyLarge),
                   const SizedBox(height: 20),
                 ],
                 _InfoRow(
@@ -209,7 +234,8 @@ class _OrganizationDetailsScreenState
                   ),
                 if (org.services.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text('Услуги', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Услуги',
+                      style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -242,7 +268,8 @@ class _OrganizationDetailsScreenState
                       const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => _openMap(context, org.latitude!, org.longitude!),
+                          onPressed: () =>
+                              _openMap(context, org.latitude!, org.longitude!),
                           icon: const Icon(Icons.directions_rounded, size: 18),
                           label: const Text('Маршрут'),
                         ),
@@ -284,7 +311,8 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({required this.icon, required this.label, required this.value});
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -299,7 +327,9 @@ class _InfoRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppTheme.textSecondary)),
                 const SizedBox(height: 2),
                 Text(value, style: Theme.of(context).textTheme.bodyLarge),
               ],

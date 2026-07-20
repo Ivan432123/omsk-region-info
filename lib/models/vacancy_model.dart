@@ -22,7 +22,8 @@ class VacancyModel extends Equatable {
     required this.createdAt,
   });
 
-  factory VacancyModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory VacancyModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return VacancyModel(
       id: doc.id,

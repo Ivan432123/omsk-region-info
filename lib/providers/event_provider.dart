@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/constants/app_constants.dart';
 import '../models/event_model.dart';
 import '../repositories/event_repository.dart';
 
@@ -46,7 +47,8 @@ class EventListNotifier extends StateNotifier<EventListState> {
   final EventRepository _repository;
   final String districtId;
 
-  EventListNotifier(this._repository, this.districtId) : super(const EventListState()) {
+  EventListNotifier(this._repository, this.districtId)
+      : super(const EventListState()) {
     loadFirstPage();
   }
 
@@ -57,7 +59,7 @@ class EventListNotifier extends StateNotifier<EventListState> {
       state = state.copyWith(
         items: result.items,
         isLoading: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc,
       );
     } catch (e) {
@@ -79,7 +81,7 @@ class EventListNotifier extends StateNotifier<EventListState> {
       state = state.copyWith(
         items: [...state.items, ...result.items],
         isLoadingMore: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,
       );
     } catch (e) {
@@ -91,7 +93,8 @@ class EventListNotifier extends StateNotifier<EventListState> {
 }
 
 final eventListProvider =
-    StateNotifierProvider.family<EventListNotifier, EventListState, String>((ref, districtId) {
+    StateNotifierProvider.family<EventListNotifier, EventListState, String>(
+        (ref, districtId) {
   return EventListNotifier(ref.watch(eventRepositoryProvider), districtId);
 });
 

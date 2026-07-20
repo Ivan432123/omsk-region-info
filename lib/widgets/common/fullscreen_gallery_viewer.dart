@@ -15,16 +15,19 @@ class FullscreenGalleryViewer extends StatefulWidget {
     this.initialIndex = 0,
   });
 
-  static void open(BuildContext context, List<String> images, {int initialIndex = 0}) {
+  static void open(BuildContext context, List<String> images,
+      {int initialIndex = 0}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => FullscreenGalleryViewer(images: images, initialIndex: initialIndex),
+        builder: (_) =>
+            FullscreenGalleryViewer(images: images, initialIndex: initialIndex),
       ),
     );
   }
 
   @override
-  State<FullscreenGalleryViewer> createState() => _FullscreenGalleryViewerState();
+  State<FullscreenGalleryViewer> createState() =>
+      _FullscreenGalleryViewerState();
 }
 
 class _FullscreenGalleryViewerState extends State<FullscreenGalleryViewer> {
@@ -87,7 +90,8 @@ class _FullscreenGalleryViewerState extends State<FullscreenGalleryViewer> {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(20),

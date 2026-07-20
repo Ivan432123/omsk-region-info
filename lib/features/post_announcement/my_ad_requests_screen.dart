@@ -32,7 +32,8 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Скопировано'), duration: Duration(seconds: 1)),
+      const SnackBar(
+          content: Text('Скопировано'), duration: Duration(seconds: 1)),
     );
   }
 
@@ -42,7 +43,8 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
       backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Мои заявки')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryBlue))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryBlue))
           : _requests.isEmpty
               ? const Center(
                   child: Padding(
@@ -58,7 +60,8 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
                   padding: const EdgeInsets.all(20),
                   itemCount: _requests.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) => _buildRequestCard(_requests[index]),
+                  itemBuilder: (context, index) =>
+                      _buildRequestCard(_requests[index]),
                 ),
     );
   }
@@ -79,12 +82,14 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(r['title'] as String? ?? '', style: Theme.of(context).textTheme.titleMedium),
+          Text(r['title'] as String? ?? '',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 6),
           Row(
             children: [
               Text('Заявка №$shortId',
-                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 13)),
               IconButton(
                 icon: const Icon(Icons.copy_rounded, size: 16),
                 onPressed: () => _copyToClipboard(shortId),
@@ -105,7 +110,8 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Переведите ${r['amount']} ₽ по номеру ${r['paymentPhone']} (СБП)'),
+                  Text(
+                      'Переведите ${r['amount']} ₽ по номеру ${r['paymentPhone']} (СБП)'),
                   const SizedBox(height: 4),
                   Text('Доступно через: $banks'),
                   const SizedBox(height: 4),

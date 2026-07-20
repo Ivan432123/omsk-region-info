@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/constants/app_constants.dart';
 import '../models/vacancy_model.dart';
 import '../repositories/vacancy_repository.dart';
 
@@ -46,7 +47,8 @@ class VacancyListNotifier extends StateNotifier<VacancyListState> {
   final VacancyRepository _repository;
   final String districtId;
 
-  VacancyListNotifier(this._repository, this.districtId) : super(const VacancyListState()) {
+  VacancyListNotifier(this._repository, this.districtId)
+      : super(const VacancyListState()) {
     loadFirstPage();
   }
 
@@ -57,13 +59,14 @@ class VacancyListNotifier extends StateNotifier<VacancyListState> {
       state = state.copyWith(
         items: result.items,
         isLoading: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Не удалось загрузить вакансии. Проверьте подключение к интернету.',
+        error:
+            'Не удалось загрузить вакансии. Проверьте подключение к интернету.',
       );
     }
   }
@@ -79,7 +82,7 @@ class VacancyListNotifier extends StateNotifier<VacancyListState> {
       state = state.copyWith(
         items: [...state.items, ...result.items],
         isLoadingMore: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,
       );
     } catch (e) {
@@ -91,7 +94,8 @@ class VacancyListNotifier extends StateNotifier<VacancyListState> {
 }
 
 final vacancyListProvider =
-    StateNotifierProvider.family<VacancyListNotifier, VacancyListState, String>((ref, districtId) {
+    StateNotifierProvider.family<VacancyListNotifier, VacancyListState, String>(
+        (ref, districtId) {
   return VacancyListNotifier(ref.watch(vacancyRepositoryProvider), districtId);
 });
 

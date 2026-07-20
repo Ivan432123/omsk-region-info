@@ -41,7 +41,8 @@ class EventDetailsScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.event_rounded, size: 18, color: AppTheme.primaryBlue),
+                    const Icon(Icons.event_rounded,
+                        size: 18, color: AppTheme.primaryBlue),
                     const SizedBox(width: 8),
                     Text(
                       DateFormatter.formatDateTime(event.eventDate),
@@ -54,18 +55,21 @@ class EventDetailsScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(event.title, style: Theme.of(context).textTheme.headlineMedium),
+                Text(event.title,
+                    style: Theme.of(context).textTheme.headlineMedium),
                 if (event.location != null) ...[
                   const SizedBox(height: 8),
                   Text(
                     event.location!,
-                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                    style: const TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 15),
                   ),
                 ],
                 if (event.imageUrl != null) ...[
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: () => FullscreenGalleryViewer.open(context, [event.imageUrl!]),
+                    onTap: () => FullscreenGalleryViewer.open(
+                        context, [event.imageUrl!]),
                     child: Hero(
                       tag: event.imageUrl!,
                       child: ClipRRect(
@@ -75,8 +79,10 @@ class EventDetailsScreen extends ConsumerWidget {
                           child: CachedNetworkImage(
                             imageUrl: event.imageUrl!,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
-                            errorWidget: (_, __, ___) => Container(color: AppTheme.surfaceGrey),
+                            placeholder: (_, __) =>
+                                Container(color: AppTheme.surfaceGrey),
+                            errorWidget: (_, __, ___) =>
+                                Container(color: AppTheme.surfaceGrey),
                           ),
                         ),
                       ),
@@ -84,7 +90,8 @@ class EventDetailsScreen extends ConsumerWidget {
                   ),
                 ],
                 const SizedBox(height: 20),
-                Text(event.description, style: Theme.of(context).textTheme.bodyLarge),
+                Text(event.description,
+                    style: Theme.of(context).textTheme.bodyLarge),
               ],
             ),
           );

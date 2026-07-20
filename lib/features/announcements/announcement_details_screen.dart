@@ -30,7 +30,8 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final announcementAsync = ref.watch(announcementDetailsProvider(announcementId));
+    final announcementAsync =
+        ref.watch(announcementDetailsProvider(announcementId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -38,7 +39,8 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
       body: announcementAsync.when(
         loading: () => const LoadingIndicatorWidget(),
         error: (_, __) => EmptyStateWidget.error(
-          onRetry: () => ref.invalidate(announcementDetailsProvider(announcementId)),
+          onRetry: () =>
+              ref.invalidate(announcementDetailsProvider(announcementId)),
         ),
         data: (announcement) {
           if (announcement == null) {
@@ -54,7 +56,8 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(announcement.title, style: Theme.of(context).textTheme.headlineMedium),
+                Text(announcement.title,
+                    style: Theme.of(context).textTheme.headlineMedium),
                 if (announcement.images.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   SizedBox(
@@ -74,11 +77,14 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: AspectRatio(
-                              aspectRatio: announcement.images.length == 1 ? 16 / 10 : 4 / 3,
+                              aspectRatio: announcement.images.length == 1
+                                  ? 16 / 10
+                                  : 4 / 3,
                               child: CachedNetworkImage(
                                 imageUrl: announcement.images[index],
                                 fit: BoxFit.cover,
-                                placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                                placeholder: (_, __) =>
+                                    Container(color: AppTheme.surfaceGrey),
                                 errorWidget: (_, __, ___) =>
                                     Container(color: AppTheme.surfaceGrey),
                               ),
@@ -90,7 +96,8 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                   ),
                 ],
                 const SizedBox(height: 20),
-                Text(announcement.description, style: Theme.of(context).textTheme.bodyLarge),
+                Text(announcement.description,
+                    style: Theme.of(context).textTheme.bodyLarge),
                 if (announcement.contactPhone != null) ...[
                   const SizedBox(height: 24),
                   InkWell(
@@ -110,7 +117,8 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                               color: AppTheme.primaryBlue,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.call_rounded, color: Colors.white, size: 20),
+                            child: const Icon(Icons.call_rounded,
+                                color: Colors.white, size: 20),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -119,11 +127,14 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                               children: [
                                 const Text(
                                   'Контактный телефон',
-                                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.textSecondary),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  PhoneFormatter.format(announcement.contactPhone!),
+                                  PhoneFormatter.format(
+                                      announcement.contactPhone!),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
@@ -133,7 +144,8 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          const Icon(Icons.chevron_right_rounded, color: AppTheme.primaryBlue),
+                          const Icon(Icons.chevron_right_rounded,
+                              color: AppTheme.primaryBlue),
                         ],
                       ),
                     ),

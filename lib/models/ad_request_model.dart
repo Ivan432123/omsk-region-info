@@ -26,7 +26,8 @@ class AdRequestModel extends Equatable {
     required this.createdAt,
   });
 
-  factory AdRequestModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory AdRequestModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return AdRequestModel(
       id: doc.id,

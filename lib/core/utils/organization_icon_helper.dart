@@ -11,16 +11,27 @@ class OrganizationIconHelper {
 
   static IconData iconFor(String category) {
     final c = category.toLowerCase();
-    if (c.contains('администра') || c.contains('госучрежд') || c.contains('мфц')) {
+    if (c.contains('администра') ||
+        c.contains('госучрежд') ||
+        c.contains('мфц')) {
       return Icons.account_balance_rounded;
     }
-    if (c.contains('больниц') || c.contains('поликлин') || c.contains('мед') || c.contains('фап')) {
+    if (c.contains('больниц') ||
+        c.contains('поликлин') ||
+        c.contains('мед') ||
+        c.contains('фап')) {
       return Icons.local_hospital_rounded;
     }
-    if (c.contains('школ') || c.contains('образован') || c.contains('сад') || c.contains('универ')) {
+    if (c.contains('школ') ||
+        c.contains('образован') ||
+        c.contains('сад') ||
+        c.contains('универ')) {
       return Icons.school_rounded;
     }
-    if (c.contains('культур') || c.contains('театр') || c.contains('музей') || c.contains('библиотек')) {
+    if (c.contains('культур') ||
+        c.contains('театр') ||
+        c.contains('музей') ||
+        c.contains('библиотек')) {
       return Icons.theater_comedy_rounded;
     }
     if (c.contains('спорт') || c.contains('стадион') || c.contains('бассейн')) {
@@ -40,16 +51,27 @@ class OrganizationIconHelper {
 
   static Color colorFor(String category) {
     final c = category.toLowerCase();
-    if (c.contains('администра') || c.contains('госучрежд') || c.contains('мфц')) {
+    if (c.contains('администра') ||
+        c.contains('госучрежд') ||
+        c.contains('мфц')) {
       return AppTheme.primaryBlue;
     }
-    if (c.contains('больниц') || c.contains('поликлин') || c.contains('мед') || c.contains('фап')) {
+    if (c.contains('больниц') ||
+        c.contains('поликлин') ||
+        c.contains('мед') ||
+        c.contains('фап')) {
       return AppTheme.success;
     }
-    if (c.contains('школ') || c.contains('образован') || c.contains('сад') || c.contains('универ')) {
+    if (c.contains('школ') ||
+        c.contains('образован') ||
+        c.contains('сад') ||
+        c.contains('универ')) {
       return const Color(0xFF7B1FA2);
     }
-    if (c.contains('культур') || c.contains('театр') || c.contains('музей') || c.contains('библиотек')) {
+    if (c.contains('культур') ||
+        c.contains('театр') ||
+        c.contains('музей') ||
+        c.contains('библиотек')) {
       return const Color(0xFFD81B60);
     }
     if (c.contains('спорт') || c.contains('стадион') || c.contains('бассейн')) {
@@ -68,6 +90,6 @@ class OrganizationIconHelper {
   }
 
   static Color backgroundFor(String category) {
-    return colorFor(category).withOpacity(0.12);
+    return colorFor(category).withValues(alpha: 0.12);
   }
 }

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/district_provider.dart';
+
+/// Версия приложения — читается из платформенного манифеста (тот же номер,
+/// что в pubspec.yaml), а не хранится второй копией здесь вручную, чтобы
+/// экран "Настройки" не показывал устаревшую версию после каждого релиза.
+final _packageInfoProvider =
+    FutureProvider<PackageInfo>((ref) => PackageInfo.fromPlatform());
 
 /// Экран настроек.
 /// MVP-скоуп: смена района и справочная информация о приложении.
@@ -14,6 +21,11 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final district = ref.watch(selectedDistrictProvider);
+    final packageInfo = ref.watch(_packageInfoProvider);
+    final appVersion = packageInfo.maybeWhen(
+      data: (info) => info.version,
+      orElse: () => '…',
+    );
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -26,17 +38,18 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.location_on_outlined,
             title: district.name ?? 'Район не выбран',
-            subtitle: 'Новости и организации показываются только для этого района',
+            subtitle:
+                'Новости и организации показываются только для этого района',
             trailingLabel: 'Изменить',
             onTap: () => _openChangeDistrict(context, ref),
           ),
           const SizedBox(height: 28),
           Text('О приложении', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 10),
-          const _SettingsTile(
+          _SettingsTile(
             icon: Icons.info_outline_rounded,
             title: 'Версия приложения',
-            subtitle: '1.0.0',
+            subtitle: appVersion,
           ),
           const _SettingsTile(
             icon: Icons.notifications_outlined,
@@ -116,10 +129,12 @@ class _SettingsTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: Theme.of(context).textTheme.titleMedium),
+                      Text(title,
+                          style: Theme.of(context).textTheme.titleMedium),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
-                        Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium),
+                        Text(subtitle!,
+                            style: Theme.of(context).textTheme.bodyMedium),
                       ],
                     ],
                   ),
@@ -134,7 +149,8 @@ class _SettingsTile extends StatelessWidget {
                       fontSize: 13,
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded, color: AppTheme.primaryBlue),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: AppTheme.primaryBlue),
                 ],
               ],
             ),

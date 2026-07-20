@@ -7,7 +7,8 @@ class AnnouncementCard extends StatelessWidget {
   final AnnouncementModel announcement;
   final VoidCallback onTap;
 
-  const AnnouncementCard({super.key, required this.announcement, required this.onTap});
+  const AnnouncementCard(
+      {super.key, required this.announcement, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,8 @@ class AnnouncementCard extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: announcement.images.first,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: AppTheme.surfaceGrey),
+                  placeholder: (_, __) =>
+                      Container(color: AppTheme.surfaceGrey),
                   errorWidget: (_, __, ___) => Container(
                     color: AppTheme.surfaceGrey,
                     child: const Icon(Icons.image_not_supported_outlined,
@@ -44,13 +46,15 @@ class AnnouncementCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(announcement.title, style: Theme.of(context).textTheme.titleMedium),
+                  Text(announcement.title,
+                      style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 6),
                   Text(
                     announcement.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                    style: const TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 13),
                   ),
                 ],
               ),

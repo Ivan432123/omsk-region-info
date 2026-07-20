@@ -16,7 +16,8 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final districtId = ref.watch(selectedDistrictProvider).id ?? '';
-    final notificationsAsync = ref.watch(notificationsStreamProvider(districtId));
+    final notificationsAsync =
+        ref.watch(notificationsStreamProvider(districtId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -24,10 +25,12 @@ class NotificationsScreen extends ConsumerWidget {
       body: notificationsAsync.when(
         loading: () => const LoadingListWidget(),
         error: (_, __) => EmptyStateWidget.error(
-          onRetry: () => ref.invalidate(notificationsStreamProvider(districtId)),
+          onRetry: () =>
+              ref.invalidate(notificationsStreamProvider(districtId)),
         ),
         data: (notifications) {
-          if (notifications.isEmpty) return const EmptyStateWidget.noNotifications();
+          if (notifications.isEmpty)
+            return const EmptyStateWidget.noNotifications();
 
           return ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -73,7 +76,9 @@ class _NotificationTile extends StatelessWidget {
           color: notification.isRead ? Colors.white : AppTheme.primaryBlueLight,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: notification.isRead ? AppTheme.divider : AppTheme.primaryBlue.withOpacity(0.3),
+            color: notification.isRead
+                ? AppTheme.divider
+                : AppTheme.primaryBlue.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -101,7 +106,8 @@ class _NotificationTile extends StatelessWidget {
                       const Spacer(),
                       Text(
                         DateFormatter.formatRelative(notification.createdAt),
-                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        style: const TextStyle(
+                            fontSize: 12, color: AppTheme.textSecondary),
                       ),
                     ],
                   ),

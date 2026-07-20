@@ -16,8 +16,11 @@ class NewsRepository {
         .orderBy('createdAt', descending: true);
   }
 
-  Future<({List<NewsModel> items, DocumentSnapshot<Map<String, dynamic>>? lastDoc})>
-      getNewsPage({
+  Future<
+      ({
+        List<NewsModel> items,
+        DocumentSnapshot<Map<String, dynamic>>? lastDoc
+      })> getNewsPage({
     required String districtId,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
     String? categoryFilter,
@@ -63,6 +66,6 @@ class NewsRepository {
     final doc = await docRef.get();
 
     if (!doc.exists) return null;
-    return NewsModel.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
+    return NewsModel.fromFirestore(doc);
   }
 }

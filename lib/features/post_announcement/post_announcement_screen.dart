@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/input_sanitizer.dart';
 import '../../providers/ad_request_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../services/local_storage_service.dart';
@@ -17,10 +18,12 @@ class PostAnnouncementScreen extends ConsumerStatefulWidget {
   const PostAnnouncementScreen({super.key});
 
   @override
-  ConsumerState<PostAnnouncementScreen> createState() => _PostAnnouncementScreenState();
+  ConsumerState<PostAnnouncementScreen> createState() =>
+      _PostAnnouncementScreenState();
 }
 
-class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen> {
+class _PostAnnouncementScreenState
+    extends ConsumerState<PostAnnouncementScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -45,6 +48,17 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Заполните заголовок, текст объявления и телефон'),
+          backgroundColor: AppTheme.accentRed,
+        ),
+      );
+      return;
+    }
+
+    if (!InputSanitizer.isValidPhone(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Проверьте номер телефона — укажите его вместе с кодом города'),
           backgroundColor: AppTheme.accentRed,
         ),
       );
@@ -92,7 +106,9 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Номер заявки скопирован'), duration: Duration(seconds: 1)),
+      const SnackBar(
+          content: Text('Номер заявки скопирован'),
+          duration: Duration(seconds: 1)),
     );
   }
 
@@ -125,15 +141,18 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
           const SizedBox(height: 8),
           TextField(
             controller: _titleController,
-            decoration: const InputDecoration(hintText: 'Например: Продам детский велосипед'),
+            decoration: const InputDecoration(
+                hintText: 'Например: Продам детский велосипед'),
           ),
           const SizedBox(height: 20),
-          Text('Текст объявления', style: Theme.of(context).textTheme.titleMedium),
+          Text('Текст объявления',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
             controller: _descriptionController,
             maxLines: 5,
-            decoration: const InputDecoration(hintText: 'Подробности, цена, состояние...'),
+            decoration: const InputDecoration(
+                hintText: 'Подробности, цена, состояние...'),
           ),
           const SizedBox(height: 20),
           Text('Ваш телефон', style: Theme.of(context).textTheme.titleMedium),
@@ -162,7 +181,8 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
                     onTap: () => setState(() => _wantsPush = !_wantsPush),
                     child: Text(
                       'Хочу, чтобы объявление увидели все в районе, у кого установлено приложение ($_pushPromotionPrice ₽)',
-                      style: const TextStyle(fontSize: 14, color: AppTheme.primaryBlueDark),
+                      style: const TextStyle(
+                          fontSize: 14, color: AppTheme.primaryBlueDark),
                     ),
                   ),
                 ),
@@ -174,7 +194,8 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _submit,
-              child: Text(_isSubmitting ? 'Отправка...' : 'Отправить на проверку'),
+              child:
+                  Text(_isSubmitting ? 'Отправка...' : 'Отправить на проверку'),
             ),
           ),
           const SizedBox(height: 12),
@@ -188,13 +209,15 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
   }
 
   Widget _buildSuccess() {
-    final shortId = _submittedRequestId!.substring(0, _submittedRequestId!.length.clamp(0, 8));
+    final shortId = _submittedRequestId!
+        .substring(0, _submittedRequestId!.length.clamp(0, 8));
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.check_circle_rounded, color: AppTheme.success, size: 64),
+          const Icon(Icons.check_circle_rounded,
+              color: AppTheme.success, size: 64),
           const SizedBox(height: 16),
           Text(
             'Заявка отправлена',
@@ -205,7 +228,9 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('№$shortId', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+              Text('№$shortId',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 16)),
               IconButton(
                 icon: const Icon(Icons.copy_rounded, size: 18),
                 onPressed: () => _copyToClipboard(shortId),
@@ -229,13 +254,16 @@ class _PostAnnouncementScreenState extends ConsumerState<PostAnnouncementScreen>
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
-                  Text('1. Переведите $_pushPromotionPrice ₽ по номеру $_paymentPhoneNumber (СБП)'),
+                  Text(
+                      '1. Переведите $_pushPromotionPrice ₽ по номеру $_paymentPhoneNumber (СБП)'),
                   const SizedBox(height: 4),
                   Text('Доступно через: ${_paymentBanks.join(', ')}'),
                   const SizedBox(height: 6),
-                  Text('2. В комментарии к переводу укажите номер заявки: $shortId'),
+                  Text(
+                      '2. В комментарии к переводу укажите номер заявки: $shortId'),
                   const SizedBox(height: 6),
-                  const Text('3. Объявление опубликуют в течение часа после поступления оплаты'),
+                  const Text(
+                      '3. Объявление опубликуют в течение часа после поступления оплаты'),
                 ],
               ),
             ),

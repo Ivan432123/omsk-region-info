@@ -23,7 +23,8 @@ class EmptyStateWidget extends StatelessWidget {
   const EmptyStateWidget.noNews({super.key})
       : icon = Icons.article_outlined,
         title = 'Нет новостей',
-        subtitle = 'Как только появятся новости вашего района — они будут здесь',
+        subtitle =
+            'Как только появятся новости вашего района — они будут здесь',
         actionLabel = null,
         onAction = null;
 

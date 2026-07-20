@@ -13,10 +13,12 @@ class AnnouncementsListScreen extends ConsumerStatefulWidget {
   const AnnouncementsListScreen({super.key});
 
   @override
-  ConsumerState<AnnouncementsListScreen> createState() => _AnnouncementsListScreenState();
+  ConsumerState<AnnouncementsListScreen> createState() =>
+      _AnnouncementsListScreenState();
 }
 
-class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScreen> {
+class _AnnouncementsListScreenState
+    extends ConsumerState<AnnouncementsListScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -66,8 +68,9 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
           ? const LoadingListWidget()
           : state.error != null
               ? EmptyStateWidget.error(
-                  onRetry: () =>
-                      ref.read(announcementListProvider(districtId).notifier).refresh(),
+                  onRetry: () => ref
+                      .read(announcementListProvider(districtId).notifier)
+                      .refresh(),
                 )
               : state.items.isEmpty
                   ? const EmptyStateWidget(
@@ -77,8 +80,9 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
                     )
                   : RefreshIndicator(
                       color: AppTheme.primaryBlue,
-                      onRefresh: () =>
-                          ref.read(announcementListProvider(districtId).notifier).refresh(),
+                      onRefresh: () => ref
+                          .read(announcementListProvider(districtId).notifier)
+                          .refresh(),
                       child: _buildList(context, state),
                     ),
     );
@@ -95,7 +99,8 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
         if (promoted.isNotEmpty) ...[
           Row(
             children: const [
-              Icon(Icons.local_fire_department_rounded, color: Color(0xFFE67E22), size: 20),
+              Icon(Icons.local_fire_department_rounded,
+                  color: Color(0xFFE67E22), size: 20),
               SizedBox(width: 6),
               Text(
                 'Продвигаемые объявления',
@@ -110,11 +115,13 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE67E22), width: 1.5),
+                  border:
+                      Border.all(color: const Color(0xFFE67E22), width: 1.5),
                 ),
                 child: AnnouncementCard(
                   announcement: announcement,
-                  onTap: () => context.push('/announcements/${announcement.id}'),
+                  onTap: () =>
+                      context.push('/announcements/${announcement.id}'),
                 ),
               ),
             ),

@@ -17,9 +17,12 @@ class HomeScreen extends ConsumerWidget {
     final district = ref.watch(selectedDistrictProvider);
     final districtId = district.id ?? '';
     final newsState = ref.watch(newsListProvider(districtId));
-    final announcementsAsync = ref.watch(importantAnnouncementsProvider(districtId));
-    final promotedAdsAsync = ref.watch(promotedAnnouncementsProvider(districtId));
-    final unreadAnnouncementsAsync = ref.watch(unreadAnnouncementsCountProvider(districtId));
+    final announcementsAsync =
+        ref.watch(importantAnnouncementsProvider(districtId));
+    final promotedAdsAsync =
+        ref.watch(promotedAnnouncementsProvider(districtId));
+    final unreadAnnouncementsAsync =
+        ref.watch(unreadAnnouncementsCountProvider(districtId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -53,8 +56,10 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               promotedAdsAsync.when(
-                loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-                error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                loading: () =>
+                    const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (_, __) =>
+                    const SliverToBoxAdapter(child: SizedBox.shrink()),
                 data: (promotedAds) {
                   if (promotedAds.isEmpty) {
                     return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -71,7 +76,9 @@ class HomeScreen extends ConsumerWidget {
                                   color: Color(0xFFE67E22), size: 20),
                               SizedBox(width: 6),
                               Text('Объявления жителей',
-                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 17)),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -81,11 +88,14 @@ class HomeScreen extends ConsumerWidget {
                               child: Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(color: const Color(0xFFE67E22), width: 1.5),
+                                  border: Border.all(
+                                      color: const Color(0xFFE67E22),
+                                      width: 1.5),
                                 ),
                                 child: AnnouncementCard(
                                   announcement: ad,
-                                  onTap: () => context.push('/announcements/${ad.id}'),
+                                  onTap: () =>
+                                      context.push('/announcements/${ad.id}'),
                                 ),
                               ),
                             ),
@@ -97,8 +107,10 @@ class HomeScreen extends ConsumerWidget {
                 },
               ),
               announcementsAsync.when(
-                loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-                error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                loading: () =>
+                    const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (_, __) =>
+                    const SliverToBoxAdapter(child: SizedBox.shrink()),
                 data: (announcements) {
                   if (announcements.isEmpty) {
                     return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -133,7 +145,8 @@ class HomeScreen extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Последние новости', style: Theme.of(context).textTheme.titleLarge),
+                      Text('Последние новости',
+                          style: Theme.of(context).textTheme.titleLarge),
                       TextButton(
                         onPressed: () => context.go('/news'),
                         child: const Text('Все новости'),
@@ -146,7 +159,9 @@ class HomeScreen extends ConsumerWidget {
                 const SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.only(top: 40),
-                    child: Center(child: CircularProgressIndicator(color: AppTheme.primaryBlue)),
+                    child: Center(
+                        child: CircularProgressIndicator(
+                            color: AppTheme.primaryBlue)),
                   ),
                 )
               else if (newsState.error != null)
@@ -154,7 +169,9 @@ class HomeScreen extends ConsumerWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 20),
                     child: EmptyStateWidget.error(
-                      onRetry: () => ref.read(newsListProvider(districtId).notifier).refresh(),
+                      onRetry: () => ref
+                          .read(newsListProvider(districtId).notifier)
+                          .refresh(),
                     ),
                   ),
                 )
@@ -174,10 +191,13 @@ class HomeScreen extends ConsumerWidget {
                         padding: const EdgeInsets.only(bottom: 10),
                         child: NewsCard(
                           news: newsState.items[index],
-                          onTap: () => context.push('/news/${newsState.items[index].id}'),
+                          onTap: () => context
+                              .push('/news/${newsState.items[index].id}'),
                         ),
                       ),
-                      childCount: newsState.items.length > 5 ? 5 : newsState.items.length,
+                      childCount: newsState.items.length > 5
+                          ? 5
+                          : newsState.items.length,
                     ),
                   ),
                 ),
@@ -226,10 +246,11 @@ class _HeroHeader extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 18),
+                      child: const Icon(Icons.location_on_rounded,
+                          color: Colors.white, size: 18),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -254,7 +275,7 @@ class _HeroHeader extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.search_rounded, color: Colors.white),
@@ -267,10 +288,11 @@ class _HeroHeader extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.settings_outlined, color: Colors.white),
+                  child:
+                      const Icon(Icons.settings_outlined, color: Colors.white),
                 ),
               ),
             ],
@@ -287,7 +309,8 @@ class _HeroHeader extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Всё самое важное о вашем районе — в одном месте',
-            style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
           ),
         ],
       ),

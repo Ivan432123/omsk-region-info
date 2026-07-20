@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/constants/app_constants.dart';
 import '../models/announcement_model.dart';
 import '../repositories/announcement_repository.dart';
 import '../services/local_storage_service.dart';
 
-final announcementRepositoryProvider = Provider((ref) => AnnouncementRepository());
+final announcementRepositoryProvider =
+    Provider((ref) => AnnouncementRepository());
 
 class AnnouncementListState {
   final List<AnnouncementModel> items;
@@ -55,17 +57,19 @@ class AnnouncementListNotifier extends StateNotifier<AnnouncementListState> {
   Future<void> loadFirstPage() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final result = await _repository.getAnnouncementsPage(districtId: districtId);
+      final result =
+          await _repository.getAnnouncementsPage(districtId: districtId);
       state = state.copyWith(
         items: result.items,
         isLoading: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Не удалось загрузить объявления. Проверьте подключение к интернету.',
+        error:
+            'Не удалось загрузить объявления. Проверьте подключение к интернету.',
       );
     }
   }
@@ -81,7 +85,7 @@ class AnnouncementListNotifier extends StateNotifier<AnnouncementListState> {
       state = state.copyWith(
         items: [...state.items, ...result.items],
         isLoadingMore: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,
       );
     } catch (e) {
@@ -92,13 +96,15 @@ class AnnouncementListNotifier extends StateNotifier<AnnouncementListState> {
   Future<void> refresh() => loadFirstPage();
 }
 
-final announcementListProvider = StateNotifierProvider.family<AnnouncementListNotifier,
-    AnnouncementListState, String>((ref, districtId) {
-  return AnnouncementListNotifier(ref.watch(announcementRepositoryProvider), districtId);
+final announcementListProvider = StateNotifierProvider.family<
+    AnnouncementListNotifier, AnnouncementListState, String>((ref, districtId) {
+  return AnnouncementListNotifier(
+      ref.watch(announcementRepositoryProvider), districtId);
 });
 
 final announcementDetailsProvider =
-    FutureProvider.family<AnnouncementModel?, String>((ref, announcementId) async {
+    FutureProvider.family<AnnouncementModel?, String>(
+        (ref, announcementId) async {
   final repo = ref.watch(announcementRepositoryProvider);
   return repo.getAnnouncementById(announcementId);
 });
@@ -106,7 +112,8 @@ final announcementDetailsProvider =
 /// Продвигаемые (оплаченные) объявления района — для блока на главном
 /// экране.
 final promotedAnnouncementsProvider =
-    FutureProvider.family<List<AnnouncementModel>, String>((ref, districtId) async {
+    FutureProvider.family<List<AnnouncementModel>, String>(
+        (ref, districtId) async {
   if (districtId.isEmpty) return [];
   final repo = ref.watch(announcementRepositoryProvider);
   return repo.getPromotedAnnouncements(districtId);

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/constants/app_constants.dart';
 import '../models/news_model.dart';
 import '../repositories/news_repository.dart';
 
@@ -69,13 +70,14 @@ class NewsListNotifier extends StateNotifier<NewsListState> {
       state = state.copyWith(
         items: result.items,
         isLoading: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Не удалось загрузить новости. Проверьте подключение к интернету.',
+        error:
+            'Не удалось загрузить новости. Проверьте подключение к интернету.',
       );
     }
   }
@@ -92,7 +94,7 @@ class NewsListNotifier extends StateNotifier<NewsListState> {
       state = state.copyWith(
         items: [...state.items, ...result.items],
         isLoadingMore: false,
-        hasMore: result.items.length == 15,
+        hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,
       );
     } catch (e) {
@@ -104,7 +106,8 @@ class NewsListNotifier extends StateNotifier<NewsListState> {
 }
 
 final newsListProvider =
-    StateNotifierProvider.family<NewsListNotifier, NewsListState, String>((ref, districtId) {
+    StateNotifierProvider.family<NewsListNotifier, NewsListState, String>(
+        (ref, districtId) {
   return NewsListNotifier(ref.watch(newsRepositoryProvider), districtId);
 });
 
@@ -112,8 +115,10 @@ final newsListProvider =
 /// "Новости" с чипсами-фильтрами. Ключ — пара (districtId, category),
 /// поэтому у каждой выбранной категории свой независимый, кэшируемый
 /// список с собственной пагинацией.
-final newsListByCategoryProvider = StateNotifierProvider.family<NewsListNotifier,
-    NewsListState, ({String districtId, String? category})>((ref, params) {
+final newsListByCategoryProvider = StateNotifierProvider.family<
+    NewsListNotifier,
+    NewsListState,
+    ({String districtId, String? category})>((ref, params) {
   return NewsListNotifier(
     ref.watch(newsRepositoryProvider),
     params.districtId,

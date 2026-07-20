@@ -12,7 +12,8 @@ class VacanciesListScreen extends ConsumerStatefulWidget {
   const VacanciesListScreen({super.key});
 
   @override
-  ConsumerState<VacanciesListScreen> createState() => _VacanciesListScreenState();
+  ConsumerState<VacanciesListScreen> createState() =>
+      _VacanciesListScreenState();
 }
 
 class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
@@ -52,7 +53,9 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
           ? const LoadingListWidget()
           : state.error != null
               ? EmptyStateWidget.error(
-                  onRetry: () => ref.read(vacancyListProvider(districtId).notifier).refresh(),
+                  onRetry: () => ref
+                      .read(vacancyListProvider(districtId).notifier)
+                      .refresh(),
                 )
               : state.items.isEmpty
                   ? const EmptyStateWidget(
@@ -62,8 +65,9 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
                     )
                   : RefreshIndicator(
                       color: AppTheme.primaryBlue,
-                      onRefresh: () =>
-                          ref.read(vacancyListProvider(districtId).notifier).refresh(),
+                      onRefresh: () => ref
+                          .read(vacancyListProvider(districtId).notifier)
+                          .refresh(),
                       child: ListView.separated(
                         controller: _scrollController,
                         padding: const EdgeInsets.all(20),
@@ -74,14 +78,16 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
                             return const Padding(
                               padding: EdgeInsets.symmetric(vertical: 16),
                               child: Center(
-                                child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+                                child: CircularProgressIndicator(
+                                    color: AppTheme.primaryBlue),
                               ),
                             );
                           }
                           final vacancy = state.items[index];
                           return VacancyCard(
                             vacancy: vacancy,
-                            onTap: () => context.push('/vacancies/${vacancy.id}'),
+                            onTap: () =>
+                                context.push('/vacancies/${vacancy.id}'),
                           );
                         },
                       ),

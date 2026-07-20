@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/announcement_model.dart';
 import '../models/event_model.dart';
 import '../models/news_model.dart';
@@ -50,7 +49,10 @@ class SearchRepository {
     }
 
     final results = await Future.wait([
-      _firestoreService.collection('news').where('district', isEqualTo: districtId).get(),
+      _firestoreService
+          .collection('news')
+          .where('district', isEqualTo: districtId)
+          .get(),
       _firestoreService
           .collection('organizations')
           .where('district', isEqualTo: districtId)
@@ -63,7 +65,10 @@ class SearchRepository {
           .collection('announcements')
           .where('district', isEqualTo: districtId)
           .get(),
-      _firestoreService.collection('events').where('district', isEqualTo: districtId).get(),
+      _firestoreService
+          .collection('events')
+          .where('district', isEqualTo: districtId)
+          .get(),
     ]);
 
     final news = results[0]

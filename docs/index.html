@@ -506,6 +506,7 @@
                 row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(r.title)}${r.wantsPush ? ' 🔥 (платное продвижение)' : ''}</div>
+<div class="item-sub" style="font-weight:700;color:#1E2A22;">Заявка №${doc.id.substring(0, 8)}</div>
 <div class="item-sub">${escapeHtml(r.description)}</div>
 <div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>
 </div>

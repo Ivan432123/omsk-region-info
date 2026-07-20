@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/announcement_model.dart';
 import '../repositories/announcement_repository.dart';
+import '../services/local_storage_service.dart';
 
 final announcementRepositoryProvider = Provider((ref) => AnnouncementRepository());
 
@@ -109,4 +110,20 @@ final promotedAnnouncementsProvider =
   if (districtId.isEmpty) return [];
   final repo = ref.watch(announcementRepositoryProvider);
   return repo.getPromotedAnnouncements(districtId);
+});
+
+/// Количество объявлений, опубликованных после того, как житель последний
+/// раз заходил в раздел "Объявления" — для бейджа-счётчика на главном
+/// экране. Считает только среди первой страницы (обычно этого достаточно,
+/// так как счётчик всё равно не показывает больше нескольких десятков).
+final unreadAnnouncementsCountProvider =
+    FutureProvider.family<int, String>((ref, districtId) async {
+  if (districtId.isEmpty) return 0;
+  final storage = LocalStorageService();
+  final lastSeen = await storage.getLastSeenAnnouncementsTime(districtId);
+  if (lastSeen == null) return 0;
+
+  final repo = ref.watch(announcementRepositoryProvider);
+  final result = await repo.getAnnouncementsPage(districtId: districtId);
+  return result.items.where((a) => a.createdAt.isAfter(lastSeen)).length;
 });

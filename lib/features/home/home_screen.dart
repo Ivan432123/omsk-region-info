@@ -19,6 +19,7 @@ class HomeScreen extends ConsumerWidget {
     final newsState = ref.watch(newsListProvider(districtId));
     final announcementsAsync = ref.watch(importantAnnouncementsProvider(districtId));
     final promotedAdsAsync = ref.watch(promotedAnnouncementsProvider(districtId));
+    final unreadAnnouncementsAsync = ref.watch(unreadAnnouncementsCountProvider(districtId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -28,6 +29,7 @@ class HomeScreen extends ConsumerWidget {
           onRefresh: () async {
             ref.invalidate(importantAnnouncementsProvider(districtId));
             ref.invalidate(promotedAnnouncementsProvider(districtId));
+            ref.invalidate(unreadAnnouncementsCountProvider(districtId));
             await ref.read(newsListProvider(districtId).notifier).refresh();
           },
           child: CustomScrollView(
@@ -47,6 +49,7 @@ class HomeScreen extends ConsumerWidget {
                     onAnnouncements: () => context.push('/announcements'),
                     onEvents: () => context.push('/events'),
                     onPostAnnouncement: () => context.push('/post-announcement'),
+                    unreadAnnouncements: unreadAnnouncementsAsync.value ?? 0,
                   ),
                 ),
               ),
@@ -298,12 +301,14 @@ class _QuickNavGrid extends StatelessWidget {
   final VoidCallback onAnnouncements;
   final VoidCallback onEvents;
   final VoidCallback onPostAnnouncement;
+  final int unreadAnnouncements;
 
   const _QuickNavGrid({
     required this.onVacancies,
     required this.onAnnouncements,
     required this.onEvents,
     required this.onPostAnnouncement,
+    required this.unreadAnnouncements,
   });
 
   @override
@@ -325,6 +330,7 @@ class _QuickNavGrid extends StatelessWidget {
                 icon: Icons.campaign_rounded,
                 label: 'Объявления',
                 onTap: onAnnouncements,
+                badgeCount: unreadAnnouncements,
               ),
             ),
           ],
@@ -358,8 +364,14 @@ class _QuickNavButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final int badgeCount;
 
-  const _QuickNavButton({required this.icon, required this.label, required this.onTap});
+  const _QuickNavButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.badgeCount = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -376,7 +388,12 @@ class _QuickNavButton extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, color: AppTheme.primaryBlue, size: 24),
+            Badge(
+              isLabelVisible: badgeCount > 0,
+              label: Text('$badgeCount'),
+              backgroundColor: AppTheme.accentRed,
+              child: Icon(icon, color: AppTheme.primaryBlue, size: 24),
+            ),
             const SizedBox(height: 6),
             Text(
               label,

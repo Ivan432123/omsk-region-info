@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../services/local_storage_service.dart';
 import '../../widgets/announcements/announcement_card.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -22,6 +23,14 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _markAsSeen());
+  }
+
+  Future<void> _markAsSeen() async {
+    final districtId = ref.read(selectedDistrictProvider).id ?? '';
+    if (districtId.isEmpty) return;
+    await LocalStorageService().markAnnouncementsSeen(districtId);
+    ref.invalidate(unreadAnnouncementsCountProvider(districtId));
   }
 
   @override

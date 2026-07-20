@@ -6,8 +6,8 @@ import '../../providers/district_provider.dart';
 
 /// Стоимость платного продвижения (push всем подписчикам района) и номер
 /// для перевода — поменяй на реальные значения перед публикацией.
-const String _pushPromotionPrice = '150';
-const String _paymentPhoneNumber = '[НОМЕР ТЕЛЕФОНА ДЛЯ ПЕРЕВОДА]';
+const String _pushPromotionPrice = '350';
+const String _paymentPhoneNumber = '+79236885501';
 
 class PostAnnouncementScreen extends ConsumerStatefulWidget {
   const PostAnnouncementScreen({super.key});

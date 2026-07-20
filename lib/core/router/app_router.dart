@@ -16,6 +16,7 @@ import '../../features/announcements/announcement_details_screen.dart';
 import '../../features/events/events_list_screen.dart';
 import '../../features/events/event_details_screen.dart';
 import '../../features/search/search_screen.dart';
+import '../../features/post_announcement/post_announcement_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
 class AppRouter {
@@ -41,6 +42,10 @@ class AppRouter {
       GoRoute(
         path: '/search',
         builder: (context, state) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: '/post-announcement',
+        builder: (context, state) => const PostAnnouncementScreen(),
       ),
       GoRoute(
         path: '/vacancies',

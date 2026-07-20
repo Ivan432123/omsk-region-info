@@ -65,28 +65,70 @@ class _AnnouncementsListScreenState extends ConsumerState<AnnouncementsListScree
                       color: AppTheme.primaryBlue,
                       onRefresh: () =>
                           ref.read(announcementListProvider(districtId).notifier).refresh(),
-                      child: ListView.separated(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(20),
-                        itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          if (index >= state.items.length) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Center(
-                                child: CircularProgressIndicator(color: AppTheme.primaryBlue),
-                              ),
-                            );
-                          }
-                          final announcement = state.items[index];
-                          return AnnouncementCard(
-                            announcement: announcement,
-                            onTap: () => context.push('/announcements/${announcement.id}'),
-                          );
-                        },
-                      ),
+                      child: _buildList(context, state),
                     ),
+    );
+  }
+
+  Widget _buildList(BuildContext context, AnnouncementListState state) {
+    final promoted = state.items.where((a) => a.isPromoted).toList();
+    final regular = state.items.where((a) => !a.isPromoted).toList();
+
+    return ListView(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(20),
+      children: [
+        if (promoted.isNotEmpty) ...[
+          Row(
+            children: const [
+              Icon(Icons.local_fire_department_rounded, color: Color(0xFFE67E22), size: 20),
+              SizedBox(width: 6),
+              Text(
+                'Продвигаемые объявления',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...promoted.map(
+            (announcement) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFE67E22), width: 1.5),
+                ),
+                child: AnnouncementCard(
+                  announcement: announcement,
+                  onTap: () => context.push('/announcements/${announcement.id}'),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Все объявления',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+          ),
+          const SizedBox(height: 12),
+        ],
+        ...regular.map(
+          (announcement) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: AnnouncementCard(
+              announcement: announcement,
+              onTap: () => context.push('/announcements/${announcement.id}'),
+            ),
+          ),
+        ),
+        if (state.hasMore)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+            ),
+          ),
+      ],
     );
   }
 }

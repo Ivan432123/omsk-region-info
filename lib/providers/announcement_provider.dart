@@ -101,3 +101,12 @@ final announcementDetailsProvider =
   final repo = ref.watch(announcementRepositoryProvider);
   return repo.getAnnouncementById(announcementId);
 });
+
+/// Продвигаемые (оплаченные) объявления района — для блока на главном
+/// экране.
+final promotedAnnouncementsProvider =
+    FutureProvider.family<List<AnnouncementModel>, String>((ref, districtId) async {
+  if (districtId.isEmpty) return [];
+  final repo = ref.watch(announcementRepositoryProvider);
+  return repo.getPromotedAnnouncements(districtId);
+});

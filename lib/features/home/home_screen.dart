@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../providers/news_provider.dart';
+import '../../widgets/announcements/announcement_card.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/news/news_card.dart';
 
@@ -16,6 +18,7 @@ class HomeScreen extends ConsumerWidget {
     final districtId = district.id ?? '';
     final newsState = ref.watch(newsListProvider(districtId));
     final announcementsAsync = ref.watch(importantAnnouncementsProvider(districtId));
+    final promotedAdsAsync = ref.watch(promotedAnnouncementsProvider(districtId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -24,6 +27,7 @@ class HomeScreen extends ConsumerWidget {
           color: AppTheme.primaryBlue,
           onRefresh: () async {
             ref.invalidate(importantAnnouncementsProvider(districtId));
+            ref.invalidate(promotedAnnouncementsProvider(districtId));
             await ref.read(newsListProvider(districtId).notifier).refresh();
           },
           child: CustomScrollView(
@@ -38,12 +42,57 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                  child: _QuickNavRow(
+                  child: _QuickNavGrid(
                     onVacancies: () => context.push('/vacancies'),
                     onAnnouncements: () => context.push('/announcements'),
                     onEvents: () => context.push('/events'),
+                    onPostAnnouncement: () => context.push('/post-announcement'),
                   ),
                 ),
+              ),
+              promotedAdsAsync.when(
+                loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                data: (promotedAds) {
+                  if (promotedAds.isEmpty) {
+                    return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  }
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.local_fire_department_rounded,
+                                  color: Color(0xFFE67E22), size: 20),
+                              SizedBox(width: 6),
+                              Text('Объявления жителей',
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ...promotedAds.map(
+                            (ad) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: const Color(0xFFE67E22), width: 1.5),
+                                ),
+                                child: AnnouncementCard(
+                                  announcement: ad,
+                                  onTap: () => context.push('/announcements/${ad.id}'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
               announcementsAsync.when(
                 loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
@@ -244,43 +293,61 @@ class _HeroHeader extends StatelessWidget {
   }
 }
 
-class _QuickNavRow extends StatelessWidget {
+class _QuickNavGrid extends StatelessWidget {
   final VoidCallback onVacancies;
   final VoidCallback onAnnouncements;
   final VoidCallback onEvents;
+  final VoidCallback onPostAnnouncement;
 
-  const _QuickNavRow({
+  const _QuickNavGrid({
     required this.onVacancies,
     required this.onAnnouncements,
     required this.onEvents,
+    required this.onPostAnnouncement,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _QuickNavButton(
-            icon: Icons.work_rounded,
-            label: 'Вакансии',
-            onTap: onVacancies,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickNavButton(
+                icon: Icons.work_rounded,
+                label: 'Вакансии',
+                onTap: onVacancies,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickNavButton(
+                icon: Icons.campaign_rounded,
+                label: 'Объявления',
+                onTap: onAnnouncements,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickNavButton(
-            icon: Icons.campaign_rounded,
-            label: 'Объявления',
-            onTap: onAnnouncements,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickNavButton(
-            icon: Icons.event_rounded,
-            label: 'Афиша',
-            onTap: onEvents,
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickNavButton(
+                icon: Icons.event_rounded,
+                label: 'Афиша',
+                onTap: onEvents,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickNavButton(
+                icon: Icons.add_circle_rounded,
+                label: 'Разместить\nобъявление',
+                onTap: onPostAnnouncement,
+              ),
+            ),
+          ],
         ),
       ],
     );

@@ -7,6 +7,7 @@ class AnnouncementModel extends Equatable {
   final String description;
   final String? contactPhone;
   final List<String> images;
+  final bool isPromoted;
   final String districtId;
   final DateTime createdAt;
 
@@ -16,6 +17,7 @@ class AnnouncementModel extends Equatable {
     required this.description,
     this.contactPhone,
     this.images = const [],
+    this.isPromoted = false,
     required this.districtId,
     required this.createdAt,
   });
@@ -28,6 +30,7 @@ class AnnouncementModel extends Equatable {
       description: data['description'] as String? ?? '',
       contactPhone: data['contactPhone'] as String?,
       images: List<String>.from(data['images'] as List? ?? []),
+      isPromoted: data['isPromoted'] as bool? ?? false,
       districtId: data['district'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -39,6 +42,7 @@ class AnnouncementModel extends Equatable {
       'description': description,
       'contactPhone': contactPhone,
       'images': images,
+      'isPromoted': isPromoted,
       'district': districtId,
       'createdAt': FieldValue.serverTimestamp(),
     };
@@ -46,5 +50,5 @@ class AnnouncementModel extends Equatable {
 
   @override
   List<Object?> get props =>
-      [id, title, description, contactPhone, images, districtId, createdAt];
+      [id, title, description, contactPhone, images, isPromoted, districtId, createdAt];
 }

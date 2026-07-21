@@ -12,7 +12,8 @@ service cloud.firestore {
       allow read: if true;
       allow create, delete: if request.auth != null;
       allow update: if request.auth != null ||
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']);
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
+           request.resource.data.viewCount == resource.data.get('viewCount', 0) + 1);
     }
 
     match /organizations/{orgId} {
@@ -53,12 +54,20 @@ service cloud.firestore {
       allow read: if true;
       allow create, delete: if request.auth != null;
       allow update: if request.auth != null ||
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clickCount', 'lastClickedAt']);
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clickCount', 'lastClickedAt']) &&
+           request.resource.data.clickCount == resource.data.get('clickCount', 0) + 1);
     }
 
     match /ad_requests/{requestId} {
       allow read: if request.auth != null && request.auth.token.email == 'ivansurmanov@yandex.ru';
-      allow create: if true;
+      allow create: if request.resource.data.title is string &&
+          request.resource.data.title.size() > 0 && request.resource.data.title.size() < 200 &&
+          request.resource.data.description is string &&
+          request.resource.data.description.size() < 3000 &&
+          request.resource.data.phone is string &&
+          request.resource.data.wantsPush is bool &&
+          request.resource.data.status == 'pending' &&
+          request.resource.data.district is string;
       allow update: if request.auth != null && request.auth.token.email == 'ivansurmanov@yandex.ru';
       allow delete: if false;
     }

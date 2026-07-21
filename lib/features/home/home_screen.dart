@@ -535,10 +535,24 @@ class _QuickNavButton extends StatelessWidget {
               child: Icon(icon, color: AppTheme.primaryBlue, size: 24),
             ),
             const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
+            // FittedBox + ширина на всю доступную область: у "Объявления" —
+            // самая длинная подпись из четырёх кнопок ряда, без этого она
+            // переносится на вторую строку и делает свою кнопку выше соседних
+            // (Row выравнивает всех по центру относительно самой высокой),
+            // из-за чего ряд выглядит "кривым". Однострочный текст,
+            // уменьшающийся по ширине, держит все четыре кнопки одной высоты.
+            SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+              ),
             ),
           ],
         ),

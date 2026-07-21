@@ -63,7 +63,16 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Новости')),
+      appBar: AppBar(
+        title: const Text('Новости'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_rounded),
+            tooltip: 'Мои закладки',
+            onPressed: () => context.push('/bookmarks/news'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           SizedBox(

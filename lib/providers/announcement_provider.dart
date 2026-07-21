@@ -138,3 +138,16 @@ final unreadAnnouncementsCountProvider =
   final result = await repo.getAnnouncementsPage(districtId: districtId);
   return result.items.where((a) => a.createdAt.isAfter(lastSeen)).length;
 });
+
+/// Объявления, добавленные в закладки — по аналогии с
+/// bookmarkedOrganizationsProvider (см. organization_provider.dart).
+final bookmarkedAnnouncementsProvider =
+    FutureProvider.autoDispose<List<AnnouncementModel>>((ref) async {
+  final storage = LocalStorageService();
+  final ids = await storage.getBookmarkedAnnouncementIds();
+  if (ids.isEmpty) return [];
+
+  final repo = ref.watch(announcementRepositoryProvider);
+  final results = await Future.wait(ids.map(repo.getAnnouncementById));
+  return results.whereType<AnnouncementModel>().toList();
+});

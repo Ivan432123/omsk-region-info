@@ -126,3 +126,14 @@ final bookmarkedOrganizationsProvider =
   final results = await Future.wait(ids.map(repo.getOrganizationById));
   return results.whereType<OrganizationModel>().toList();
 });
+
+/// Собственный голос текущего устройства за организацию (null — ещё не
+/// голосовало). autoDispose — экран деталей открывается заново при каждом
+/// заходе, актуальность важнее кэша.
+final myOrganizationRatingProvider =
+    FutureProvider.autoDispose.family<int?, String>((ref, orgId) async {
+  final storage = LocalStorageService();
+  final deviceId = await storage.getOrCreateDeviceId();
+  final repo = ref.watch(organizationRepositoryProvider);
+  return repo.getMyRating(orgId, deviceId);
+});

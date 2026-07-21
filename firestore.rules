@@ -30,7 +30,36 @@ service cloud.firestore {
 
     match /organizations/{orgId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      // Помимо админа, разрешено анонимное обновление ТОЛЬКО агрегата
+      // рейтинга (ratingSum/ratingCount), и только в пределах одного
+      // голоса за запись — это самообслуживаемый счётчик, обновляемый
+      // прямо с клиента транзакцией (см. OrganizationRepository.
+      // submitRating), Cloud Functions в проекте нет. Та же схема, что
+      // уже используется для news.viewCount/sponsored_content.clickCount:
+      // грубая граница дельты вместо полной верификации — сознательный
+      // компромисс для приложения без входа.
+      allow update: if isAdmin() || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratingSum', 'ratingCount']) &&
+          request.resource.data.ratingCount is int && request.resource.data.ratingSum is int &&
+          request.resource.data.ratingCount >= resource.data.get('ratingCount', 0) &&
+          request.resource.data.ratingCount <= resource.data.get('ratingCount', 0) + 1 &&
+          request.resource.data.ratingSum >= resource.data.get('ratingSum', 0) - 4 &&
+          request.resource.data.ratingSum <= resource.data.get('ratingSum', 0) + 5 &&
+          request.resource.data.ratingSum >= 0);
+    }
+
+    match /organizations/{orgId}/ratings/{deviceId} {
+      allow read: if true;
+      // Один голос с устройства: ID документа = локальный deviceId,
+      // повторная отправка перезаписывает свой же документ вместо
+      // создания нового. Без auth это мягкое ограничение (сброс
+      // локальных данных/переустановка = новый "голос"), тот же
+      // компромисс, что и у всего проекта без логина.
+      allow create, update: if request.resource.data.stars is int &&
+          request.resource.data.stars >= 1 && request.resource.data.stars <= 5 &&
+          request.resource.data.keys().hasOnly(['stars', 'updatedAt']);
+      allow delete: if false;
     }
 
     match /vacancies/{vacancyId} {

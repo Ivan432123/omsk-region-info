@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/app_constants.dart';
 import '../models/news_model.dart';
 import '../repositories/news_repository.dart';
+import '../services/local_storage_service.dart';
 
 final newsRepositoryProvider = Provider((ref) => NewsRepository());
 
@@ -146,4 +147,17 @@ final newsDetailsProvider =
     FutureProvider.autoDispose.family<NewsModel?, String>((ref, newsId) async {
   final repo = ref.watch(newsRepositoryProvider);
   return repo.getNewsById(newsId);
+});
+
+/// Новости, добавленные в закладки — по аналогии с
+/// bookmarkedOrganizationsProvider (см. organization_provider.dart).
+final bookmarkedNewsProvider =
+    FutureProvider.autoDispose<List<NewsModel>>((ref) async {
+  final storage = LocalStorageService();
+  final ids = await storage.getBookmarkedNewsIds();
+  if (ids.isEmpty) return [];
+
+  final repo = ref.watch(newsRepositoryProvider);
+  final results = await Future.wait(ids.map(repo.getNewsById));
+  return results.whereType<NewsModel>().toList();
 });

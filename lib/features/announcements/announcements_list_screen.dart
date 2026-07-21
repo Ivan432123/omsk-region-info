@@ -57,7 +57,16 @@ class _AnnouncementsListScreenState
     final state = ref.watch(announcementListProvider(districtId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Объявления')),
+      appBar: AppBar(
+        title: const Text('Объявления'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_rounded),
+            tooltip: 'Мои закладки',
+            onPressed: () => context.push('/bookmarks/announcements'),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/post-announcement'),
         backgroundColor: AppTheme.primaryBlue,

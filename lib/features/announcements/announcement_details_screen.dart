@@ -5,14 +5,45 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../providers/announcement_provider.dart';
+import '../../services/local_storage_service.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/fullscreen_gallery_viewer.dart';
 
-class AnnouncementDetailsScreen extends ConsumerWidget {
+class AnnouncementDetailsScreen extends ConsumerStatefulWidget {
   final String announcementId;
 
   const AnnouncementDetailsScreen({super.key, required this.announcementId});
+
+  @override
+  ConsumerState<AnnouncementDetailsScreen> createState() =>
+      _AnnouncementDetailsScreenState();
+}
+
+class _AnnouncementDetailsScreenState
+    extends ConsumerState<AnnouncementDetailsScreen> {
+  final _storage = LocalStorageService();
+  bool _isBookmarked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _storage.isAnnouncementBookmarked(widget.announcementId).then((value) {
+      if (mounted) setState(() => _isBookmarked = value);
+    });
+  }
+
+  void _toggleBookmark() {
+    final newValue = !_isBookmarked;
+    setState(() => _isBookmarked = newValue);
+    _storage.setAnnouncementBookmarked(widget.announcementId, newValue);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(newValue ? 'Добавлено в закладки' : 'Убрано из закладок'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
 
   Future<void> _call(BuildContext context, String phone) async {
     final uri = Uri(scheme: 'tel', path: PhoneFormatter.toDialFormat(phone));
@@ -29,17 +60,26 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final announcementAsync =
-        ref.watch(announcementDetailsProvider(announcementId));
+        ref.watch(announcementDetailsProvider(widget.announcementId));
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: Icon(_isBookmarked
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_border_rounded),
+            onPressed: _toggleBookmark,
+          ),
+        ],
+      ),
       body: announcementAsync.when(
         loading: () => const LoadingIndicatorWidget(),
         error: (_, __) => EmptyStateWidget.error(
-          onRetry: () =>
-              ref.invalidate(announcementDetailsProvider(announcementId)),
+          onRetry: () => ref
+              .invalidate(announcementDetailsProvider(widget.announcementId)),
         ),
         data: (announcement) {
           if (announcement == null) {

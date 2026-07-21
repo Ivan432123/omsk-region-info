@@ -18,6 +18,14 @@ class OrganizationModel extends Equatable {
   final int? reviewCount;
   final List<String> services;
   final String districtId;
+  // Реальный пользовательский рейтинг (сумма звёзд 1-5 / количество
+  // голосов), обновляется транзакцией прямо с клиента — см.
+  // OrganizationRepository.submitRating. Не путать с устаревшими
+  // rating/reviewCount выше — теми, что вручную вписывает админ в
+  // docs/index.html; они больше не отображаются в приложении, но
+  // оставлены как есть в Firestore/модели.
+  final int ratingSum;
+  final int ratingCount;
 
   const OrganizationModel({
     required this.id,
@@ -36,7 +44,12 @@ class OrganizationModel extends Equatable {
     this.reviewCount,
     this.services = const [],
     required this.districtId,
+    this.ratingSum = 0,
+    this.ratingCount = 0,
   });
+
+  double? get averageRating =>
+      ratingCount == 0 ? null : ratingSum / ratingCount;
 
   factory OrganizationModel.fromFirestore(
       DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -58,6 +71,8 @@ class OrganizationModel extends Equatable {
       reviewCount: (data['reviewCount'] as num?)?.toInt(),
       services: List<String>.from(data['services'] as List? ?? []),
       districtId: data['district'] as String? ?? '',
+      ratingSum: (data['ratingSum'] as num?)?.toInt() ?? 0,
+      ratingCount: (data['ratingCount'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -78,6 +93,8 @@ class OrganizationModel extends Equatable {
       'reviewCount': reviewCount,
       'services': services,
       'district': districtId,
+      'ratingSum': ratingSum,
+      'ratingCount': ratingCount,
     };
   }
 
@@ -99,5 +116,7 @@ class OrganizationModel extends Equatable {
         reviewCount,
         services,
         districtId,
+        ratingSum,
+        ratingCount,
       ];
 }

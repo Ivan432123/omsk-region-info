@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
 
@@ -14,6 +15,9 @@ class LocalStorageService {
   static const String _keyLastSeenNotificationsPrefix =
       'last_seen_notifications_';
   static const String _keyBookmarkedOrganizations = 'bookmarked_organizations';
+  static const String _keyBookmarkedNews = 'bookmarked_news';
+  static const String _keyBookmarkedAnnouncements = 'bookmarked_announcements';
+  static const String _keyDeviceId = 'device_id';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -138,31 +142,78 @@ class LocalStorageService {
     );
   }
 
-  /// Организации, добавленные жителем в закладки (хранится локально на
-  /// устройстве — входа в приложение нет, синхронизации между устройствами
-  /// тоже намеренно нет).
-  Future<bool> isOrganizationBookmarked(String organizationId) async {
+  /// Закладки (организации/новости/объявления) хранятся локально на
+  /// устройстве по одному и тому же принципу — входа в приложение нет,
+  /// синхронизации между устройствами тоже намеренно нет. Приватный
+  /// generic-хелпер ниже параметризован ключом SharedPreferences, чтобы не
+  /// плодить три копии одной и той же логики; публичный API остаётся
+  /// явным — отдельные именованные методы под каждый тип контента.
+  Future<bool> _isBookmarked(String prefsKey, String id) async {
     final prefs = await _prefs;
-    final ids = prefs.getStringList(_keyBookmarkedOrganizations) ?? [];
-    return ids.contains(organizationId);
+    return (prefs.getStringList(prefsKey) ?? []).contains(id);
   }
 
-  Future<List<String>> getBookmarkedOrganizationIds() async {
+  Future<List<String>> _getBookmarkedIds(String prefsKey) async {
     final prefs = await _prefs;
-    return prefs.getStringList(_keyBookmarkedOrganizations) ?? [];
+    return prefs.getStringList(prefsKey) ?? [];
   }
+
+  Future<void> _setBookmarked(String prefsKey, String id, bool value) async {
+    final prefs = await _prefs;
+    final ids = prefs.getStringList(prefsKey) ?? [];
+    if (value) {
+      if (!ids.contains(id)) ids.add(id);
+    } else {
+      ids.remove(id);
+    }
+    await prefs.setStringList(prefsKey, ids);
+  }
+
+  Future<bool> isOrganizationBookmarked(String organizationId) =>
+      _isBookmarked(_keyBookmarkedOrganizations, organizationId);
+
+  Future<List<String>> getBookmarkedOrganizationIds() =>
+      _getBookmarkedIds(_keyBookmarkedOrganizations);
 
   Future<void> setOrganizationBookmarked(
-    String organizationId,
-    bool bookmarked,
-  ) async {
+          String organizationId, bool bookmarked) =>
+      _setBookmarked(_keyBookmarkedOrganizations, organizationId, bookmarked);
+
+  Future<bool> isNewsBookmarked(String newsId) =>
+      _isBookmarked(_keyBookmarkedNews, newsId);
+
+  Future<List<String>> getBookmarkedNewsIds() =>
+      _getBookmarkedIds(_keyBookmarkedNews);
+
+  Future<void> setNewsBookmarked(String newsId, bool bookmarked) =>
+      _setBookmarked(_keyBookmarkedNews, newsId, bookmarked);
+
+  Future<bool> isAnnouncementBookmarked(String announcementId) =>
+      _isBookmarked(_keyBookmarkedAnnouncements, announcementId);
+
+  Future<List<String>> getBookmarkedAnnouncementIds() =>
+      _getBookmarkedIds(_keyBookmarkedAnnouncements);
+
+  Future<void> setAnnouncementBookmarked(
+          String announcementId, bool bookmarked) =>
+      _setBookmarked(_keyBookmarkedAnnouncements, announcementId, bookmarked);
+
+  /// Локальный ID устройства — единственный способ ограничить "один голос
+  /// за организацию" в приложении без входа (см. rules organizations/
+  /// {orgId}/ratings/{deviceId}). Генерируется один раз через
+  /// Random.secure() (16 случайных байт → hex-строка, без новых
+  /// зависимостей) и сохраняется навсегда; сброс данных приложения или
+  /// переустановка даёт новое устройство — это мягкое, осознанно принятое
+  /// ограничение, не криптографическая идентификация.
+  Future<String> getOrCreateDeviceId() async {
     final prefs = await _prefs;
-    final ids = prefs.getStringList(_keyBookmarkedOrganizations) ?? [];
-    if (bookmarked) {
-      if (!ids.contains(organizationId)) ids.add(organizationId);
-    } else {
-      ids.remove(organizationId);
-    }
-    await prefs.setStringList(_keyBookmarkedOrganizations, ids);
+    final existing = prefs.getString(_keyDeviceId);
+    if (existing != null && existing.isNotEmpty) return existing;
+
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    final id = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    await prefs.setString(_keyDeviceId, id);
+    return id;
   }
 }

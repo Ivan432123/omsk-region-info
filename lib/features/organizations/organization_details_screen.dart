@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../core/utils/organization_icon_helper.dart';
+import '../../models/organization_model.dart';
 import '../../providers/organization_provider.dart';
 import '../../services/local_storage_service.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -70,6 +71,79 @@ class _OrganizationDetailsScreenState
         content: Text(newValue ? 'Добавлено в закладки' : 'Убрано из закладок'),
         duration: const Duration(seconds: 1),
       ),
+    );
+  }
+
+  /// Отправляет/меняет голос за организацию и обновляет и агрегат (среднее
+  /// + счётчик на самой организации), и собственный голос пользователя —
+  /// оба обновляются транзакцией на сервере (см.
+  /// OrganizationRepository.submitRating), здесь только инвалидируем оба
+  /// провайдера, чтобы подтянуть свежие значения.
+  Future<void> _submitRating(String orgId, int stars) async {
+    try {
+      final deviceId = await _storage.getOrCreateDeviceId();
+      await ref
+          .read(organizationRepositoryProvider)
+          .submitRating(orgId, deviceId, stars);
+      if (!mounted) return;
+      ref.invalidate(myOrganizationRatingProvider(orgId));
+      ref.invalidate(organizationDetailsProvider(orgId));
+    } catch (e) {
+      if (mounted) _showError(context, 'Не удалось отправить оценку');
+    }
+  }
+
+  Widget _buildRatingSection(OrganizationModel org) {
+    final myRating =
+        ref.watch(myOrganizationRatingProvider(org.id)).valueOrNull;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (org.averageRating != null)
+          Row(
+            children: [
+              const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+              const SizedBox(width: 4),
+              Text(
+                org.averageRating!.toStringAsFixed(1),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${org.ratingCount} ${_reviewsWord(org.ratingCount)}',
+                style: TextStyle(
+                    color: AppTheme.textSecondary(context), fontSize: 13),
+              ),
+            ],
+          )
+        else
+          Text(
+            'Оцените первым',
+            style:
+                TextStyle(color: AppTheme.textSecondary(context), fontSize: 13),
+          ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(5, (i) {
+            final starIndex = i + 1;
+            final filled = myRating != null && starIndex <= myRating;
+            return IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
+              icon: Icon(
+                filled ? Icons.star_rounded : Icons.star_border_rounded,
+                color: Colors.amber,
+                size: 26,
+              ),
+              onPressed: () => _submitRating(org.id, starIndex),
+            );
+          }),
+        ),
+      ],
     );
   }
 
@@ -152,30 +226,8 @@ class _OrganizationDetailsScreenState
                     ),
                   ],
                 ),
-                if (org.rating != null) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.star_rounded,
-                          color: Colors.amber, size: 20),
-                      const SizedBox(width: 4),
-                      Text(
-                        org.rating!.toStringAsFixed(1),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 15),
-                      ),
-                      if (org.reviewCount != null) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          '${org.reviewCount} ${_reviewsWord(org.reviewCount!)}',
-                          style: TextStyle(
-                              color: AppTheme.textSecondary(context),
-                              fontSize: 13),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+                const SizedBox(height: 12),
+                _buildRatingSection(org),
                 if (org.gallery.isNotEmpty) ...[
                   const SizedBox(height: 20),
                   SizedBox(

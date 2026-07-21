@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../providers/news_provider.dart';
+import '../../services/local_storage_service.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/category_chip.dart';
@@ -18,19 +19,53 @@ String _formatViewCount(int count) {
   return '$count';
 }
 
-class NewsDetailsScreen extends ConsumerWidget {
+class NewsDetailsScreen extends ConsumerStatefulWidget {
   final String newsId;
 
   const NewsDetailsScreen({super.key, required this.newsId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final newsAsync = ref.watch(newsDetailsProvider(newsId));
+  ConsumerState<NewsDetailsScreen> createState() => _NewsDetailsScreenState();
+}
+
+class _NewsDetailsScreenState extends ConsumerState<NewsDetailsScreen> {
+  final _storage = LocalStorageService();
+  bool _isBookmarked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _storage.isNewsBookmarked(widget.newsId).then((value) {
+      if (mounted) setState(() => _isBookmarked = value);
+    });
+  }
+
+  void _toggleBookmark() {
+    final newValue = !_isBookmarked;
+    setState(() => _isBookmarked = newValue);
+    _storage.setNewsBookmarked(widget.newsId, newValue);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(newValue ? 'Добавлено в закладки' : 'Убрано из закладок'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final newsAsync = ref.watch(newsDetailsProvider(widget.newsId));
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Новость'),
         actions: [
+          IconButton(
+            icon: Icon(_isBookmarked
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_border_rounded),
+            onPressed: _toggleBookmark,
+          ),
           if (newsAsync.value != null)
             IconButton(
               icon: const Icon(Icons.share_outlined),
@@ -47,7 +82,7 @@ class NewsDetailsScreen extends ConsumerWidget {
       body: newsAsync.when(
         loading: () => const LoadingIndicatorWidget(),
         error: (_, __) => EmptyStateWidget.error(
-          onRetry: () => ref.invalidate(newsDetailsProvider(newsId)),
+          onRetry: () => ref.invalidate(newsDetailsProvider(widget.newsId)),
         ),
         data: (news) {
           if (news == null) {

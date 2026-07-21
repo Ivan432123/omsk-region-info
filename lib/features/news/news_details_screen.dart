@@ -108,7 +108,7 @@ class NewsDetailsScreen extends ConsumerWidget {
                     onTap: () =>
                         FullscreenGalleryViewer.open(context, [news.imageUrl!]),
                     child: Hero(
-                      tag: news.imageUrl!,
+                      tag: FullscreenGalleryViewer.heroTag(news.imageUrl!, 0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(18),
                         child: AspectRatio(

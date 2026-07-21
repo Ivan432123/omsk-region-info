@@ -34,6 +34,7 @@
 - [x] незащищённые вызовы FCM (district_provider.dart: _subscribeSafely/_unsubscribeSafely)
 - [x] фейковая кнопка "закладка" (теперь персистится через LocalStorageService)
 - [x] отсутствовали composite-индексы для announcements(district+promotedUntil) и events(district+eventDate) — промо-объявления и афиша могли не грузиться в проде; добавлены в firestore.indexes.json, требуют `firebase deploy --only firestore:indexes`
+- [x] падение приложения при открытии галереи (объявления/организации): Hero-теги строились из URL картинки; если в галерее случайно встречались два одинаковых URL (ручной ввод в админке), Flutter падал с "multiple heroes that share the same tag". Теги теперь строятся из URL+индекс через FullscreenGalleryViewer.heroTag — исправлено во всех 4 экранах деталей (announcement/organization/event/news) и самом просмотрщике
 
 ## Проверка после каждой партии
 1. dart format lib

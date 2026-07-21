@@ -25,6 +25,15 @@ class FullscreenGalleryViewer extends StatefulWidget {
     );
   }
 
+  /// Тег для Hero-анимации между экраном-источником и просмотрщиком.
+  /// Комбинирует URL с позицией в списке: одного URL недостаточно — если
+  /// в галерее (например, объявления) случайно встречаются два одинаковых
+  /// изображения, несколько Hero с одинаковым тегом в одном дереве виджетов
+  /// приводят к падению приложения ("multiple heroes that share the same
+  /// tag"). Экраны-источники должны использовать этот же метод для тега
+  /// своих превью, иначе анимация перелёта просто не сработает.
+  static String heroTag(String url, int index) => '$url#$index';
+
   @override
   State<FullscreenGalleryViewer> createState() =>
       _FullscreenGalleryViewerState();
@@ -61,7 +70,7 @@ class _FullscreenGalleryViewerState extends State<FullscreenGalleryViewer> {
               final url = widget.images[index];
               return Center(
                 child: Hero(
-                  tag: url,
+                  tag: FullscreenGalleryViewer.heroTag(url, index),
                   child: InteractiveViewer(
                     minScale: 0.8,
                     maxScale: 4,

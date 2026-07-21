@@ -73,7 +73,8 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                           initialIndex: index,
                         ),
                         child: Hero(
-                          tag: announcement.images[index],
+                          tag: FullscreenGalleryViewer.heroTag(
+                              announcement.images[index], index),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: AspectRatio(

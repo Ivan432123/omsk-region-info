@@ -71,7 +71,7 @@ class EventDetailsScreen extends ConsumerWidget {
                     onTap: () => FullscreenGalleryViewer.open(
                         context, [event.imageUrl!]),
                     child: Hero(
-                      tag: event.imageUrl!,
+                      tag: FullscreenGalleryViewer.heroTag(event.imageUrl!, 0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(18),
                         child: AspectRatio(

@@ -188,7 +188,8 @@ class _OrganizationDetailsScreenState
                           initialIndex: index,
                         ),
                         child: Hero(
-                          tag: org.gallery[index],
+                          tag: FullscreenGalleryViewer.heroTag(
+                              org.gallery[index], index),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
                             child: CachedNetworkImage(

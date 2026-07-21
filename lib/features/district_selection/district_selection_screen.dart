@@ -124,7 +124,7 @@ class _DistrictSelectionScreenState
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Мы не запрашиваем личные данные. Приложение работает без регистрации.',
+                          'Мы не запрашиваем личные данные. Приложение доступно без регистрации.',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.textSecondary(context),

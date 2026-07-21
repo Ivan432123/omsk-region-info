@@ -35,7 +35,7 @@ class DistrictModel extends Equatable {
       imageUrl: data['imageUrl'] as String?,
       villages: List<String>.from(data['villages'] as List? ?? []),
       isActive: data['isActive'] as bool? ?? true,
-      order: data['order'] as int? ?? 0,
+      order: (data['order'] as num?)?.toInt() ?? 0,
     );
   }
 

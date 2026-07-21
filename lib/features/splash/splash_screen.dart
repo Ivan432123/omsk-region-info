@@ -74,7 +74,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final deepLinkPath = initialMessage != null
         ? notificationDeepLinkPath(initialMessage)
         : null;
-    if (deepLinkPath != null && mounted) {
+    if (deepLinkPath != null &&
+        mounted &&
+        ref.read(fcmServiceProvider).consumeDeepLink(initialMessage!)) {
       context.push(deepLinkPath);
     }
   }

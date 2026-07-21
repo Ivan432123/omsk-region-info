@@ -71,7 +71,9 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
 
   void _handleNotificationTap(RemoteMessage message) {
     final path = notificationDeepLinkPath(message);
-    if (path != null) AppRouter.router.push(path);
+    if (path == null) return;
+    if (!ref.read(fcmServiceProvider).consumeDeepLink(message)) return;
+    AppRouter.router.push(path);
   }
 
   void _refreshCurrentDistrictData() {

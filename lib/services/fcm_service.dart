@@ -58,6 +58,25 @@ class FcmService {
 
   Future<String?> getToken() => _messaging.getToken();
 
+  String? _consumedDeepLinkMessageId;
+
+  /// Дедупликация одного и того же push между двумя независимыми путями
+  /// обработки (см. main.dart и SplashScreen): на части версий/сборок
+  /// firebase_messaging уведомление, открывшее приложение "с нуля",
+  /// доставляется и через getInitialMessage() (холодный старт), и следом
+  /// через onMessageOpenedApp (тёплый старт) — оба пути тогда попытались бы
+  /// сделать push() на один и тот же экран, а GoRouter падает с ассерцией
+  /// дублирующегося ключа страницы. Возвращает true (и "занимает" сообщение)
+  /// только для первого вызова с данным messageId; повторный вызов с тем же
+  /// id возвращает false. Сообщения без messageId не дедуплицируются —
+  /// дедуплицировать их надёжно нечем.
+  bool consumeDeepLink(RemoteMessage message) {
+    final id = message.messageId;
+    if (id != null && id == _consumedDeepLinkMessageId) return false;
+    _consumedDeepLinkMessageId = id;
+    return true;
+  }
+
   /// Уведомление, тапом по которому приложение было запущено "с нуля"
   /// (было полностью закрыто). Возвращает null при обычном запуске.
   Future<RemoteMessage?> getInitialMessage() => _messaging.getInitialMessage();

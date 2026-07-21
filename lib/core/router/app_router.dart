@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/district_selection/district_selection_screen.dart';
@@ -27,7 +28,20 @@ import 'scaffold_with_nav_bar.dart';
 class AppRouter {
   AppRouter._();
 
+  /// Ключ корневого Navigator. Детальные экраны, вложенные в ветки
+  /// StatefulShellRoute (новости, объявления, организации), также
+  /// открываются с экранов вне нижней навигации (поиск, уведомления) —
+  /// такой push мимо родного Navigator вкладки приводит к падению
+  /// Flutter с ассерцией дублирующегося ключа страницы в
+  /// navigator.dart ('!keyReservation.contains(key)'). Явный
+  /// parentNavigatorKey на этих роутах (см. ниже) всегда монтирует их
+  /// поверх корневого Navigator, а не Navigator'а вкладки — это и
+  /// устраняет коллизию.
+  static final GlobalKey<NavigatorState> _rootNavigatorKey =
+      GlobalKey<NavigatorState>(debugLabel: 'root');
+
   static final GoRouter router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     routes: [
       GoRoute(
@@ -115,6 +129,7 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: ':id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) =>
                         NewsDetailsScreen(newsId: state.pathParameters['id']!),
                   ),
@@ -130,6 +145,7 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: ':id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => AnnouncementDetailsScreen(
                       announcementId: state.pathParameters['id']!,
                     ),
@@ -146,6 +162,7 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: ':id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => OrganizationDetailsScreen(
                       organizationId: state.pathParameters['id']!,
                     ),

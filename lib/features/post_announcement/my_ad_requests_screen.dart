@@ -40,19 +40,18 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Мои заявки')),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryBlue))
           : _requests.isEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(24),
                     child: Text(
                       'Вы ещё не отправляли объявления с этого устройства',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppTheme.textSecondary),
+                      style: TextStyle(color: AppTheme.textSecondary(context)),
                     ),
                   ),
                 )
@@ -75,9 +74,9 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.divider),
+        border: Border.all(color: AppTheme.divider(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,8 +87,8 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
           Row(
             children: [
               Text('Заявка №$shortId',
-                  style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 13)),
+                  style: TextStyle(
+                      color: AppTheme.textSecondary(context), fontSize: 13)),
               IconButton(
                 icon: const Icon(Icons.copy_rounded, size: 16),
                 onPressed: () => _copyToClipboard(shortId),
@@ -104,7 +103,7 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceGrey,
+                color: AppTheme.surfaceVariant(context),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(

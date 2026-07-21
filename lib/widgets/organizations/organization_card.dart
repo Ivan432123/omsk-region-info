@@ -25,9 +25,9 @@ class OrganizationCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.divider),
+          border: Border.all(color: AppTheme.divider(context)),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Row(
@@ -42,7 +42,7 @@ class OrganizationCard extends StatelessWidget {
                         imageUrl: organization.logoUrl!,
                         fit: BoxFit.cover,
                         placeholder: (_, __) =>
-                            Container(color: AppTheme.surfaceGrey),
+                            Container(color: AppTheme.surfaceVariant(context)),
                         errorWidget: (_, __, ___) => Container(
                           color: background,
                           child: Icon(icon, color: color),
@@ -76,8 +76,8 @@ class OrganizationCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.call_outlined,
-                          size: 14, color: AppTheme.textSecondary),
+                      Icon(Icons.call_outlined,
+                          size: 14, color: AppTheme.textSecondary(context)),
                       const SizedBox(width: 4),
                       Text(
                         PhoneFormatter.format(organization.phone),
@@ -88,8 +88,8 @@ class OrganizationCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: AppTheme.textSecondary),
+            Icon(Icons.chevron_right_rounded,
+                color: AppTheme.textSecondary(context)),
           ],
         ),
       ),

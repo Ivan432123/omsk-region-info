@@ -114,7 +114,6 @@ class _PostAnnouncementScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(
         title: const Text('Разместить объявление'),
         actions: [
@@ -165,7 +164,7 @@ class _PostAnnouncementScreenState
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlueLight,
+              color: AppTheme.primaryContainer(context),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
@@ -198,9 +197,10 @@ class _PostAnnouncementScreenState
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Объявление появится в приложении после проверки администратором района.',
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            style:
+                TextStyle(fontSize: 12, color: AppTheme.textSecondary(context)),
           ),
         ],
       ),
@@ -242,7 +242,7 @@ class _PostAnnouncementScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceGrey,
+                color: AppTheme.surfaceVariant(context),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
@@ -267,9 +267,10 @@ class _PostAnnouncementScreenState
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Реквизиты можно посмотреть снова в разделе "Мои заявки".',
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              style: TextStyle(
+                  fontSize: 12, color: AppTheme.textSecondary(context)),
               textAlign: TextAlign.center,
             ),
           ] else

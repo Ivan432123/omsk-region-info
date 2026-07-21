@@ -152,7 +152,6 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(
         title: const Text('Разместить баннер'),
         actions: [
@@ -174,9 +173,10 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Ваш баннер увидят все жители района на главном экране приложения — в той же ленте, что и другие партнёрские баннеры.',
-            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            style:
+                TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
           ),
           const SizedBox(height: 20),
           Text('Название (виден на баннере)',
@@ -202,11 +202,11 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
                     imageUrl: _imageUrlController.text,
                     fit: BoxFit.cover,
                     placeholder: (_, __) =>
-                        Container(color: AppTheme.surfaceGrey),
+                        Container(color: AppTheme.surfaceVariant(context)),
                     errorWidget: (_, __, ___) => Container(
-                      color: AppTheme.surfaceGrey,
-                      child: const Icon(Icons.image_not_supported_outlined,
-                          color: AppTheme.textSecondary),
+                      color: AppTheme.surfaceVariant(context),
+                      child: Icon(Icons.image_not_supported_outlined,
+                          color: AppTheme.textSecondary(context)),
                     ),
                   ),
                 ),
@@ -287,9 +287,10 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Баннер появится в приложении после проверки администратором и поступления оплаты.',
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            style:
+                TextStyle(fontSize: 12, color: AppTheme.textSecondary(context)),
           ),
         ],
       ),
@@ -331,7 +332,7 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceGrey,
+              color: AppTheme.surfaceVariant(context),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -356,9 +357,10 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Реквизиты можно посмотреть снова в разделе "Мои заявки".',
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            style:
+                TextStyle(fontSize: 12, color: AppTheme.textSecondary(context)),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -398,10 +400,13 @@ class _DurationOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryBlueLight : Colors.white,
+          color: isSelected
+              ? AppTheme.primaryContainer(context)
+              : AppTheme.surface(context),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryBlue : AppTheme.divider,
+            color:
+                isSelected ? AppTheme.primaryBlue : AppTheme.divider(context),
             width: isSelected ? 1.6 : 1,
           ),
         ),
@@ -413,7 +418,9 @@ class _DurationOption extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
-                color: isSelected ? AppTheme.primaryBlue : AppTheme.textPrimary,
+                color: isSelected
+                    ? AppTheme.primaryBlue
+                    : AppTheme.textPrimary(context),
               ),
             ),
             const SizedBox(height: 2),
@@ -421,8 +428,9 @@ class _DurationOption extends StatelessWidget {
               '$price ₽',
               style: TextStyle(
                 fontSize: 12,
-                color:
-                    isSelected ? AppTheme.primaryBlue : AppTheme.textSecondary,
+                color: isSelected
+                    ? AppTheme.primaryBlue
+                    : AppTheme.textSecondary(context),
               ),
             ),
           ],

@@ -15,12 +15,12 @@ class LoadingListWidget extends StatelessWidget {
       itemCount: itemCount,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, __) => Shimmer.fromColors(
-        baseColor: AppTheme.surfaceGrey,
-        highlightColor: const Color(0xFFEDEFF2),
+        baseColor: AppTheme.surfaceVariant(context),
+        highlightColor: AppTheme.shimmerHighlight(context),
         child: Container(
           height: 108,
           decoration: BoxDecoration(
-            color: AppTheme.surfaceGrey,
+            color: AppTheme.surfaceVariant(context),
             borderRadius: BorderRadius.circular(20),
           ),
         ),

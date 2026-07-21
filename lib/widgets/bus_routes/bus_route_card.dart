@@ -16,9 +16,9 @@ class BusRouteCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.divider),
+          border: Border.all(color: AppTheme.divider(context)),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Row(
@@ -27,8 +27,8 @@ class BusRouteCard extends StatelessWidget {
               width: 44,
               height: 44,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: AppTheme.primaryBlueLight,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryContainer(context),
                 shape: BoxShape.circle,
               ),
               child: Text(
@@ -51,15 +51,15 @@ class BusRouteCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Ближайшее отправление: ${route.departureTimes.first}',
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 13),
+                      style: TextStyle(
+                          color: AppTheme.textSecondary(context), fontSize: 13),
                     ),
                   ],
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: AppTheme.textSecondary),
+            Icon(Icons.chevron_right_rounded,
+                color: AppTheme.textSecondary(context)),
           ],
         ),
       ),

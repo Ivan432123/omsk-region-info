@@ -15,7 +15,6 @@ class BusRouteDetailsScreen extends ConsumerWidget {
     final routeAsync = ref.watch(busRouteDetailsProvider(routeId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(),
       body: routeAsync.when(
         loading: () => const LoadingIndicatorWidget(),
@@ -43,7 +42,7 @@ class BusRouteDetailsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryBlueLight,
+                        color: AppTheme.primaryContainer(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -72,8 +71,8 @@ class BusRouteDetailsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
                         children: [
-                          const Icon(Icons.location_on_outlined,
-                              size: 18, color: AppTheme.textSecondary),
+                          Icon(Icons.location_on_outlined,
+                              size: 18, color: AppTheme.textSecondary(context)),
                           const SizedBox(width: 8),
                           Expanded(child: Text(stop)),
                         ],

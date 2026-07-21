@@ -18,7 +18,6 @@ class BusRoutesListScreen extends ConsumerWidget {
     final routesAsync = ref.watch(busRoutesProvider(districtId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Автобусы')),
       body: routesAsync.when(
         loading: () => const LoadingListWidget(),

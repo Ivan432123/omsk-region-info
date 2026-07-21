@@ -31,7 +31,6 @@ class VacancyDetailsScreen extends ConsumerWidget {
     final vacancyAsync = ref.watch(vacancyDetailsProvider(vacancyId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(),
       body: vacancyAsync.when(
         loading: () => const LoadingIndicatorWidget(),
@@ -57,8 +56,8 @@ class VacancyDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   vacancy.company,
-                  style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 15),
+                  style: TextStyle(
+                      color: AppTheme.textSecondary(context), fontSize: 15),
                 ),
                 if (vacancy.salary != null) ...[
                   const SizedBox(height: 16),
@@ -82,7 +81,7 @@ class VacancyDetailsScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryBlueLight,
+                        color: AppTheme.primaryContainer(context),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -101,11 +100,11 @@ class VacancyDetailsScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Контактный телефон',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: AppTheme.textSecondary),
+                                      color: AppTheme.textSecondary(context)),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(

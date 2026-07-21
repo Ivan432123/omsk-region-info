@@ -63,7 +63,6 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Новости')),
       body: Column(
         children: [
@@ -86,12 +85,16 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                   },
                   selectedColor: AppTheme.primaryBlue,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textPrimary,
+                    color: isSelected
+                        ? Colors.white
+                        : AppTheme.textPrimary(context),
                     fontWeight: FontWeight.w600,
                   ),
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppTheme.surface(context),
                   side: BorderSide(
-                    color: isSelected ? AppTheme.primaryBlue : AppTheme.divider,
+                    color: isSelected
+                        ? AppTheme.primaryBlue
+                        : AppTheme.divider(context),
                   ),
                 );
               },

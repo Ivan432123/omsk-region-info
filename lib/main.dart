@@ -89,6 +89,8 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       routerConfig: AppRouter.router,
       locale: const Locale('ru', 'RU'),
       supportedLocales: const [Locale('ru', 'RU')],

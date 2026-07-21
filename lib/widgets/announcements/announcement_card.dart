@@ -17,9 +17,9 @@ class AnnouncementCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.divider),
+          border: Border.all(color: AppTheme.divider(context)),
           boxShadow: AppTheme.cardShadow,
         ),
         clipBehavior: Clip.antiAlias,
@@ -33,11 +33,11 @@ class AnnouncementCard extends StatelessWidget {
                   imageUrl: announcement.images.first,
                   fit: BoxFit.cover,
                   placeholder: (_, __) =>
-                      Container(color: AppTheme.surfaceGrey),
+                      Container(color: AppTheme.surfaceVariant(context)),
                   errorWidget: (_, __, ___) => Container(
-                    color: AppTheme.surfaceGrey,
-                    child: const Icon(Icons.image_not_supported_outlined,
-                        color: AppTheme.textSecondary),
+                    color: AppTheme.surfaceVariant(context),
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: AppTheme.textSecondary(context)),
                   ),
                 ),
               ),
@@ -53,8 +53,8 @@ class AnnouncementCard extends StatelessWidget {
                     announcement.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: AppTheme.textSecondary, fontSize: 13),
+                    style: TextStyle(
+                        color: AppTheme.textSecondary(context), fontSize: 13),
                   ),
                 ],
               ),

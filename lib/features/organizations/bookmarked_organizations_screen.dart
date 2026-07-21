@@ -15,7 +15,6 @@ class BookmarkedOrganizationsScreen extends ConsumerWidget {
     final bookmarksAsync = ref.watch(bookmarkedOrganizationsProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Мои закладки')),
       body: bookmarksAsync.when(
         loading: () => const LoadingListWidget(),

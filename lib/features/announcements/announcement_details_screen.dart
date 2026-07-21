@@ -34,7 +34,6 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
         ref.watch(announcementDetailsProvider(announcementId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(),
       body: announcementAsync.when(
         loading: () => const LoadingIndicatorWidget(),
@@ -84,10 +83,10 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                               child: CachedNetworkImage(
                                 imageUrl: announcement.images[index],
                                 fit: BoxFit.cover,
-                                placeholder: (_, __) =>
-                                    Container(color: AppTheme.surfaceGrey),
-                                errorWidget: (_, __, ___) =>
-                                    Container(color: AppTheme.surfaceGrey),
+                                placeholder: (_, __) => Container(
+                                    color: AppTheme.surfaceVariant(context)),
+                                errorWidget: (_, __, ___) => Container(
+                                    color: AppTheme.surfaceVariant(context)),
                               ),
                             ),
                           ),
@@ -107,7 +106,7 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryBlueLight,
+                        color: AppTheme.primaryContainer(context),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -126,11 +125,11 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Контактный телефон',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: AppTheme.textSecondary),
+                                      color: AppTheme.textSecondary(context)),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(

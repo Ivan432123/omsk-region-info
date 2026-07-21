@@ -28,7 +28,6 @@ class SettingsScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Настройки')),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -103,7 +102,7 @@ class _SettingsTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: Colors.white,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           onTap: onTap,
@@ -112,14 +111,14 @@ class _SettingsTile extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppTheme.divider),
+              border: Border.all(color: AppTheme.divider(context)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primaryBlueLight,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryContainer(context),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: AppTheme.primaryBlue, size: 20),

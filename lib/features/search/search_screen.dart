@@ -42,7 +42,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final districtId = ref.watch(selectedDistrictProvider).id ?? '';
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(
         title: TextField(
           controller: _controller,
@@ -55,13 +54,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       ),
       body: _query.isEmpty
-          ? const Center(
+          ? Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Text(
                   'Начните печатать, чтобы найти новости, организации, вакансии, объявления или события в вашем районе',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(color: AppTheme.textSecondary(context)),
                 ),
               ),
             )
@@ -75,16 +74,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   loading: () => const Center(
                       child: CircularProgressIndicator(
                           color: AppTheme.primaryBlue)),
-                  error: (_, __) => const Center(
+                  error: (_, __) => Center(
                     child: Text('Не удалось выполнить поиск',
-                        style: TextStyle(color: AppTheme.textSecondary)),
+                        style:
+                            TextStyle(color: AppTheme.textSecondary(context))),
                   ),
                   data: (results) {
                     if (results.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
                           'Ничего не найдено',
-                          style: TextStyle(color: AppTheme.textSecondary),
+                          style:
+                              TextStyle(color: AppTheme.textSecondary(context)),
                         ),
                       );
                     }

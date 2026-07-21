@@ -32,7 +32,6 @@ class HomeScreen extends ConsumerWidget {
     final sponsoredAsync = ref.watch(sponsoredContentProvider(districtId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppTheme.primaryBlue,
@@ -233,7 +232,8 @@ class _SponsoredSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary.withValues(alpha: 0.8),
+                    color:
+                        AppTheme.textSecondary(context).withValues(alpha: 0.8),
                     letterSpacing: 0.3,
                   ),
                 ),
@@ -275,8 +275,8 @@ class _SponsoredSection extends StatelessWidget {
                             CachedNetworkImage(
                               imageUrl: item.imageUrl,
                               fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) =>
-                                  Container(color: AppTheme.surfaceGrey),
+                              errorWidget: (_, __, ___) => Container(
+                                  color: AppTheme.surfaceVariant(context)),
                             ),
                             Positioned(
                               left: 0,
@@ -401,7 +401,7 @@ class _PromotedAnnouncementCard extends StatelessWidget {
         child: Container(
           width: 160,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.surface(context),
             border: Border.all(
                 color: _PromotedAnnouncementsCarousel._accent, width: 1.2),
             borderRadius: BorderRadius.circular(12),
@@ -414,7 +414,7 @@ class _PromotedAnnouncementCard extends StatelessWidget {
                       imageUrl: announcement.images.first,
                       fit: BoxFit.cover,
                       errorWidget: (_, __, ___) =>
-                          Container(color: AppTheme.surfaceGrey),
+                          Container(color: AppTheme.surfaceVariant(context)),
                     ),
                     Positioned(
                       left: 0,
@@ -467,9 +467,9 @@ class _PromotedAnnouncementCard extends StatelessWidget {
                         announcement.description,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.textSecondary(context),
                         ),
                       ),
                     ],
@@ -667,9 +667,9 @@ class _QuickNavButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppTheme.divider),
+          border: Border.all(color: AppTheme.divider(context)),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Column(

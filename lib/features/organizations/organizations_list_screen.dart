@@ -46,7 +46,6 @@ class _OrganizationsListScreenState
     final state = ref.watch(organizationListProvider(districtId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(
         title: const Text('Организации'),
         actions: [

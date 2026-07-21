@@ -43,7 +43,6 @@ class _DistrictSelectionScreenState
     final districtsAsync = ref.watch(districtsListProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: widget.isChangeMode
           ? AppBar(title: const Text('Смена района'))
           : null,
@@ -67,10 +66,10 @@ class _DistrictSelectionScreenState
                 onChanged: (value) => setState(
                   () => _query = InputSanitizer.sanitizeSearchQuery(value),
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Найти район...',
-                  prefixIcon:
-                      Icon(Icons.search_rounded, color: AppTheme.textSecondary),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: AppTheme.textSecondary(context)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -182,10 +181,13 @@ class _DistrictTile extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryBlueLight : Colors.white,
+          color: isSelected
+              ? AppTheme.primaryContainer(context)
+              : AppTheme.surface(context),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryBlue : AppTheme.divider,
+            color:
+                isSelected ? AppTheme.primaryBlue : AppTheme.divider(context),
             width: isSelected ? 1.6 : 1,
           ),
         ),
@@ -193,7 +195,9 @@ class _DistrictTile extends StatelessWidget {
           children: [
             Icon(
               Icons.location_on_outlined,
-              color: isSelected ? AppTheme.primaryBlue : AppTheme.textSecondary,
+              color: isSelected
+                  ? AppTheme.primaryBlue
+                  : AppTheme.textSecondary(context),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -202,7 +206,7 @@ class _DistrictTile extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: isSelected
                           ? AppTheme.primaryBlue
-                          : AppTheme.textPrimary,
+                          : AppTheme.textPrimary(context),
                     ),
               ),
             ),

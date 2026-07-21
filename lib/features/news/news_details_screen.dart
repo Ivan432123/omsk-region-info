@@ -28,7 +28,6 @@ class NewsDetailsScreen extends ConsumerWidget {
     final newsAsync = ref.watch(newsDetailsProvider(newsId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(
         title: const Text('Новость'),
         actions: [
@@ -73,31 +72,31 @@ class NewsDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_today_outlined,
                       size: 14,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondary(context),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       DateFormatter.formatDateTime(news.createdAt),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.textSecondary(context),
                       ),
                     ),
                     const SizedBox(width: 14),
-                    const Icon(
+                    Icon(
                       Icons.visibility_outlined,
                       size: 14,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondary(context),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       '${_formatViewCount(news.viewCount)} просмотров',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.textSecondary(context),
                       ),
                     ),
                   ],
@@ -116,10 +115,10 @@ class NewsDetailsScreen extends ConsumerWidget {
                           child: CachedNetworkImage(
                             imageUrl: news.imageUrl!,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) =>
-                                Container(color: AppTheme.surfaceGrey),
-                            errorWidget: (_, __, ___) =>
-                                Container(color: AppTheme.surfaceGrey),
+                            placeholder: (_, __) => Container(
+                                color: AppTheme.surfaceVariant(context)),
+                            errorWidget: (_, __, ___) => Container(
+                                color: AppTheme.surfaceVariant(context)),
                           ),
                         ),
                       ),

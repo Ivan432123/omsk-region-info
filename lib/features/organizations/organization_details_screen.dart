@@ -79,7 +79,6 @@ class _OrganizationDetailsScreenState
         ref.watch(organizationDetailsProvider(widget.organizationId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(
         title: const Text('Организация'),
         actions: [
@@ -166,8 +165,9 @@ class _OrganizationDetailsScreenState
                         const SizedBox(width: 6),
                         Text(
                           '${org.reviewCount} ${_reviewsWord(org.reviewCount!)}',
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary, fontSize: 13),
+                          style: TextStyle(
+                              color: AppTheme.textSecondary(context),
+                              fontSize: 13),
                         ),
                       ],
                     ],
@@ -244,7 +244,8 @@ class _OrganizationDetailsScreenState
                     children: org.services
                         .map((service) => Chip(
                               label: Text(service),
-                              backgroundColor: AppTheme.primaryBlueLight,
+                              backgroundColor:
+                                  AppTheme.primaryContainer(context),
                               labelStyle: const TextStyle(
                                 color: AppTheme.primaryBlue,
                                 fontWeight: FontWeight.w600,
@@ -322,15 +323,15 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: AppTheme.textSecondary),
+          Icon(icon, size: 20, color: AppTheme.textSecondary(context)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppTheme.textSecondary)),
+                    style: TextStyle(
+                        fontSize: 12, color: AppTheme.textSecondary(context))),
                 const SizedBox(height: 2),
                 Text(value, style: Theme.of(context).textTheme.bodyLarge),
               ],

@@ -18,7 +18,6 @@ class EventDetailsScreen extends ConsumerWidget {
     final eventAsync = ref.watch(eventDetailsProvider(eventId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(),
       body: eventAsync.when(
         loading: () => const LoadingIndicatorWidget(),
@@ -61,8 +60,8 @@ class EventDetailsScreen extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     event.location!,
-                    style: const TextStyle(
-                        color: AppTheme.textSecondary, fontSize: 15),
+                    style: TextStyle(
+                        color: AppTheme.textSecondary(context), fontSize: 15),
                   ),
                 ],
                 if (event.imageUrl != null) ...[
@@ -79,10 +78,10 @@ class EventDetailsScreen extends ConsumerWidget {
                           child: CachedNetworkImage(
                             imageUrl: event.imageUrl!,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) =>
-                                Container(color: AppTheme.surfaceGrey),
-                            errorWidget: (_, __, ___) =>
-                                Container(color: AppTheme.surfaceGrey),
+                            placeholder: (_, __) => Container(
+                                color: AppTheme.surfaceVariant(context)),
+                            errorWidget: (_, __, ___) => Container(
+                                color: AppTheme.surfaceVariant(context)),
                           ),
                         ),
                       ),

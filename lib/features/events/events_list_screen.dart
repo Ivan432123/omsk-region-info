@@ -46,7 +46,6 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
     final state = ref.watch(eventListProvider(districtId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Афиша')),
       body: state.isLoading
           ? const LoadingListWidget()

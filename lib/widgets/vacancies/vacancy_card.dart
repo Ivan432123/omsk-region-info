@@ -16,9 +16,9 @@ class VacancyCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.divider),
+          border: Border.all(color: AppTheme.divider(context)),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Column(
@@ -28,8 +28,8 @@ class VacancyCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               vacancy.company,
-              style:
-                  const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+              style: TextStyle(
+                  color: AppTheme.textSecondary(context), fontSize: 13),
             ),
             if (vacancy.salary != null) ...[
               const SizedBox(height: 8),

@@ -26,9 +26,9 @@ class NewsCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.divider),
+          border: Border.all(color: AppTheme.divider(context)),
           boxShadow: AppTheme.cardShadow,
         ),
         clipBehavior: Clip.antiAlias,
@@ -43,11 +43,11 @@ class NewsCard extends StatelessWidget {
                   imageUrl: news.imageUrl!,
                   fit: BoxFit.cover,
                   placeholder: (_, __) =>
-                      Container(color: AppTheme.surfaceGrey),
+                      Container(color: AppTheme.surfaceVariant(context)),
                   errorWidget: (_, __, ___) => Container(
-                    color: AppTheme.surfaceGrey,
-                    child: const Icon(Icons.image_not_supported_outlined,
-                        color: AppTheme.textSecondary),
+                    color: AppTheme.surfaceVariant(context),
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: AppTheme.textSecondary(context)),
                   ),
                 ),
               ),
@@ -77,21 +77,21 @@ class NewsCard extends StatelessWidget {
                       children: [
                         Text(
                           DateFormatter.formatDate(news.createdAt),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: AppTheme.textSecondary(context),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Icon(Icons.visibility_outlined,
-                            size: 13, color: AppTheme.textSecondary),
+                        Icon(Icons.visibility_outlined,
+                            size: 13, color: AppTheme.textSecondary(context)),
                         const SizedBox(width: 3),
                         Text(
                           _formatViewCount(news.viewCount),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: AppTheme.textSecondary(context),
                             fontWeight: FontWeight.w500,
                           ),
                         ),

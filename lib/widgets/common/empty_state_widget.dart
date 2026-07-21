@@ -78,8 +78,8 @@ class EmptyStateWidget extends StatelessWidget {
             Container(
               width: 96,
               height: 96,
-              decoration: const BoxDecoration(
-                color: AppTheme.primaryBlueLight,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryContainer(context),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 44, color: AppTheme.primaryBlue),

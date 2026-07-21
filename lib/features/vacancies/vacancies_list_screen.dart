@@ -47,7 +47,6 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
     final state = ref.watch(vacancyListProvider(districtId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Вакансии')),
       body: state.isLoading
           ? const LoadingListWidget()

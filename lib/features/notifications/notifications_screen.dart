@@ -20,7 +20,6 @@ class NotificationsScreen extends ConsumerWidget {
         ref.watch(notificationsStreamProvider(districtId));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(title: const Text('Уведомления')),
       body: notificationsAsync.when(
         loading: () => const LoadingListWidget(),
@@ -74,11 +73,13 @@ class _NotificationTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: notification.isRead ? Colors.white : AppTheme.primaryBlueLight,
+          color: notification.isRead
+              ? AppTheme.surface(context)
+              : AppTheme.primaryContainer(context),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: notification.isRead
-                ? AppTheme.divider
+                ? AppTheme.divider(context)
                 : AppTheme.primaryBlue.withValues(alpha: 0.3),
           ),
         ),
@@ -107,8 +108,9 @@ class _NotificationTile extends StatelessWidget {
                       const Spacer(),
                       Text(
                         DateFormatter.formatRelative(notification.createdAt),
-                        style: const TextStyle(
-                            fontSize: 12, color: AppTheme.textSecondary),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary(context)),
                       ),
                     ],
                   ),

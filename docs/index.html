@@ -434,6 +434,11 @@
         </div>
         <div class="card" id="sponsored-list"></div>
 
+        <div id="banner-requests-section" style="display:none;">
+        <h2>Заявки на баннеры от рекламодателей</h2>
+        <div class="card" id="banner-requests-list"></div>
+        </div>
+
         <h2>Добавить автобусный маршрут</h2>
         <div class="card">
             <label>Номер маршрута</label>
@@ -520,6 +525,8 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('admin-screen').style.display = 'block';
                 document.getElementById('ad-requests-section').style.display =
+                    (user.email === SUPER_ADMIN_EMAIL) ? 'block' : 'none';
+                document.getElementById('banner-requests-section').style.display =
                     (user.email === SUPER_ADMIN_EMAIL) ? 'block' : 'none';
                 loadDistricts();
             } else {
@@ -677,6 +684,88 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
             loadAdRequests();
         }
 
+        // ---------- Заявки на баннеры от рекламодателей (banner_requests) ----------
+
+        let bannerRequestCache = {};
+
+        async function loadBannerRequests() {
+            if (!auth.currentUser || auth.currentUser.email !== SUPER_ADMIN_EMAIL) return;
+            const container = document.getElementById('banner-requests-list');
+            container.innerHTML = 'Загрузка...';
+            try {
+                const snapshot = await db.collection('banner_requests')
+                    .where('district', '==', currentDistrictId)
+                    .where('status', '==', 'pending')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Нет новых заявок</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const r = doc.data();
+                    bannerRequestCache[doc.id] = r;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(r.title)}</div>
+<div class="item-sub" style="font-weight:700;color:#1E2A22;">Заявка №${doc.id.substring(0, 8)} · ${r.durationDays} дн. · ${r.price} ₽</div>
+<div class="item-sub">Изображение: ${escapeHtml(r.imageUrl)}</div>
+<div class="item-sub">Переход: ${escapeHtml(r.targetUrl)}</div>
+<div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>
+</div>
+<div>
+<button class="secondary" onclick="approveBannerRequest('${doc.id}')">Опубликовать</button>
+<button class="danger" onclick="rejectBannerRequest('${doc.id}')">Отклонить</button>
+</div>
+`;
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить заявки: ' + err.message, loadBannerRequests);
+            }
+        }
+
+        async function approveBannerRequest(id) {
+            const r = bannerRequestCache[id];
+            if (!r) return;
+            if (!(await showConfirmDialog(
+                `Опубликовать баннер "${r.title}" на ${r.durationDays} дней (после проверки поступления ${r.price} ₽)?`,
+                'Опубликовать'
+            ))) return;
+
+            const activeUntil = firebase.firestore.Timestamp.fromDate(
+                new Date(Date.now() + r.durationDays * 24 * 60 * 60 * 1000)
+            );
+
+            await db.collection('sponsored_content').add({
+                title: r.title,
+                imageUrl: r.imageUrl,
+                targetUrl: r.targetUrl,
+                organizationId: null,
+                activeUntil,
+                order: 0,
+                district: currentDistrictId,
+                clickCount: 0
+            });
+
+            await db.collection('banner_requests').doc(id).update({ status: 'approved' });
+            showStatus('Баннер опубликован');
+            loadBannerRequests();
+            loadSponsored();
+        }
+
+        async function rejectBannerRequest(id) {
+            if (!(await showConfirmDialog('Отклонить эту заявку?', 'Отклонить'))) return;
+            await db.collection('banner_requests').doc(id).update({ status: 'rejected' });
+            showStatus('Заявка отклонена');
+            loadBannerRequests();
+        }
+
         function onDistrictChange() {
             currentDistrictId = document.getElementById('district-select').value;
             loadNews();
@@ -686,6 +775,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
             loadEvents();
             loadAdRequests();
             loadSponsored();
+            loadBannerRequests();
             loadBusRoutes();
         }
 

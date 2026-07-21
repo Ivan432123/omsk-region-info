@@ -8,6 +8,7 @@ import '../core/constants/app_constants.dart';
 /// сам не сбросит его в настройках (future scope).
 class LocalStorageService {
   static const String _keyMyAdRequests = 'my_ad_requests';
+  static const String _keyMyBannerRequests = 'my_banner_requests';
   static const String _keyLastSeenAnnouncementsPrefix =
       'last_seen_announcements_';
   static const String _keyBookmarkedOrganizations = 'bookmarked_organizations';
@@ -71,6 +72,29 @@ class LocalStorageService {
   Future<List<Map<String, dynamic>>> getMyAdRequests() async {
     final prefs = await _prefs;
     final raw = prefs.getString(_keyMyAdRequests);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List;
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Сохраняет отправленную рекламодателем заявку на баннер локально на
+  /// устройстве — по тому же принципу, что и заявки на объявления (см.
+  /// saveMyAdRequest), чтобы реквизиты оплаты можно было посмотреть снова.
+  Future<void> saveMyBannerRequest(Map<String, dynamic> request) async {
+    final prefs = await _prefs;
+    final existing = await getMyBannerRequests();
+    existing.insert(0, request);
+    final trimmed = existing.take(10).toList();
+    await prefs.setString(_keyMyBannerRequests, jsonEncode(trimmed));
+  }
+
+  Future<List<Map<String, dynamic>>> getMyBannerRequests() async {
+    final prefs = await _prefs;
+    final raw = prefs.getString(_keyMyBannerRequests);
     if (raw == null || raw.isEmpty) return [];
     try {
       final decoded = jsonDecode(raw) as List;

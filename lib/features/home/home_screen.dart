@@ -70,11 +70,13 @@ class HomeScreen extends ConsumerWidget {
                 error: (_, __) =>
                     const SliverToBoxAdapter(child: SizedBox.shrink()),
                 data: (sponsored) {
-                  if (sponsored.isEmpty) {
-                    return const SliverToBoxAdapter(child: SizedBox.shrink());
-                  }
+                  // Заголовок "Реклама" + ссылка "Разместить" показываются
+                  // всегда (это единственная точка входа для самостоятельной
+                  // подачи заявки рекламодателем), даже если баннеров пока
+                  // нет — лента под ним рисуется только когда есть что
+                  // листать.
                   return SliverToBoxAdapter(
-                    child: _SponsoredCarousel(items: sponsored, ref: ref),
+                    child: _SponsoredSection(items: sponsored, ref: ref),
                   );
                 },
               ),
@@ -195,15 +197,17 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Горизонтальная карусель партнёрских (спонсорских) баннеров —
-/// "партнёрская лента" из TASKS.md, партия 3.4. Подпись "Реклама"
-/// обязательна: карточки ведут по внешней ссылке партнёра, и это должно
-/// быть явно отличимо от редакционного контента.
-class _SponsoredCarousel extends StatelessWidget {
+/// Блок партнёрской (спонсорской) ленты на главном экране — заголовок
+/// "Реклама" со ссылкой "Разместить" (единственная точка входа для
+/// самостоятельной подачи заявки рекламодателем, см. PostBannerScreen) и,
+/// если баннеры уже есть, горизонтальная карусель под ним. Заголовок
+/// показывается всегда, даже когда лента пуста — иначе рекламодателю
+/// неоткуда узнать о самостоятельном размещении.
+class _SponsoredSection extends StatelessWidget {
   final List<SponsoredContentModel> items;
   final WidgetRef ref;
 
-  const _SponsoredCarousel({required this.items, required this.ref});
+  const _SponsoredSection({required this.items, required this.ref});
 
   Future<void> _open(String id, String url) async {
     unawaited(recordSponsoredClick(ref, id));
@@ -221,77 +225,96 @@ class _SponsoredCarousel extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Реклама',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary.withValues(alpha: 0.8),
-                letterSpacing: 0.3,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Реклама',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary.withValues(alpha: 0.8),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                InkWell(
+                  onTap: () => context.push('/post-banner'),
+                  child: const Text(
+                    'Разместить →',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryBlue,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 76,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    onTap: () => _open(item.id, item.targetUrl),
-                    child: SizedBox(
-                      width: 160,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: item.imageUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) =>
-                                Container(color: AppTheme.surfaceGrey),
-                          ),
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(8, 14, 8, 6),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withValues(alpha: 0.65),
-                                  ],
+          if (items.isEmpty) const SizedBox(height: 4),
+          if (items.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 76,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: () => _open(item.id, item.targetUrl),
+                      child: SizedBox(
+                        width: 160,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: item.imageUrl,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) =>
+                                  Container(color: AppTheme.surfaceGrey),
+                            ),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                padding: const EdgeInsets.fromLTRB(8, 14, 8, 6),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withValues(alpha: 0.65),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                item.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
+                                child: Text(
+                                  item.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

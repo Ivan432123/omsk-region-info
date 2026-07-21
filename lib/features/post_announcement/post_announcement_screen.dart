@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/payment_info.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/input_sanitizer.dart';
 import '../../providers/ad_request_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../services/local_storage_service.dart';
 
-/// Стоимость платного продвижения (push всем подписчикам района), номер
-/// для перевода и банки, к которым он привязан через СБП.
+/// Стоимость платного продвижения (push всем подписчикам района).
+/// Реквизиты для перевода — см. PaymentInfo (общие с размещением баннеров).
 const String _pushPromotionPrice = '350';
-const String _paymentPhoneNumber = '+79236885501';
-const List<String> _paymentBanks = ['Т-Банк', 'Озон Банк', 'Сбербанк'];
 
 class PostAnnouncementScreen extends ConsumerStatefulWidget {
   const PostAnnouncementScreen({super.key});
@@ -83,8 +82,8 @@ class _PostAnnouncementScreenState
         'title': title,
         'wantsPush': _wantsPush,
         'amount': _pushPromotionPrice,
-        'paymentPhone': _paymentPhoneNumber,
-        'banks': _paymentBanks,
+        'paymentPhone': PaymentInfo.phoneNumber,
+        'banks': PaymentInfo.banks,
         'createdAt': DateTime.now().toIso8601String(),
       });
 
@@ -255,9 +254,9 @@ class _PostAnnouncementScreenState
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                      '1. Переведите $_pushPromotionPrice ₽ по номеру $_paymentPhoneNumber (СБП)'),
+                      '1. Переведите $_pushPromotionPrice ₽ по номеру ${PaymentInfo.phoneNumber} (СБП)'),
                   const SizedBox(height: 4),
-                  Text('Доступно через: ${_paymentBanks.join(', ')}'),
+                  Text('Доступно через: ${PaymentInfo.banks.join(', ')}'),
                   const SizedBox(height: 6),
                   Text(
                       '2. В комментарии к переводу укажите номер заявки: $shortId'),

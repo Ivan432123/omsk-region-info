@@ -1,5 +1,15 @@
 # Текущие задачи
 
+## Партия 3.8 — Самостоятельное размещение баннеров рекламодателями
+- [x] Тарифы по сроку размещения (BannerPricing, lib/core/constants/payment_info.dart): 7 дней — 500₽, 14 дней — 900₽, 30 дней — 1600₽. Реквизиты для оплаты (PaymentInfo) вынесены туда же и переиспользованы из post_announcement_screen.dart (раньше были продублированы как приватные константы)
+- [x] Коллекция banner_requests (по аналогии с ad_requests): title, imageUrl, targetUrl, phone, durationDays, price, status, district, createdAt — модель/repository/provider (BannerRequestModel/BannerRequestRepository/bannerRequestRepositoryProvider)
+- [x] Экран "Разместить баннер" (/post-banner) — форма без входа: название, ссылка на изображение, ссылка перехода, телефон, выбор срока (определяет цену). После отправки — экран с номером заявки и реквизитами для перевода, как у объявлений
+- [x] Экран "Мои заявки на баннер" (/my-banner-requests) — локально сохранённые заявки этого устройства, реквизиты можно посмотреть повторно (LocalStorageService.saveMyBannerRequest/getMyBannerRequests)
+- [x] Точка входа на главном: заголовок "Реклама" в партнёрской ленте теперь всегда виден (даже когда баннеров ещё нет) со ссылкой "Разместить →" — раньше блок целиком скрывался при пустой ленте, и рекламодателю было неоткуда узнать о самостоятельной подаче
+- [x] Админка: раздел "Заявки на баннеры от рекламодателей" — виден только супер-админу (как заявки на объявления). "Опубликовать" создаёт документ в sponsored_content с activeUntil = now + durationDays и помечает заявку approved; "Отклонить" — status: rejected
+- [x] firestore.rules: banner_requests — allow create с валидацией полей (durationDays только 7/14/30, price > 0 и т.д.), read/update только супер-админу, delete запрещён — по образцу ad_requests
+- [x] firestore.indexes.json + деплой: composite-индекс banner_requests(district+status+createdAt) для запроса админки
+
 ## Партия 3.4 — Партнёрская (спонсорская) лента
 - [x] Новая коллекция sponsored_content: district, title, imageUrl, targetUrl, organizationId?, activeUntil, order (модель + composite index district+activeUntil)
 - [x] Простая repository/provider-пара (district + activeUntil > now, сортировка по order на клиенте — Firestore требует, чтобы первый orderBy совпадал с полем неравенства)

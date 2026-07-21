@@ -10,12 +10,22 @@
             box-sizing: border-box;
         }
 
+        html {
+            /* На iOS Safari поле ввода с font-size меньше 16px при фокусе
+               заставляет всю страницу автоматически зумиться — после этого
+               вёрстка выглядит "съехавшей", пока не зумить обратно вручную.
+               -webkit-text-size-adjust дополнительно отключает случайное
+               укрупнение текста при повороте экрана. */
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
             font-family: -apple-system, Roboto, Arial, sans-serif;
             background: #F6F3EC;
             color: #1E2A22;
             margin: 0;
             padding: 16px;
+            overflow-x: hidden;
         }
 
         h1 {
@@ -48,11 +58,14 @@
         input,
         select,
         textarea {
+            /* Ровно 16px, не меньше — иначе iOS Safari зумит страницу при
+               фокусе на поле (см. комментарий у html{} выше). */
             width: 100%;
+            max-width: 100%;
             padding: 10px;
             border: 1px solid #DEDACD;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 16px;
             background: #FAFAF7;
         }
 
@@ -85,6 +98,7 @@
 
         .item {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             gap: 8px;
@@ -96,14 +110,31 @@
             border-bottom: none;
         }
 
+        /* Первый блок (заголовок+подпись) — тянется и переносит слова,
+           второй (кнопки) — не сжимается. Без этого длинный заголовок или
+           случайно вставленная ссылка выталкивают кнопки за край экрана
+           на узких мобильных вёрстка "разъезжается". */
+        .item>div:first-child {
+            flex: 1 1 180px;
+            min-width: 0;
+        }
+
+        .item>div:last-child {
+            flex-shrink: 0;
+        }
+
         .item-title {
             font-weight: 600;
             font-size: 14px;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .item-sub {
             font-size: 12px;
             color: #8C8571;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .item button {
@@ -136,11 +167,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
             margin-bottom: 16px;
+        }
+
+        /* h1 внутри .top-bar по умолчанию несёт нижний отступ (h1{margin:0 0
+           16px}), а кнопка — верхний (наследуется от общего button{margin-top:
+           12px}). Разные margin-боксы у соседей внутри align-items:center
+           сдвигают их видимое содержимое друг относительно друга — заголовок
+           и кнопка "Выйти" выглядели не выровненными по вертикали. */
+        .top-bar h1 {
+            margin: 0;
+            min-width: 0;
+            overflow-wrap: break-word;
         }
 
         .top-bar button {
             width: auto;
+            flex-shrink: 0;
+            margin-top: 0;
             padding: 8px 14px;
             font-size: 13px;
         }

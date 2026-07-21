@@ -42,6 +42,13 @@ class EmptyStateWidget extends StatelessWidget {
         actionLabel = null,
         onAction = null;
 
+  const EmptyStateWidget.noBusRoutes({super.key})
+      : icon = Icons.directions_bus_outlined,
+        title = 'Пока нет маршрутов',
+        subtitle = 'Расписание автобусов вашего района скоро появится',
+        actionLabel = null,
+        onAction = null;
+
   factory EmptyStateWidget.error({VoidCallback? onRetry}) {
     return EmptyStateWidget(
       icon: Icons.wifi_off_rounded,

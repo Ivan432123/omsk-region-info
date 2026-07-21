@@ -17,6 +17,8 @@ import '../../features/events/event_details_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/post_announcement/post_announcement_screen.dart';
 import '../../features/post_announcement/my_ad_requests_screen.dart';
+import '../../features/bus_routes/bus_routes_list_screen.dart';
+import '../../features/bus_routes/bus_route_details_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
 class AppRouter {
@@ -77,6 +79,15 @@ class AppRouter {
         path: '/events/:id',
         builder: (context, state) =>
             EventDetailsScreen(eventId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/bus-routes',
+        builder: (context, state) => const BusRoutesListScreen(),
+      ),
+      GoRoute(
+        path: '/bus-routes/:id',
+        builder: (context, state) =>
+            BusRouteDetailsScreen(routeId: state.pathParameters['id']!),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

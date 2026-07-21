@@ -13,6 +13,7 @@ class AppConstants {
   static const String collectionNews = 'news';
   static const String collectionOrganizations = 'organizations';
   static const String collectionNotifications = 'notifications';
+  static const String collectionBusRoutes = 'bus_routes';
 
   // ---------- Ключи локального хранилища ----------
   static const String prefsSelectedDistrictId = 'selected_district_id';

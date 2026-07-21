@@ -1,10 +1,16 @@
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/sponsored_content_model.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../providers/news_provider.dart';
+import '../../providers/sponsored_content_provider.dart';
 import '../../widgets/announcements/announcement_card.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/news/news_card.dart';
@@ -23,6 +29,7 @@ class HomeScreen extends ConsumerWidget {
         ref.watch(promotedAnnouncementsProvider(districtId));
     final unreadAnnouncementsAsync =
         ref.watch(unreadAnnouncementsCountProvider(districtId));
+    final sponsoredAsync = ref.watch(sponsoredContentProvider(districtId));
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -33,6 +40,7 @@ class HomeScreen extends ConsumerWidget {
             ref.invalidate(importantAnnouncementsProvider(districtId));
             ref.invalidate(promotedAnnouncementsProvider(districtId));
             ref.invalidate(unreadAnnouncementsCountProvider(districtId));
+            ref.invalidate(sponsoredContentProvider(districtId));
             await ref.read(newsListProvider(districtId).notifier).refresh();
           },
           child: CustomScrollView(
@@ -51,9 +59,24 @@ class HomeScreen extends ConsumerWidget {
                     onVacancies: () => context.push('/vacancies'),
                     onAnnouncements: () => context.push('/announcements'),
                     onEvents: () => context.push('/events'),
+                    onBusRoutes: () => context.push('/bus-routes'),
                     unreadAnnouncements: unreadAnnouncementsAsync.value ?? 0,
                   ),
                 ),
+              ),
+              sponsoredAsync.when(
+                loading: () =>
+                    const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (_, __) =>
+                    const SliverToBoxAdapter(child: SizedBox.shrink()),
+                data: (sponsored) {
+                  if (sponsored.isEmpty) {
+                    return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  }
+                  return SliverToBoxAdapter(
+                    child: _SponsoredCarousel(items: sponsored, ref: ref),
+                  );
+                },
               ),
               promotedAdsAsync.when(
                 loading: () =>
@@ -209,6 +232,109 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
+/// Горизонтальная карусель партнёрских (спонсорских) баннеров —
+/// "партнёрская лента" из TASKS.md, партия 3.4. Подпись "Реклама"
+/// обязательна: карточки ведут по внешней ссылке партнёра, и это должно
+/// быть явно отличимо от редакционного контента.
+class _SponsoredCarousel extends StatelessWidget {
+  final List<SponsoredContentModel> items;
+  final WidgetRef ref;
+
+  const _SponsoredCarousel({required this.items, required this.ref});
+
+  Future<void> _open(String id, String url) async {
+    unawaited(recordSponsoredClick(ref, id));
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'Реклама',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary.withValues(alpha: 0.8),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 120,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    onTap: () => _open(item.id, item.targetUrl),
+                    child: SizedBox(
+                      width: 260,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: item.imageUrl,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) =>
+                                Container(color: AppTheme.surfaceGrey),
+                          ),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(10, 20, 10, 8),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withValues(alpha: 0.65),
+                                  ],
+                                ),
+                              ),
+                              child: Text(
+                                item.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _HeroHeader extends StatelessWidget {
   final String districtName;
   final VoidCallback onSearchTap;
@@ -322,12 +448,14 @@ class _QuickNavRow extends StatelessWidget {
   final VoidCallback onVacancies;
   final VoidCallback onAnnouncements;
   final VoidCallback onEvents;
+  final VoidCallback onBusRoutes;
   final int unreadAnnouncements;
 
   const _QuickNavRow({
     required this.onVacancies,
     required this.onAnnouncements,
     required this.onEvents,
+    required this.onBusRoutes,
     required this.unreadAnnouncements,
   });
 
@@ -357,6 +485,14 @@ class _QuickNavRow extends StatelessWidget {
             icon: Icons.event_rounded,
             label: 'Афиша',
             onTap: onEvents,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.directions_bus_rounded,
+            label: 'Автобусы',
+            onTap: onBusRoutes,
           ),
         ),
       ],

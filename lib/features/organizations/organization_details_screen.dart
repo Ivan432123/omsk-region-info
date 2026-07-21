@@ -249,8 +249,8 @@ class _OrganizationDetailsScreenState
                               label: Text(service),
                               backgroundColor:
                                   AppTheme.primaryContainer(context),
-                              labelStyle: const TextStyle(
-                                color: AppTheme.primaryBlue,
+                              labelStyle: TextStyle(
+                                color: AppTheme.onPrimaryContainer(context),
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),

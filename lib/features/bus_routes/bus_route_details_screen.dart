@@ -47,8 +47,8 @@ class BusRouteDetailsScreen extends ConsumerWidget {
                       ),
                       child: Text(
                         route.routeNumber,
-                        style: const TextStyle(
-                          color: AppTheme.primaryBlue,
+                        style: TextStyle(
+                          color: AppTheme.onPrimaryContainer(context),
                           fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),

@@ -196,7 +196,7 @@ class _DistrictTile extends StatelessWidget {
             Icon(
               Icons.location_on_outlined,
               color: isSelected
-                  ? AppTheme.primaryBlue
+                  ? AppTheme.onPrimaryContainer(context)
                   : AppTheme.textSecondary(context),
             ),
             const SizedBox(width: 12),
@@ -205,14 +205,14 @@ class _DistrictTile extends StatelessWidget {
                 district.name,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: isSelected
-                          ? AppTheme.primaryBlue
+                          ? AppTheme.onPrimaryContainer(context)
                           : AppTheme.textPrimary(context),
                     ),
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle_rounded,
-                  color: AppTheme.primaryBlue),
+              Icon(Icons.check_circle_rounded,
+                  color: AppTheme.onPrimaryContainer(context)),
           ],
         ),
       ),

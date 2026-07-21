@@ -37,6 +37,13 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           index,
           initialLocation: index == navigationShell.currentIndex,
         ),
+        // С 5 вкладками и длинными русскими подписями ("Организации",
+        // "Уведомления") подписи под всеми иконками одновременно (поведение
+        // по умолчанию) переносились на второй ряд на обычных экранах — та
+        // же причина "кривизны", что раньше была у кнопок на главном.
+        // Показ подписи только у выбранной вкладки — стандартный приём
+        // Material для панели с 5+ пунктами, а не костыль.
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.home_outlined),

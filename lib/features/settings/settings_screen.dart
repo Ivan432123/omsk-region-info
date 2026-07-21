@@ -121,7 +121,8 @@ class _SettingsTile extends StatelessWidget {
                     color: AppTheme.primaryContainer(context),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: AppTheme.primaryBlue, size: 20),
+                  child: Icon(icon,
+                      color: AppTheme.onPrimaryContainer(context), size: 20),
                 ),
                 const SizedBox(width: 14),
                 Expanded(

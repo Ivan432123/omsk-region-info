@@ -28,8 +28,6 @@ class HomeScreen extends ConsumerWidget {
         ref.watch(importantAnnouncementsProvider(districtId));
     final promotedAdsAsync =
         ref.watch(promotedAnnouncementsProvider(districtId));
-    final unreadAnnouncementsAsync =
-        ref.watch(unreadAnnouncementsCountProvider(districtId));
     final sponsoredAsync = ref.watch(sponsoredContentProvider(districtId));
 
     return Scaffold(
@@ -57,14 +55,8 @@ class HomeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                   child: _QuickNavRow(
                     onVacancies: () => context.push('/vacancies'),
-                    // go, не push — "Объявления" теперь постоянная вкладка
-                    // нижней навигации (см. scaffold_with_nav_bar.dart),
-                    // и должна переключать на неё, а не открывать второй
-                    // экземпляр экрана поверх текущего стека.
-                    onAnnouncements: () => context.go('/announcements'),
                     onEvents: () => context.push('/events'),
                     onBusRoutes: () => context.push('/bus-routes'),
-                    unreadAnnouncements: unreadAnnouncementsAsync.value ?? 0,
                   ),
                 ),
               ),
@@ -633,17 +625,13 @@ class _HeroHeader extends StatelessWidget {
 
 class _QuickNavRow extends StatelessWidget {
   final VoidCallback onVacancies;
-  final VoidCallback onAnnouncements;
   final VoidCallback onEvents;
   final VoidCallback onBusRoutes;
-  final int unreadAnnouncements;
 
   const _QuickNavRow({
     required this.onVacancies,
-    required this.onAnnouncements,
     required this.onEvents,
     required this.onBusRoutes,
-    required this.unreadAnnouncements,
   });
 
   @override
@@ -655,15 +643,6 @@ class _QuickNavRow extends StatelessWidget {
             icon: Icons.work_rounded,
             label: 'Вакансии',
             onTap: onVacancies,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickNavButton(
-            icon: Icons.campaign_rounded,
-            label: 'Объявления',
-            onTap: onAnnouncements,
-            badgeCount: unreadAnnouncements,
           ),
         ),
         const SizedBox(width: 12),
@@ -691,13 +670,11 @@ class _QuickNavButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final int badgeCount;
 
   const _QuickNavButton({
     required this.icon,
     required this.label,
     required this.onTap,
-    this.badgeCount = 0,
   });
 
   @override
@@ -715,19 +692,13 @@ class _QuickNavButton extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Badge(
-              isLabelVisible: badgeCount > 0,
-              label: Text('$badgeCount'),
-              backgroundColor: AppTheme.accentRed,
-              child: Icon(icon, color: AppTheme.primaryBlue, size: 24),
-            ),
+            Icon(icon, color: AppTheme.primaryBlue, size: 24),
             const SizedBox(height: 6),
-            // FittedBox + ширина на всю доступную область: у "Объявления" —
-            // самая длинная подпись из четырёх кнопок ряда, без этого она
-            // переносится на вторую строку и делает свою кнопку выше соседних
-            // (Row выравнивает всех по центру относительно самой высокой),
-            // из-за чего ряд выглядит "кривым". Однострочный текст,
-            // уменьшающийся по ширине, держит все четыре кнопки одной высоты.
+            // FittedBox + ширина на всю доступную область: без этого длинная
+            // подпись переносится на вторую строку и делает свою кнопку выше
+            // соседних (Row выравнивает всех по центру относительно самой
+            // высокой), из-за чего ряд выглядит "кривым". Однострочный
+            // текст, уменьшающийся по ширине, держит все кнопки одной высоты.
             SizedBox(
               width: double.infinity,
               child: FittedBox(

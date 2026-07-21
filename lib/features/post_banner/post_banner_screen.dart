@@ -419,7 +419,7 @@ class _DurationOption extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
                 color: isSelected
-                    ? AppTheme.primaryBlue
+                    ? AppTheme.onPrimaryContainer(context)
                     : AppTheme.textPrimary(context),
               ),
             ),
@@ -429,7 +429,7 @@ class _DurationOption extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 color: isSelected
-                    ? AppTheme.primaryBlue
+                    ? AppTheme.onPrimaryContainer(context)
                     : AppTheme.textSecondary(context),
               ),
             ),

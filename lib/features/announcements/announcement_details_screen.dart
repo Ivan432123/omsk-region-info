@@ -135,17 +135,17 @@ class AnnouncementDetailsScreen extends ConsumerWidget {
                                 Text(
                                   PhoneFormatter.format(
                                       announcement.contactPhone!),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
-                                    color: AppTheme.primaryBlue,
+                                    color: AppTheme.onPrimaryContainer(context),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const Icon(Icons.chevron_right_rounded,
-                              color: AppTheme.primaryBlue),
+                          Icon(Icons.chevron_right_rounded,
+                              color: AppTheme.onPrimaryContainer(context)),
                         ],
                       ),
                     ),

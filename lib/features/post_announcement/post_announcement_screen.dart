@@ -177,10 +177,11 @@ class _PostAnnouncementScreenState
                 Expanded(
                   child: GestureDetector(
                     onTap: () => setState(() => _wantsPush = !_wantsPush),
-                    child: const Text(
+                    child: Text(
                       'Хочу, чтобы объявление увидели все в районе, у кого установлено приложение ($_pushPromotionPrice ₽)',
                       style: TextStyle(
-                          fontSize: 14, color: AppTheme.primaryBlueDark),
+                          fontSize: 14,
+                          color: AppTheme.onPrimaryContainer(context)),
                     ),
                   ),
                 ),

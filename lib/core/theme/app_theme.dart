@@ -73,6 +73,13 @@ class AppTheme {
   static Color primaryContainer(BuildContext context) =>
       Theme.of(context).colorScheme.primaryContainer;
 
+  /// Текст/иконка поверх primaryContainer(context) — гарантированно
+  /// контрастны в обеих темах. Использовать вместо фиксированного цвета
+  /// вроде primaryBlueDark: тот в тёмной теме оказывается тёмным текстом
+  /// на тёмном фоне (primaryContainer в тёмной теме сам становится тёмным).
+  static Color onPrimaryContainer(BuildContext context) =>
+      Theme.of(context).colorScheme.onPrimaryContainer;
+
   /// "Блик" shimmer-скелетона — заметно светлее фона в светлой теме, но
   /// должен оставаться тёмным (лишь немного светлее базового) в тёмной,
   /// иначе яркая полоса на почти чёрном фоне выглядит как всполох, а не
@@ -229,18 +236,29 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: background,
         indicatorColor: primaryContainer,
+        // Иконка/подпись выбранной вкладки лежат поверх заливки индикатора
+        // (primaryContainer), а не поверх фона панели — им нужен цвет,
+        // контрастный ИМЕННО с primaryContainer (onPrimaryContainer), а не
+        // фиксированный primaryBlue: в тёмной теме primaryContainer сам
+        // становится тёмно-синим, и primaryBlue на нём почти не виден —
+        // ровно то же самое, что было с primaryBlueDark на чекбоксе
+        // объявления.
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? primaryBlue : textSecondaryColor,
+            color: selected
+                ? base.colorScheme.onPrimaryContainer
+                : textSecondaryColor,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-              color: selected ? primaryBlue : textSecondaryColor);
+              color: selected
+                  ? base.colorScheme.onPrimaryContainer
+                  : textSecondaryColor);
         }),
       ),
       dividerTheme: DividerThemeData(color: dividerColor, thickness: 1),

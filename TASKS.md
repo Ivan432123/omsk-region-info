@@ -1,5 +1,12 @@
 # Текущие задачи
 
+## Партия 3.9 — Загрузка фото рекламодателем + баннеры на все районы
+- [x] PostBannerScreen: вместо только текстового поля "ссылка на изображение" — кнопка "Загрузить фото с телефона" (image_picker, галерея) с загрузкой в Cloudinary (тот же аккаунт/пресет, что уже использует админка) и превью результата. Ручной ввод ссылки оставлен как запасной вариант под тем же полем — после загрузки поле просто заполняется автоматически
+- [x] ImageUploadService (lib/services/image_upload_service.dart) — общий клиент для загрузки в Cloudinary, используется из приложения (раньше загрузка была только в веб-панели)
+- [x] Новые зависимости: image_picker, http
+- [x] sponsored_content: зарезервированное значение district: 'all' — баннер показывается в ленте каждого района. SponsoredContentRepository.getActiveSponsoredContent теперь запрашивает district in [текущий, 'all'] ('in' переиспользует тот же композитный индекс district+activeUntil, новый деплой индексов не потребовался)
+- [x] Админка: чекбокс "Показывать во всех районах" в форме "Добавить рекламный баннер" (только у уже существующей записи auth != null — отдельной роли под это не заводили, см. "Осознанно не сделано"); loadSponsored() тоже запрашивает district in [текущий, 'all'] и помечает такие баннеры "🌍 (все районы)" в списке
+
 ## Партия 3.8 — Самостоятельное размещение баннеров рекламодателями
 - [x] Тарифы по сроку размещения (BannerPricing, lib/core/constants/payment_info.dart): 7 дней — 500₽, 14 дней — 900₽, 30 дней — 1600₽. Реквизиты для оплаты (PaymentInfo) вынесены туда же и переиспользованы из post_announcement_screen.dart (раньше были продублированы как приватные константы)
 - [x] Коллекция banner_requests (по аналогии с ad_requests): title, imageUrl, targetUrl, phone, durationDays, price, status, district, createdAt — модель/repository/provider (BannerRequestModel/BannerRequestRepository/bannerRequestRepositoryProvider)

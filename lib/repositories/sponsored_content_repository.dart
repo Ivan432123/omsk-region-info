@@ -11,6 +11,12 @@ import '../services/firestore_service.dart';
 class SponsoredContentRepository {
   static const String _collection = 'sponsored_content';
 
+  /// Зарезервированное значение поля district — баннер с ним показывается в
+  /// ленте каждого района (см. партия 3.8, TASKS.md), а не только в одном.
+  /// Публикуется супер-админом через админку (чекбокс "Показывать во всех
+  /// районах").
+  static const String allDistricts = 'all';
+
   final FirestoreService _firestoreService;
 
   SponsoredContentRepository({FirestoreService? firestoreService})
@@ -20,9 +26,11 @@ class SponsoredContentRepository {
     String districtId, {
     int limit = 10,
   }) async {
+    // 'in' по district работает с тем же композитным индексом, что и обычное
+    // равенство (district ASC, activeUntil ASC) — отдельный индекс не нужен.
     final snapshot = await _firestoreService
         .collection(_collection)
-        .where('district', isEqualTo: districtId)
+        .where('district', whereIn: [districtId, allDistricts])
         .where('activeUntil', isGreaterThan: Timestamp.now())
         .orderBy('activeUntil')
         .limit(limit)

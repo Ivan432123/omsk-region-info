@@ -1,12 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/constants/payment_info.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/input_sanitizer.dart';
 import '../../providers/banner_request_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
 
 /// Экран заявки рекламодателя на размещение баннера в партнёрской ленте.
@@ -27,6 +30,7 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
   final _phoneController = TextEditingController();
   int _selectedDuration = 7;
   bool _isSubmitting = false;
+  bool _isUploadingImage = false;
   String? _submittedRequestId;
 
   @override
@@ -42,6 +46,32 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppTheme.accentRed),
     );
+  }
+
+  /// Выбирает фото из галереи и загружает его в Cloudinary (тот же
+  /// облачный аккаунт, что и у веб-панели), подставляя результат в поле
+  /// ссылки на изображение — рекламодателю не нужно самому где-то
+  /// размещать картинку и искать её URL.
+  Future<void> _pickAndUploadImage() async {
+    final XFile? file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1600,
+    );
+    if (file == null) return;
+
+    setState(() => _isUploadingImage = true);
+    try {
+      final url = await ImageUploadService().uploadImage(file.path);
+      if (mounted) setState(() => _imageUrlController.text = url);
+    } catch (e) {
+      if (mounted) {
+        _showError(
+            'Не удалось загрузить фото — проверьте подключение к интернету');
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -158,13 +188,56 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
                 const InputDecoration(hintText: 'Например: Скидки на шины 20%'),
           ),
           const SizedBox(height: 20),
-          Text('Ссылка на изображение баннера',
+          Text('Изображение баннера',
               style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          if (_imageUrlController.text.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: CachedNetworkImage(
+                    imageUrl: _imageUrlController.text,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) =>
+                        Container(color: AppTheme.surfaceGrey),
+                    errorWidget: (_, __, ___) => Container(
+                      color: AppTheme.surfaceGrey,
+                      child: const Icon(Icons.image_not_supported_outlined,
+                          color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _isUploadingImage ? null : _pickAndUploadImage,
+              icon: _isUploadingImage
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.photo_library_outlined, size: 18),
+              label: Text(_isUploadingImage
+                  ? 'Загрузка...'
+                  : (_imageUrlController.text.isEmpty
+                      ? 'Загрузить фото с телефона'
+                      : 'Заменить фото')),
+            ),
+          ),
           const SizedBox(height: 8),
           TextField(
             controller: _imageUrlController,
             keyboardType: TextInputType.url,
-            decoration: const InputDecoration(hintText: 'https://...'),
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              hintText: 'или вставьте ссылку на готовое изображение',
+            ),
           ),
           const SizedBox(height: 20),
           Text('Ссылка перехода (куда ведёт баннер)',

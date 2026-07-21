@@ -30,6 +30,8 @@ dependencies:
 
   # Images
   cached_network_image: ^3.3.1
+  image_picker: ^1.1.2
+  http: ^1.2.2
 
   # Formatting (dates dd.MM.yyyy, phone +7 (XXX) XXX-XX-XX)
   intl: ^0.20.2

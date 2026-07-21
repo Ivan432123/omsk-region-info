@@ -20,12 +20,14 @@ import '../theme/app_theme.dart';
 /// Панель нарисована вручную, а не через встроенный NavigationBar: у
 /// последнего подпись жёстко ограничена шириной 1/N бара (N — число
 /// вкладок), и длинные русские слова ("Объявления", "Организации",
-/// "Уведомления") переносились на вторую строку независимо от
-/// labelBehavior — тот вариант чинил только неактивные вкладки, а не саму
-/// выбранную. NavigationDestination.label — это String, обернуть его в
-/// FittedBox через публичный API нельзя. Здесь используется тот же приём,
-/// что уже проверен на кнопках главного экрана (_QuickNavButton) —
-/// однострочный текст, уменьшающийся по ширине вместо переноса.
+/// "Уведомления") переносились на вторую строку — ни labelBehavior, ни
+/// сокрытие подписей у неактивных вкладок это не решали до конца.
+/// NavigationDestination.label — это String, обернуть его в FittedBox
+/// через публичный API нельзя. Подписи здесь показаны всегда (у всех
+/// вкладок, не только у активной — так понятнее, куда ведёт кнопка, без
+/// необходимости сначала на неё нажать), но однострочны и уменьшаются по
+/// ширине вместо переноса — тот же приём, что уже проверен на кнопках
+/// главного экрана (_QuickNavButton).
 class ScaffoldWithNavBar extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -55,7 +57,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         ),
         child: SafeArea(
           child: SizedBox(
-            height: 64,
+            height: 68,
             child: Row(
               children: [
                 Expanded(
@@ -133,63 +135,57 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconWidget = Badge(
-      isLabelVisible: badgeCount > 0,
-      label: Text('$badgeCount'),
-      backgroundColor: AppTheme.accentRed,
-      child: Icon(
-        isSelected ? selectedIcon : icon,
-        color: isSelected
-            ? AppTheme.onPrimaryContainer(context)
-            : AppTheme.textSecondary(context),
-        size: 24,
-      ),
-    );
+    final color = isSelected
+        ? AppTheme.onPrimaryContainer(context)
+        : AppTheme.textSecondary(context);
 
     return InkWell(
       onTap: onTap,
-      child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          // Верхняя граница только для широких экранов (планшеты) — на
-          // обычном телефоне реальную ширину всё равно диктует Expanded
-          // (1/5 панели), это лишь не даёт таблетке растянуть пилюлю
-          // на всю выделенную колонку.
-          constraints: const BoxConstraints(maxWidth: 160),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppTheme.primaryContainer(context)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              iconWidget,
-              // Подпись показывается только у выбранной вкладки (как и
-              // раньше) — так у соседних остаётся простор, а сама подпись
-              // на всякий случай защищена от переноса FittedBox'ом, а не
-              // только достаточной шириной.
-              if (isSelected) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.onPrimaryContainer(context),
-                      ),
-                    ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.primaryContainer(context)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Badge(
+                isLabelVisible: badgeCount > 0,
+                label: Text('$badgeCount'),
+                backgroundColor: AppTheme.accentRed,
+                child: Icon(isSelected ? selectedIcon : icon,
+                    color: color, size: 22),
+              ),
+            ),
+            const SizedBox(height: 2),
+            // Подпись видна у ВСЕХ вкладок постоянно (не только у
+            // выбранной) — так пользователь всегда видит названия разделов,
+            // не нажимая на них. FittedBox + maxLines:1 гарантируют, что
+            // длинные слова ("Объявления", "Организации", "Уведомления")
+            // уменьшаются по ширине вместо переноса на вторую строку —
+            // тот же приём, что уже проверен на кнопках главного экрана.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: color,
                   ),
                 ),
-              ],
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -6,12 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/announcement_model.dart';
 import '../../models/sponsored_content_model.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../providers/sponsored_content_provider.dart';
-import '../../widgets/announcements/announcement_card.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/news/news_card.dart';
 
@@ -88,44 +88,7 @@ class HomeScreen extends ConsumerWidget {
                     return const SliverToBoxAdapter(child: SizedBox.shrink());
                   }
                   return SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.local_fire_department_rounded,
-                                  color: Color(0xFFE67E22), size: 20),
-                              SizedBox(width: 6),
-                              Text('Объявления жителей',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 17)),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ...promotedAds.map(
-                            (ad) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                      color: const Color(0xFFE67E22),
-                                      width: 1.5),
-                                ),
-                                child: AnnouncementCard(
-                                  announcement: ad,
-                                  onTap: () =>
-                                      context.push('/announcements/${ad.id}'),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: _PromotedAnnouncementsCarousel(items: promotedAds),
                   );
                 },
               ),
@@ -270,20 +233,20 @@ class _SponsoredCarousel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            height: 120,
+            height: 76,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final item = items[index];
                 return ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   child: InkWell(
                     onTap: () => _open(item.id, item.targetUrl),
                     child: SizedBox(
-                      width: 260,
+                      width: 160,
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
@@ -298,7 +261,7 @@ class _SponsoredCarousel extends StatelessWidget {
                             right: 0,
                             bottom: 0,
                             child: Container(
-                              padding: const EdgeInsets.fromLTRB(10, 20, 10, 8),
+                              padding: const EdgeInsets.fromLTRB(8, 14, 8, 6),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
@@ -316,7 +279,7 @@ class _SponsoredCarousel extends StatelessWidget {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 13,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),
@@ -330,6 +293,166 @@ class _SponsoredCarousel extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Горизонтальная карусель платных объявлений жителей (промо-блок,
+/// promotedUntil ещё не истёк) — листается влево/вправо так же, как лента
+/// рекламных баннеров выше, вместо прежнего вертикального списка
+/// полноразмерных карточек. Компактнее и явно перекликается визуально с
+/// баннерами, только с оранжевым акцентом "🔥" вместо подписи "Реклама" —
+/// это контент от жителей, а не от рекламодателей.
+class _PromotedAnnouncementsCarousel extends StatelessWidget {
+  final List<AnnouncementModel> items;
+
+  const _PromotedAnnouncementsCarousel({required this.items});
+
+  static const Color _accent = Color(0xFFE67E22);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(Icons.local_fire_department_rounded,
+                    color: _accent, size: 16),
+                SizedBox(width: 4),
+                Text(
+                  'Объявления жителей',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _accent,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 130,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final ad = items[index];
+                return _PromotedAnnouncementCard(
+                  announcement: ad,
+                  onTap: () => context.push('/announcements/${ad.id}'),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PromotedAnnouncementCard extends StatelessWidget {
+  final AnnouncementModel announcement;
+  final VoidCallback onTap;
+
+  const _PromotedAnnouncementCard(
+      {required this.announcement, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasImage = announcement.images.isNotEmpty;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: 170,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(
+                color: _PromotedAnnouncementsCarousel._accent, width: 1.3),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: hasImage
+              ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: announcement.images.first,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          Container(color: AppTheme.surfaceGrey),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(8, 18, 8, 6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.7),
+                            ],
+                          ),
+                        ),
+                        child: Text(
+                          announcement.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        announcement.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: Text(
+                          announcement.description,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
       ),
     );
   }

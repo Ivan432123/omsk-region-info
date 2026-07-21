@@ -1,7 +1,7 @@
 name: omsk_region_info
 description: "ОМСКРЕГИОН ИНФО — информационный сервис для жителей районов Омской области"
 publish_to: 'none'
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

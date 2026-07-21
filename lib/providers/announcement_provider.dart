@@ -102,9 +102,9 @@ final announcementListProvider = StateNotifierProvider.family<
       ref.watch(announcementRepositoryProvider), districtId);
 });
 
-final announcementDetailsProvider =
-    FutureProvider.family<AnnouncementModel?, String>(
-        (ref, announcementId) async {
+/// autoDispose: см. комментарий у newsDetailsProvider — та же причина.
+final announcementDetailsProvider = FutureProvider.autoDispose
+    .family<AnnouncementModel?, String>((ref, announcementId) async {
   final repo = ref.watch(announcementRepositoryProvider);
   return repo.getAnnouncementById(announcementId);
 });

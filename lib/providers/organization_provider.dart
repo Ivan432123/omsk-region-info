@@ -101,8 +101,9 @@ final organizationListProvider = StateNotifierProvider.family<
       ref.watch(organizationRepositoryProvider), districtId);
 });
 
-final organizationDetailsProvider =
-    FutureProvider.family<OrganizationModel?, String>((ref, id) async {
+/// autoDispose: см. комментарий у newsDetailsProvider — та же причина.
+final organizationDetailsProvider = FutureProvider.autoDispose
+    .family<OrganizationModel?, String>((ref, id) async {
   final repo = ref.watch(organizationRepositoryProvider);
   return repo.getOrganizationById(id);
 });

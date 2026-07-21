@@ -691,6 +691,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
             await db.collection('ad_requests').doc(id).update({ status: 'approved' });
             showStatus('Объявление опубликовано');
             loadAdRequests();
+            loadAnnouncements();
         }
 
         async function rejectAdRequest(id) {

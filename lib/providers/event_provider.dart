@@ -92,14 +92,16 @@ class EventListNotifier extends StateNotifier<EventListState> {
   Future<void> refresh() => loadFirstPage();
 }
 
-final eventListProvider =
-    StateNotifierProvider.family<EventListNotifier, EventListState, String>(
-        (ref, districtId) {
+/// autoDispose: афиша — отдельный push-маршрут (не вкладка нижней
+/// навигации), см. комментарий у vacancyListProvider — та же причина.
+final eventListProvider = StateNotifierProvider.autoDispose
+    .family<EventListNotifier, EventListState, String>((ref, districtId) {
   return EventListNotifier(ref.watch(eventRepositoryProvider), districtId);
 });
 
-final eventDetailsProvider =
-    FutureProvider.family<EventModel?, String>((ref, eventId) async {
+/// autoDispose: см. комментарий у newsDetailsProvider — та же причина.
+final eventDetailsProvider = FutureProvider.autoDispose
+    .family<EventModel?, String>((ref, eventId) async {
   final repo = ref.watch(eventRepositoryProvider);
   return repo.getEventById(eventId);
 });

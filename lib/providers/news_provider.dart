@@ -134,8 +134,12 @@ final importantAnnouncementsProvider =
   return repo.getImportantAnnouncements(districtId);
 });
 
+/// autoDispose: экран деталей открывается push'ем заново при каждом
+/// переходе, свежие данные должны подгружаться каждый раз — без этого
+/// правки, внесённые администратором после первого просмотра, не были бы
+/// видны, пока приложение не перезапустят.
 final newsDetailsProvider =
-    FutureProvider.family<NewsModel?, String>((ref, newsId) async {
+    FutureProvider.autoDispose.family<NewsModel?, String>((ref, newsId) async {
   final repo = ref.watch(newsRepositoryProvider);
   return repo.getNewsById(newsId);
 });

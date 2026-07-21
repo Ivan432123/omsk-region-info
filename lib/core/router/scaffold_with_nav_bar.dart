@@ -3,13 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/news_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/organization_provider.dart';
+import '../../providers/sponsored_content_provider.dart';
 import '../theme/app_theme.dart';
 
 /// Оболочка с нижней навигацией (5 вкладок). Каждая вкладка хранит свой
 /// собственный стек экранов (StatefulShellRoute.indexedStack), поэтому
 /// при переключении вкладок состояние списков (скролл, загруженные
 /// страницы) не сбрасывается.
+///
+/// Обратная сторона того же: провайдеры вкладок (Главная/Новости/
+/// Объявления/Организации) не autoDispose и живут в контейнере вечно —
+/// однажды загруженный список так и остаётся закэширован, даже если
+/// администратор в это время опубликовал что-то новое. IndexedStack не
+/// пересоздаёт скрытые вкладки при переключении, поэтому "просто зайти на
+/// вкладку заново" не помогает само по себе. Здесь это решено вручную: при
+/// переходе НА вкладку (а не при повторном тапе по уже активной)
+/// соответствующие провайдеры инвалидируются в onTap ниже, и вкладка
+/// подгружает свежие данные при каждом заходе — тем же способом, что и
+/// pull-to-refresh, только без необходимости тянуть список руками.
 ///
 /// "Объявления" — единственный раздел, до которого раньше можно было
 /// добраться только с главного экрана (кнопка в _QuickNavRow), а из любого
@@ -43,10 +57,26 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         ref.watch(unreadAnnouncementsCountProvider(districtId)).value ?? 0;
     final currentIndex = navigationShell.currentIndex;
 
-    void onTap(int index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == currentIndex,
-        );
+    void onTap(int index) {
+      if (index != currentIndex) {
+        switch (index) {
+          case 0:
+            ref.invalidate(newsListProvider);
+            ref.invalidate(importantAnnouncementsProvider);
+            ref.invalidate(promotedAnnouncementsProvider);
+            ref.invalidate(unreadAnnouncementsCountProvider);
+            ref.invalidate(sponsoredContentProvider);
+          case 1:
+            ref.invalidate(newsListByCategoryProvider);
+          case 2:
+            ref.invalidate(announcementListProvider);
+            ref.invalidate(unreadAnnouncementsCountProvider);
+          case 3:
+            ref.invalidate(organizationListProvider);
+        }
+      }
+      navigationShell.goBranch(index, initialLocation: index == currentIndex);
+    }
 
     return Scaffold(
       body: navigationShell,

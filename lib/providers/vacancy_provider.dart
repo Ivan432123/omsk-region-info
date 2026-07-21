@@ -93,14 +93,19 @@ class VacancyListNotifier extends StateNotifier<VacancyListState> {
   Future<void> refresh() => loadFirstPage();
 }
 
-final vacancyListProvider =
-    StateNotifierProvider.family<VacancyListNotifier, VacancyListState, String>(
-        (ref, districtId) {
+/// autoDispose: экран вакансий — отдельный push-маршрут (не вкладка нижней
+/// навигации), поэтому при каждом заходе в раздел справедливо ожидать
+/// свежий список — без этого опубликованная вакансия не появлялась бы,
+/// пока приложение не перезапустят (провайдер живёт в контейнере вечно и
+/// просто отдаёт однажды загруженные данные снова).
+final vacancyListProvider = StateNotifierProvider.autoDispose
+    .family<VacancyListNotifier, VacancyListState, String>((ref, districtId) {
   return VacancyListNotifier(ref.watch(vacancyRepositoryProvider), districtId);
 });
 
-final vacancyDetailsProvider =
-    FutureProvider.family<VacancyModel?, String>((ref, vacancyId) async {
+/// autoDispose: см. комментарий у newsDetailsProvider — та же причина.
+final vacancyDetailsProvider = FutureProvider.autoDispose
+    .family<VacancyModel?, String>((ref, vacancyId) async {
   final repo = ref.watch(vacancyRepositoryProvider);
   return repo.getVacancyById(vacancyId);
 });

@@ -33,7 +33,11 @@ workflows:
           flutter pub get
       - name: Собрать APK (debug)
         script: |
-          flutter build apk --debug
+          # PROJECT_BUILD_NUMBER — счётчик сборок Codemagic, растёт сам на
+          # каждой сборке. Переопределяет только build number (+N после
+          # версии из pubspec.yaml) — саму версию (1.2.0) по-прежнему нужно
+          # поднимать вручную в pubspec.yaml при заметных релизах.
+          flutter build apk --debug --build-number=$PROJECT_BUILD_NUMBER
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
 # push-уведомления настроены 1784444603

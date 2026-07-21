@@ -74,15 +74,6 @@ class AppRouter {
             VacancyDetailsScreen(vacancyId: state.pathParameters['id']!),
       ),
       GoRoute(
-        path: '/announcements',
-        builder: (context, state) => const AnnouncementsListScreen(),
-      ),
-      GoRoute(
-        path: '/announcements/:id',
-        builder: (context, state) => AnnouncementDetailsScreen(
-            announcementId: state.pathParameters['id']!),
-      ),
-      GoRoute(
         path: '/events',
         builder: (context, state) => const EventsListScreen(),
       ),
@@ -126,6 +117,22 @@ class AppRouter {
                     path: ':id',
                     builder: (context, state) =>
                         NewsDetailsScreen(newsId: state.pathParameters['id']!),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/announcements',
+                builder: (context, state) => const AnnouncementsListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) => AnnouncementDetailsScreen(
+                      announcementId: state.pathParameters['id']!,
+                    ),
                   ),
                 ],
               ),

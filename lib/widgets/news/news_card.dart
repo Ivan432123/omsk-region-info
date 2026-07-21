@@ -17,10 +17,45 @@ class NewsCard extends StatelessWidget {
   final NewsModel news;
   final VoidCallback onTap;
 
-  const NewsCard({super.key, required this.news, required this.onTap});
+  /// Тег для Hero-перелёта картинки в детали новости. Опциональный и по
+  /// умолчанию выключен (null = обычный Container без Hero): NewsCard
+  /// переиспользуется в нескольких блоках одного экрана одновременно
+  /// (например, на главном одна и та же новость может попасть и в "Важные
+  /// объявления", и в "Последние новости") — если бы каждая карточка сама
+  /// строила тег из news.id, при таком совпадении на экране оказались бы
+  /// два Hero с одинаковым тегом и приложение упало бы ровно так же, как
+  /// уже однажды случилось с галереей (см. TASKS.md, "Известные баги").
+  /// Поэтому решение "включать ли Hero" остаётся за вызывающим экраном,
+  /// который точно знает, что дублей на этом экране быть не может.
+  final String? heroTag;
+
+  const NewsCard({
+    super.key,
+    required this.news,
+    required this.onTap,
+    this.heroTag,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final image = news.imageUrl == null
+        ? null
+        : SizedBox(
+            width: 96,
+            height: 108,
+            child: CachedNetworkImage(
+              imageUrl: news.imageUrl!,
+              fit: BoxFit.cover,
+              placeholder: (_, __) =>
+                  Container(color: AppTheme.surfaceVariant(context)),
+              errorWidget: (_, __, ___) => Container(
+                color: AppTheme.surfaceVariant(context),
+                child: Icon(Icons.image_not_supported_outlined,
+                    color: AppTheme.textSecondary(context)),
+              ),
+            ),
+          );
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -35,22 +70,8 @@ class NewsCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (news.imageUrl != null)
-              SizedBox(
-                width: 96,
-                height: 108,
-                child: CachedNetworkImage(
-                  imageUrl: news.imageUrl!,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) =>
-                      Container(color: AppTheme.surfaceVariant(context)),
-                  errorWidget: (_, __, ___) => Container(
-                    color: AppTheme.surfaceVariant(context),
-                    child: Icon(Icons.image_not_supported_outlined,
-                        color: AppTheme.textSecondary(context)),
-                  ),
-                ),
-              ),
+            if (image != null)
+              heroTag != null ? Hero(tag: heroTag!, child: image) : image,
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12),

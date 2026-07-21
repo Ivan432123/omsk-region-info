@@ -116,18 +116,21 @@ class _OrganizationDetailsScreenState
               children: [
                 Row(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: SizedBox(
-                        width: 72,
-                        height: 72,
-                        child: org.logoUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: org.logoUrl!, fit: BoxFit.cover)
-                            : Container(
-                                color: background,
-                                child: Icon(icon, color: color, size: 32),
-                              ),
+                    Hero(
+                      tag: 'org_${org.id}',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: SizedBox(
+                          width: 72,
+                          height: 72,
+                          child: org.logoUrl != null
+                              ? CachedNetworkImage(
+                                  imageUrl: org.logoUrl!, fit: BoxFit.cover)
+                              : Container(
+                                  color: background,
+                                  child: Icon(icon, color: color, size: 32),
+                                ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 14),

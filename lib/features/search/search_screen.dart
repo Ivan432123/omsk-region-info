@@ -99,6 +99,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             results.news
                                 .map((n) => NewsCard(
                                       news: n,
+                                      heroTag: 'news_${n.id}',
                                       onTap: () =>
                                           context.push('/news/${n.id}'),
                                     ))

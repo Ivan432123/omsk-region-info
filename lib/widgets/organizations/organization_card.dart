@@ -32,26 +32,29 @@ class OrganizationCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: SizedBox(
-                width: 56,
-                height: 56,
-                child: organization.logoUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: organization.logoUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: AppTheme.surfaceVariant(context)),
-                        errorWidget: (_, __, ___) => Container(
+            Hero(
+              tag: 'org_${organization.id}',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: organization.logoUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: organization.logoUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                              color: AppTheme.surfaceVariant(context)),
+                          errorWidget: (_, __, ___) => Container(
+                            color: background,
+                            child: Icon(icon, color: color),
+                          ),
+                        )
+                      : Container(
                           color: background,
                           child: Icon(icon, color: color),
                         ),
-                      )
-                    : Container(
-                        color: background,
-                        child: Icon(icon, color: color),
-                      ),
+                ),
               ),
             ),
             const SizedBox(width: 12),

@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../providers/notification_provider.dart';
 
-/// Оболочка с нижней навигацией (4 вкладки). Каждая вкладка хранит свой
+/// Оболочка с нижней навигацией (5 вкладок). Каждая вкладка хранит свой
 /// собственный стек экранов (StatefulShellRoute.indexedStack), поэтому
 /// при переключении вкладок состояние списков (скролл, загруженные
 /// страницы) не сбрасывается.
+///
+/// "Объявления" — единственный раздел, до которого раньше можно было
+/// добраться только с главного экрана (кнопка в _QuickNavRow), а из любого
+/// другого места — только вернувшись на Главную. Он самый частый повод
+/// открыть приложение повторно (у него один есть счётчик новых на
+/// главном), поэтому вынесен в постоянную навигацию вместо этого.
 class ScaffoldWithNavBar extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -17,7 +24,10 @@ class ScaffoldWithNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final district = ref.watch(selectedDistrictProvider);
     final districtId = district.id ?? '';
-    final unreadCount = ref.watch(unreadNotificationsCountProvider(districtId));
+    final unreadNotifications =
+        ref.watch(unreadNotificationsCountProvider(districtId));
+    final unreadAnnouncements =
+        ref.watch(unreadAnnouncementsCountProvider(districtId)).value ?? 0;
 
     return Scaffold(
       body: navigationShell,
@@ -38,6 +48,19 @@ class ScaffoldWithNavBar extends ConsumerWidget {
             selectedIcon: Icon(Icons.article_rounded),
             label: 'Новости',
           ),
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: unreadAnnouncements > 0,
+              label: Text('$unreadAnnouncements'),
+              child: const Icon(Icons.campaign_outlined),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: unreadAnnouncements > 0,
+              label: Text('$unreadAnnouncements'),
+              child: const Icon(Icons.campaign_rounded),
+            ),
+            label: 'Объявления',
+          ),
           const NavigationDestination(
             icon: Icon(Icons.apartment_outlined),
             selectedIcon: Icon(Icons.apartment_rounded),
@@ -45,13 +68,13 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           ),
           NavigationDestination(
             icon: Badge(
-              isLabelVisible: unreadCount > 0,
-              label: Text('$unreadCount'),
+              isLabelVisible: unreadNotifications > 0,
+              label: Text('$unreadNotifications'),
               child: const Icon(Icons.notifications_outlined),
             ),
             selectedIcon: Badge(
-              isLabelVisible: unreadCount > 0,
-              label: Text('$unreadCount'),
+              isLabelVisible: unreadNotifications > 0,
+              label: Text('$unreadNotifications'),
               child: const Icon(Icons.notifications_rounded),
             ),
             label: 'Уведомления',

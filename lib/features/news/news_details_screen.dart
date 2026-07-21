@@ -107,7 +107,13 @@ class NewsDetailsScreen extends ConsumerWidget {
                     onTap: () =>
                         FullscreenGalleryViewer.open(context, [news.imageUrl!]),
                     child: Hero(
-                      tag: FullscreenGalleryViewer.heroTag(news.imageUrl!, 0),
+                      // news_${id}, а не FullscreenGalleryViewer.heroTag —
+                      // этот Hero сначала обслуживает перелёт картинки из
+                      // карточки списка (см. NewsCard.heroTag), у новости
+                      // всегда ровно одно фото, поэтому отдельная анимация
+                      // "вырастания" при открытии полноэкранной галереи
+                      // здесь не так важна, как анимация список → детали.
+                      tag: 'news_${news.id}',
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(18),
                         child: AspectRatio(

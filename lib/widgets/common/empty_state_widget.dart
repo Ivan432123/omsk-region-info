@@ -75,15 +75,7 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryContainer(context),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 44, color: AppTheme.primaryBlue),
-            ),
+            _EmptyStateIllustration(icon: icon),
             const SizedBox(height: 20),
             Text(
               title,
@@ -107,6 +99,73 @@ class EmptyStateWidget extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Декоративная композиция вместо одинокой иконки в кружке — большой мягкий
+/// круг фонового цвета плюс два маленьких цветных "блика" вразлёт и сама
+/// иконка в приподнятом (с тенью) круге поверх. Простой приём, знакомый по
+/// пустым состояниям многих приложений, но заметно живее плоской заглушки —
+/// и не требует внешних SVG/PNG-иллюстраций, которых в проекте пока нет
+/// (assets/illustrations/ заведена, но пуста).
+class _EmptyStateIllustration extends StatelessWidget {
+  final IconData icon;
+
+  const _EmptyStateIllustration({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 140,
+      height: 140,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryContainer(context),
+              shape: BoxShape.circle,
+            ),
+          ),
+          Positioned(
+            top: 6,
+            right: 10,
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: AppTheme.warning.withValues(alpha: 0.55),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 12,
+            left: 2,
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: AppTheme.success.withValues(alpha: 0.55),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              color: AppTheme.surface(context),
+              shape: BoxShape.circle,
+              boxShadow: AppTheme.cardShadow,
+            ),
+            child: Icon(icon, size: 36, color: AppTheme.primaryBlue),
+          ),
+        ],
       ),
     );
   }

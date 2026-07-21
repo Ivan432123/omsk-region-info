@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/announcement_model.dart';
@@ -56,7 +57,11 @@ class HomeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                   child: _QuickNavRow(
                     onVacancies: () => context.push('/vacancies'),
-                    onAnnouncements: () => context.push('/announcements'),
+                    // go, не push — "Объявления" теперь постоянная вкладка
+                    // нижней навигации (см. scaffold_with_nav_bar.dart),
+                    // и должна переключать на неё, а не открывать второй
+                    // экземпляр экрана поверх текущего стека.
+                    onAnnouncements: () => context.go('/announcements'),
                     onEvents: () => context.push('/events'),
                     onBusRoutes: () => context.push('/bus-routes'),
                     unreadAnnouncements: unreadAnnouncementsAsync.value ?? 0,
@@ -65,7 +70,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               sponsoredAsync.when(
                 loading: () =>
-                    const SliverToBoxAdapter(child: SizedBox.shrink()),
+                    const SliverToBoxAdapter(child: _HorizontalStripSkeleton()),
                 error: (_, __) =>
                     const SliverToBoxAdapter(child: SizedBox.shrink()),
                 data: (sponsored) {
@@ -81,7 +86,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               promotedAdsAsync.when(
                 loading: () =>
-                    const SliverToBoxAdapter(child: SizedBox.shrink()),
+                    const SliverToBoxAdapter(child: _HorizontalStripSkeleton()),
                 error: (_, __) =>
                     const SliverToBoxAdapter(child: SizedBox.shrink()),
                 data: (promotedAds) {
@@ -178,6 +183,7 @@ class HomeScreen extends ConsumerWidget {
                         padding: const EdgeInsets.only(bottom: 10),
                         child: NewsCard(
                           news: newsState.items[index],
+                          heroTag: 'news_${newsState.items[index].id}',
                           onTap: () => context
                               .push('/news/${newsState.items[index].id}'),
                         ),
@@ -475,6 +481,41 @@ class _PromotedAnnouncementCard extends StatelessWidget {
                     ],
                   ),
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Заглушка на время загрузки горизонтальной ленты (баннеры или объявления
+/// жителей) — той же формы и высоты, что и сама лента, чтобы контент не
+/// "впрыгивал" рывком, сдвигая всё ниже, когда данные приходят.
+class _HorizontalStripSkeleton extends StatelessWidget {
+  const _HorizontalStripSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Shimmer.fromColors(
+        baseColor: AppTheme.surfaceVariant(context),
+        highlightColor: AppTheme.shimmerHighlight(context),
+        child: SizedBox(
+          height: 76,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 3,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) => Container(
+              width: 160,
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceVariant(context),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
         ),
       ),
     );

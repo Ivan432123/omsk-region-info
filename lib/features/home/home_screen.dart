@@ -362,7 +362,7 @@ class _PromotedAnnouncementsCarousel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            height: 130,
+            height: 76,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -395,16 +395,16 @@ class _PromotedAnnouncementCard extends StatelessWidget {
     final hasImage = announcement.images.isNotEmpty;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
         child: Container(
-          width: 170,
+          width: 160,
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(
-                color: _PromotedAnnouncementsCarousel._accent, width: 1.3),
-            borderRadius: BorderRadius.circular(14),
+                color: _PromotedAnnouncementsCarousel._accent, width: 1.2),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: hasImage
               ? Stack(
@@ -421,7 +421,7 @@ class _PromotedAnnouncementCard extends StatelessWidget {
                       right: 0,
                       bottom: 0,
                       child: Container(
-                        padding: const EdgeInsets.fromLTRB(8, 18, 8, 6),
+                        padding: const EdgeInsets.fromLTRB(8, 14, 8, 6),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
@@ -434,7 +434,7 @@ class _PromotedAnnouncementCard extends StatelessWidget {
                         ),
                         child: Text(
                           announcement.title,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
@@ -447,9 +447,11 @@ class _PromotedAnnouncementCard extends StatelessWidget {
                   ],
                 )
               : Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         announcement.title,
@@ -460,16 +462,14 @@ class _PromotedAnnouncementCard extends StatelessWidget {
                           fontSize: 13,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Expanded(
-                        child: Text(
-                          announcement.description,
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.textSecondary,
-                          ),
+                      const SizedBox(height: 2),
+                      Text(
+                        announcement.description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],

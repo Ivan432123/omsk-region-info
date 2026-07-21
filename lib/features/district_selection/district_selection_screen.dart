@@ -31,6 +31,13 @@ class _DistrictSelectionScreenState
   String _query = '';
   DistrictModel? _chosen;
   bool _isSaving = false;
+  // В режиме смены района (из "Настроек") при первой успешной загрузке
+  // списка нужно заранее подсветить уже выбранный район, а не начинать с
+  // пустого выбора — иначе пользователь открывает экран и не видит, какой
+  // район у него сейчас активен. Once-флаг, чтобы не затирать осознанный
+  // выбор пользователя, если список районов перезагрузится (например, по
+  // кнопке "Повторить" после ошибки).
+  bool _prefilledCurrentDistrict = false;
 
   @override
   void dispose() {
@@ -80,6 +87,19 @@ class _DistrictSelectionScreenState
                     onRetry: () => ref.invalidate(districtsListProvider),
                   ),
                   data: (districts) {
+                    if (widget.isChangeMode && !_prefilledCurrentDistrict) {
+                      _prefilledCurrentDistrict = true;
+                      final currentId = ref.read(selectedDistrictProvider).id;
+                      if (currentId != null) {
+                        for (final d in districts) {
+                          if (d.id == currentId) {
+                            _chosen = d;
+                            break;
+                          }
+                        }
+                      }
+                    }
+
                     final filtered = _query.isEmpty
                         ? districts
                         : districts

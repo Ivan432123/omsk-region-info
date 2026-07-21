@@ -113,6 +113,27 @@ class _DistrictSelectionScreenState
                   },
                 ),
               ),
+              if (!widget.isChangeMode)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.verified_user_outlined,
+                          size: 16, color: AppTheme.textSecondary(context)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Мы не запрашиваем личные данные. Приложение работает без регистрации.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: SizedBox(

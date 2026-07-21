@@ -69,6 +69,7 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
                           .refresh(),
                       child: ListView.separated(
                         controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(20),
                         itemCount: state.items.length + (state.hasMore ? 1 : 0),
                         separatorBuilder: (_, __) => const SizedBox(height: 10),

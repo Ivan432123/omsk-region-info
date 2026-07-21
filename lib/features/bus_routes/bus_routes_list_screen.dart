@@ -31,6 +31,7 @@ class BusRoutesListScreen extends ConsumerWidget {
                 onRefresh: () async =>
                     ref.invalidate(busRoutesProvider(districtId)),
                 child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(20),
                   itemCount: routes.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),

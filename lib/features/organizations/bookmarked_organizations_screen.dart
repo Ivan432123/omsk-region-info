@@ -28,6 +28,7 @@ class BookmarkedOrganizationsScreen extends ConsumerWidget {
                 onRefresh: () async =>
                     ref.invalidate(bookmarkedOrganizationsProvider),
                 child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   itemCount: organizations.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),

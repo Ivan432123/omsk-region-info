@@ -32,6 +32,7 @@ class BookmarkedNewsScreen extends ConsumerWidget {
                 color: AppTheme.primaryBlue,
                 onRefresh: () async => ref.invalidate(bookmarkedNewsProvider),
                 child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   itemCount: news.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),

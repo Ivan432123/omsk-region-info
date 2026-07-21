@@ -102,6 +102,7 @@ class _AnnouncementsListScreenState
 
     return ListView(
       controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
       children: [
         if (promoted.isNotEmpty) ...[

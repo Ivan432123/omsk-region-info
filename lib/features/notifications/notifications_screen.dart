@@ -66,26 +66,32 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             return const EmptyStateWidget.noNotifications();
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: notifications.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final notification = notifications[index];
-              final isRead = _lastSeenLoaded &&
-                  _lastSeenAtOpen != null &&
-                  notification.createdAt.isBefore(_lastSeenAtOpen!);
-              return _NotificationTile(
-                key: ValueKey(notification.id),
-                notification: notification,
-                isRead: isRead,
-                onTap: () {
-                  if (notification.relatedNewsId != null) {
-                    context.push('/news/${notification.relatedNewsId}');
-                  }
-                },
-              );
-            },
+          return RefreshIndicator(
+            color: AppTheme.primaryBlue,
+            onRefresh: () async =>
+                ref.invalidate(notificationsStreamProvider(districtId)),
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: notifications.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final notification = notifications[index];
+                final isRead = _lastSeenLoaded &&
+                    _lastSeenAtOpen != null &&
+                    notification.createdAt.isBefore(_lastSeenAtOpen!);
+                return _NotificationTile(
+                  key: ValueKey(notification.id),
+                  notification: notification,
+                  isRead: isRead,
+                  onTap: () {
+                    if (notification.relatedNewsId != null) {
+                      context.push('/news/${notification.relatedNewsId}');
+                    }
+                  },
+                );
+              },
+            ),
           );
         },
       ),

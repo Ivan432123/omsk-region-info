@@ -42,6 +42,13 @@ class HomeScreen extends ConsumerWidget {
             await ref.read(newsListProvider(districtId).notifier).refresh();
           },
           child: CustomScrollView(
+            // AlwaysScrollableScrollPhysics: без него свайп для обновления
+            // не срабатывает, если контента меньше, чем помещается на
+            // экране, — стандартная особенность RefreshIndicator в Flutter.
+            // Здесь секций обычно достаточно, чтобы экран заполнялся сам,
+            // но на маленьком районе (мало новостей/объявлений) это не
+            // гарантировано.
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
                 child: _HeroHeader(

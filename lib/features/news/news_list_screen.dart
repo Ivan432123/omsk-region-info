@@ -136,6 +136,7 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                       .refresh(),
                   child: ListView.separated(
                     controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(16),
                     itemCount:
                         newsState.items.length + (newsState.hasMore ? 1 : 0),

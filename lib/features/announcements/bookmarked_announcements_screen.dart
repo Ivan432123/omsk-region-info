@@ -33,6 +33,7 @@ class BookmarkedAnnouncementsScreen extends ConsumerWidget {
                 onRefresh: () async =>
                     ref.invalidate(bookmarkedAnnouncementsProvider),
                 child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   itemCount: announcements.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),

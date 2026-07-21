@@ -77,6 +77,7 @@ class _OrganizationsListScreenState
                 .refresh(),
             child: ListView.separated(
               controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: state.items.length + (state.hasMore ? 1 : 0),
               separatorBuilder: (_, __) => const SizedBox(height: 12),

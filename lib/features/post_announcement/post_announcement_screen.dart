@@ -179,9 +179,9 @@ class _PostAnnouncementScreenState
                 Expanded(
                   child: GestureDetector(
                     onTap: () => setState(() => _wantsPush = !_wantsPush),
-                    child: Text(
+                    child: const Text(
                       'Хочу, чтобы объявление увидели все в районе, у кого установлено приложение ($_pushPromotionPrice ₽)',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 14, color: AppTheme.primaryBlueDark),
                     ),
                   ),
@@ -254,7 +254,7 @@ class _PostAnnouncementScreenState
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                       '1. Переведите $_pushPromotionPrice ₽ по номеру $_paymentPhoneNumber (СБП)'),
                   const SizedBox(height: 4),
                   Text('Доступно через: ${_paymentBanks.join(', ')}'),

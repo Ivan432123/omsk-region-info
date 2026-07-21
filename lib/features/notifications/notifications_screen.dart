@@ -29,8 +29,9 @@ class NotificationsScreen extends ConsumerWidget {
               ref.invalidate(notificationsStreamProvider(districtId)),
         ),
         data: (notifications) {
-          if (notifications.isEmpty)
+          if (notifications.isEmpty) {
             return const EmptyStateWidget.noNotifications();
+          }
 
           return ListView.separated(
             padding: const EdgeInsets.all(16),

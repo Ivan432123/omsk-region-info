@@ -6,6 +6,7 @@ import '../../features/news/news_list_screen.dart';
 import '../../features/news/news_details_screen.dart';
 import '../../features/organizations/organizations_list_screen.dart';
 import '../../features/organizations/organization_details_screen.dart';
+import '../../features/organizations/bookmarked_organizations_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/vacancies/vacancies_list_screen.dart';
@@ -83,6 +84,10 @@ class AppRouter {
       GoRoute(
         path: '/bus-routes',
         builder: (context, state) => const BusRoutesListScreen(),
+      ),
+      GoRoute(
+        path: '/bookmarks',
+        builder: (context, state) => const BookmarkedOrganizationsScreen(),
       ),
       GoRoute(
         path: '/bus-routes/:id',

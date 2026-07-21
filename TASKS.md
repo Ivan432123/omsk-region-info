@@ -19,6 +19,15 @@
 - [x] SponsoredContentModel.clickCount + SponsoredContentRepository.recordClick — при тапе по баннеру инкремент clickCount/lastClickedAt, разрешено анонимно только по этим двум полям (по аналогии с news.viewCount и notifications.isRead)
 - [x] Цель: у партнёра/рекламодателя должна быть хоть какая-то цифра кликов, а не просто "мы разместили баннер"
 
+## Партия 3.7 — Аудит по итогам task.md (баги + качество кода)
+- [x] Админка (docs/index.html): добавлены разделы "Рекламный баннер" и "Автобусный маршрут" — sponsored_content и bus_routes были доступны только через Firebase Console, теперь полноценные формы add/edit/delete, как у остальных разделов
+- [x] Админка: все load*()-функции (news/organizations/vacancies/announcements/events/ad_requests/districts) обёрнуты в try/catch — раньше при любой ошибке Firestore (запрет правил, отсутствующий индекс, обрыв сети) список молча зависал на "Загрузка..." навсегда; теперь показывается причина и кнопка "Повторить"
+- [x] Утечка Firestore-подписки: notificationsStreamProvider/unreadNotificationsCountProvider — единственный live .snapshots()-listener в приложении — не были autoDispose; при смене района в "Настройках" подписка на уведомления старого района жила до конца сессии. Добавлен autoDispose к обоим
+- [x] importantAnnouncementsProvider — добавлена защита `if (districtId.isEmpty) return []`, как у остальных family-провайдеров главного экрана (не проявлялось на практике, т.к. сплэш всегда дожидается района, но было единственным исключением из паттерна)
+- [x] Закладки организаций были write-only: кнопка сохраняла ID локально, но нигде не было экрана посмотреть список. Добавлены LocalStorageService.getBookmarkedOrganizationIds, bookmarkedOrganizationsProvider (autoDispose), экран "Мои закладки" (/bookmarks), иконка-вход в AppBar раздела "Организации"
+- [x] analysis_options.yaml — flutter_lints был в зависимостях, но не подключён (`flutter analyze` реально проверял только голые ошибки компиляции). Подключён рекомендованный набор, поправлены все 7 всплывших info-level замечаний (4× prefer_const_constructors, 3× curly_braces_in_flow_control_structures)
+- [ ] Не сделано намеренно: карусель организаций на главном (в task.md упомянута как существующая фича, в кодовой базе её нет и никогда не было — нужно отдельное уточнение, что именно имелось в виду, прежде чем изобретать дизайн)
+
 ## Известные баги
 - [x] firestore.rules — задвоенные закрывающие скобки в конце файла (см. коммит f1a588b)
 - [x] race condition в push-уведомлениях (getInitialMessage и onMessageOpenedApp разведены между SplashScreen и main.dart, см. комментарии в обоих файлах)
@@ -34,9 +43,9 @@
 
 ## Ручные шаги в конце
 - Внесение координат районов
-- Реальные маршруты и расписание автобусов (коллекция bus_routes — модель и экраны готовы, см. партия 3.5)
-- Реальный контент в sponsored_content
-- Деплой Cloud Functions и Firestore Rules/Indexes через firebase deploy (включая новые правила sponsored_content и bus_routes, партии 3.5–3.6)
+- Реальные маршруты и расписание автобусов — теперь можно вносить прямо из админки (раздел "Добавить автобусный маршрут"), Firebase Console больше не обязателен
+- Реальный контент в sponsored_content — аналогично, теперь через админку (раздел "Добавить рекламный баннер")
+- Деплой Cloud Functions и Firestore Rules/Indexes через firebase deploy (включая правила sponsored_content и bus_routes, партии 3.5–3.6)
 
 ## Осознанно не сделано в этой сессии (см. рекомендации по монетизации)
 - Платёжный SDK (ЮKassa/СБП-эквайринг) — по решению пользователя оплата продолжает идти вручную через СБП, админ сверяет и публикует, как и раньше

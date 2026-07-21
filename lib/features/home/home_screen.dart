@@ -93,8 +93,8 @@ class HomeScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: const [
+                          const Row(
+                            children: [
                               Icon(Icons.local_fire_department_rounded,
                                   color: Color(0xFFE67E22), size: 20),
                               SizedBox(width: 6),

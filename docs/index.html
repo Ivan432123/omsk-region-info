@@ -368,6 +368,44 @@
             <button id="event-submit-btn" onclick="withButtonLock(this, addEvent)">Опубликовать событие</button>
         </div>
         <div class="card" id="event-list"></div>
+
+        <h2>Добавить рекламный баннер</h2>
+        <div class="card">
+            <label>Заголовок (виден на баннере)</label>
+            <input type="text" id="sponsored-title">
+            <label>Ссылка на изображение</label>
+            <input type="text" id="sponsored-image" placeholder="https://...">
+            <input type="file" id="sponsored-image-file" accept="image/*" style="margin-top:8px;">
+            <button type="button" class="secondary" onclick="uploadSponsoredImage(this)">Загрузить фото</button>
+            <label>Ссылка перехода (куда ведёт баннер)</label>
+            <input type="text" id="sponsored-url" placeholder="https://...">
+            <label>ID организации (необязательно, если баннер организации из каталога)</label>
+            <input type="text" id="sponsored-org-id">
+            <label>Активно до</label>
+            <input type="datetime-local" id="sponsored-active-until">
+            <label>Порядок показа (меньше — выше в ленте)</label>
+            <input type="number" id="sponsored-order" value="0">
+            <button id="sponsored-submit-btn" onclick="withButtonLock(this, addSponsored)">Опубликовать баннер</button>
+        </div>
+        <div class="card" id="sponsored-list"></div>
+
+        <h2>Добавить автобусный маршрут</h2>
+        <div class="card">
+            <label>Номер маршрута</label>
+            <input type="text" id="bus-number" placeholder="101">
+            <label>Название маршрута</label>
+            <input type="text" id="bus-name" placeholder="Автовокзал — Нефтяники">
+            <label>Остановки через запятую</label>
+            <input type="text" id="bus-stops" placeholder="Автовокзал, ул. Ленина, Нефтяники">
+            <label>Время отправления через запятую</label>
+            <input type="text" id="bus-times" placeholder="07:00, 08:30, 10:00">
+            <label>Примечание (необязательно)</label>
+            <textarea id="bus-notes" placeholder="По выходным не ходит"></textarea>
+            <label>Порядок показа (меньше — выше в списке)</label>
+            <input type="number" id="bus-order" value="0">
+            <button id="bus-submit-btn" onclick="withButtonLock(this, addBusRoute)">Опубликовать маршрут</button>
+        </div>
+        <div class="card" id="bus-list"></div>
     </div>
 
     <div id="confirm-overlay">
@@ -420,11 +458,15 @@
         let vacancyCache = {};
         let announcementCache = {};
         let eventCache = {};
+        let sponsoredCache = {};
+        let busRouteCache = {};
         let editingNewsId = null;
         let editingOrgId = null;
         let editingVacancyId = null;
         let editingAnnouncementId = null;
         let editingEventId = null;
+        let editingSponsoredId = null;
+        let editingBusRouteId = null;
 
         const SUPER_ADMIN_EMAIL = 'ivansurmanov@yandex.ru';
 
@@ -463,20 +505,48 @@
             setTimeout(() => { el.style.display = 'none'; }, 3000);
         }
 
+        // Показывает ошибку загрузки прямо в блоке списка вместо того, чтобы
+        // оставлять его навсегда с текстом "Загрузка..." — раньше при любой
+        // ошибке Firestore (запрет по правилам, отсутствующий индекс, обрыв
+        // сети) список зависал молча, и только глобальный alert() с сырым
+        // текстом ошибки давал знать, что что-то не так.
+        function renderLoadError(container, message, retryFn) {
+            container.innerHTML = '';
+            const msgEl = document.createElement('div');
+            msgEl.className = 'item-sub';
+            msgEl.style.color = '#9C3F2E';
+            msgEl.textContent = message;
+            container.appendChild(msgEl);
+            if (retryFn) {
+                const btn = document.createElement('button');
+                btn.className = 'secondary';
+                btn.style.width = 'auto';
+                btn.style.marginTop = '8px';
+                btn.textContent = 'Повторить';
+                btn.onclick = retryFn;
+                container.appendChild(btn);
+            }
+        }
+
         async function loadDistricts() {
             const select = document.getElementById('district-select');
             select.innerHTML = '<option>Загрузка...</option>';
-            const snapshot = await db.collection('districts').orderBy('order').get();
-            select.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const opt = document.createElement('option');
-                opt.value = doc.id;
-                opt.textContent = doc.data().name;
-                select.appendChild(opt);
-            });
-            if (!snapshot.empty) {
-                currentDistrictId = snapshot.docs[0].id;
-                onDistrictChange();
+            try {
+                const snapshot = await db.collection('districts').orderBy('order').get();
+                select.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = doc.data().name;
+                    select.appendChild(opt);
+                });
+                if (!snapshot.empty) {
+                    currentDistrictId = snapshot.docs[0].id;
+                    onDistrictChange();
+                }
+            } catch (err) {
+                select.innerHTML = '<option>Ошибка загрузки районов</option>';
+                alert('Не удалось загрузить список районов: ' + err.message);
             }
         }
 
@@ -486,24 +556,25 @@
             if (!auth.currentUser || auth.currentUser.email !== SUPER_ADMIN_EMAIL) return;
             const container = document.getElementById('ad-requests-list');
             container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('ad_requests')
-                .where('district', '==', currentDistrictId)
-                .where('status', '==', 'pending')
-                .orderBy('createdAt', 'desc')
-                .get();
+            try {
+                const snapshot = await db.collection('ad_requests')
+                    .where('district', '==', currentDistrictId)
+                    .where('status', '==', 'pending')
+                    .orderBy('createdAt', 'desc')
+                    .get();
 
-            if (snapshot.empty) {
-                container.innerHTML = '<div class="item-sub">Нет новых заявок</div>';
-                return;
-            }
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Нет новых заявок</div>';
+                    return;
+                }
 
-            container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const r = doc.data();
-                adRequestCache[doc.id] = r;
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const r = doc.data();
+                    adRequestCache[doc.id] = r;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(r.title)}${r.wantsPush ? ' 🔥 (платное продвижение)' : ''}</div>
 <div class="item-sub" style="font-weight:700;color:#1E2A22;">Заявка №${doc.id.substring(0, 8)}</div>
@@ -516,8 +587,11 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
 <button class="danger" onclick="rejectAdRequest('${doc.id}')">Отклонить</button>
 </div>
 `;
-                container.appendChild(row);
-            });
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить заявки: ' + err.message, loadAdRequests);
+            }
         }
 
         async function approveAdRequest(id, withPush) {
@@ -566,6 +640,8 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
             loadAnnouncements();
             loadEvents();
             loadAdRequests();
+            loadSponsored();
+            loadBusRoutes();
         }
 
         const PUSH_WORKER_URL = 'https://throbbing-bird-ef82.ivan55rwszzz.workers.dev/';
@@ -657,24 +733,25 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
         async function loadNews() {
             const container = document.getElementById('news-list');
             container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('news')
-                .where('district', '==', currentDistrictId)
-                .orderBy('createdAt', 'desc')
-                .limit(20)
-                .get();
+            try {
+                const snapshot = await db.collection('news')
+                    .where('district', '==', currentDistrictId)
+                    .orderBy('createdAt', 'desc')
+                    .limit(20)
+                    .get();
 
-            if (snapshot.empty) {
-                container.innerHTML = '<div class="item-sub">Пока нет новостей в этом районе</div>';
-                return;
-            }
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет новостей в этом районе</div>';
+                    return;
+                }
 
-            container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const n = doc.data();
-                newsCache[doc.id] = n;
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const n = doc.data();
+                    newsCache[doc.id] = n;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(n.title)}</div>
 <div class="item-sub">${escapeHtml(n.category)}</div>
@@ -684,8 +761,11 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
 <button class="danger" onclick="deleteNews('${doc.id}')">Удалить</button>
 </div>
 `;
-                container.appendChild(row);
-            });
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить новости: ' + err.message, loadNews);
+            }
         }
 
         function editNews(id) {
@@ -782,23 +862,24 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
         async function loadOrganizations() {
             const container = document.getElementById('org-list');
             container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('organizations')
-                .where('district', '==', currentDistrictId)
-                .orderBy('name')
-                .get();
+            try {
+                const snapshot = await db.collection('organizations')
+                    .where('district', '==', currentDistrictId)
+                    .orderBy('name')
+                    .get();
 
-            if (snapshot.empty) {
-                container.innerHTML = '<div class="item-sub">Пока нет организаций в этом районе</div>';
-                return;
-            }
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет организаций в этом районе</div>';
+                    return;
+                }
 
-            container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const o = doc.data();
-                orgCache[doc.id] = o;
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const o = doc.data();
+                    orgCache[doc.id] = o;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(o.name)}</div>
 <div class="item-sub">${escapeHtml(o.category || '')}</div>
@@ -808,8 +889,11 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
 <button class="danger" onclick="deleteOrganization('${doc.id}')">Удалить</button>
 </div>
 `;
-                container.appendChild(row);
-            });
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить организации: ' + err.message, loadOrganizations);
+            }
         }
 
         function editOrganization(id) {
@@ -1035,24 +1119,25 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
         async function loadVacancies() {
             const container = document.getElementById('vacancy-list');
             container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('vacancies')
-                .where('district', '==', currentDistrictId)
-                .orderBy('createdAt', 'desc')
-                .limit(20)
-                .get();
+            try {
+                const snapshot = await db.collection('vacancies')
+                    .where('district', '==', currentDistrictId)
+                    .orderBy('createdAt', 'desc')
+                    .limit(20)
+                    .get();
 
-            if (snapshot.empty) {
-                container.innerHTML = '<div class="item-sub">Пока нет вакансий в этом районе</div>';
-                return;
-            }
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет вакансий в этом районе</div>';
+                    return;
+                }
 
-            container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const v = doc.data();
-                vacancyCache[doc.id] = v;
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const v = doc.data();
+                    vacancyCache[doc.id] = v;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(v.title)}</div>
 <div class="item-sub">${escapeHtml(v.company || '')}</div>
@@ -1062,8 +1147,11 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
 <button class="danger" onclick="deleteVacancy('${doc.id}')">Удалить</button>
 </div>
 `;
-                container.appendChild(row);
-            });
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить вакансии: ' + err.message, loadVacancies);
+            }
         }
 
         function editVacancy(id) {
@@ -1132,24 +1220,25 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
         async function loadAnnouncements() {
             const container = document.getElementById('announcement-list');
             container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('announcements')
-                .where('district', '==', currentDistrictId)
-                .orderBy('createdAt', 'desc')
-                .limit(20)
-                .get();
+            try {
+                const snapshot = await db.collection('announcements')
+                    .where('district', '==', currentDistrictId)
+                    .orderBy('createdAt', 'desc')
+                    .limit(20)
+                    .get();
 
-            if (snapshot.empty) {
-                container.innerHTML = '<div class="item-sub">Пока нет объявлений в этом районе</div>';
-                return;
-            }
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет объявлений в этом районе</div>';
+                    return;
+                }
 
-            container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const a = doc.data();
-                announcementCache[doc.id] = a;
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const a = doc.data();
+                    announcementCache[doc.id] = a;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(a.title)}</div>
 </div>
@@ -1158,8 +1247,11 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
 <button class="danger" onclick="deleteAnnouncement('${doc.id}')">Удалить</button>
 </div>
 `;
-                container.appendChild(row);
-            });
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить объявления: ' + err.message, loadAnnouncements);
+            }
         }
 
         function editAnnouncement(id) {
@@ -1230,27 +1322,28 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
         async function loadEvents() {
             const container = document.getElementById('event-list');
             container.innerHTML = 'Загрузка...';
-            const snapshot = await db.collection('events')
-                .where('district', '==', currentDistrictId)
-                .orderBy('eventDate', 'asc')
-                .limit(20)
-                .get();
+            try {
+                const snapshot = await db.collection('events')
+                    .where('district', '==', currentDistrictId)
+                    .orderBy('eventDate', 'asc')
+                    .limit(20)
+                    .get();
 
-            if (snapshot.empty) {
-                container.innerHTML = '<div class="item-sub">Пока нет событий в этом районе</div>';
-                return;
-            }
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет событий в этом районе</div>';
+                    return;
+                }
 
-            container.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const e = doc.data();
-                eventCache[doc.id] = e;
-                const dateStr = e.eventDate && e.eventDate.toDate
-                    ? e.eventDate.toDate().toLocaleString('ru-RU')
-                    : '';
-                const row = document.createElement('div');
-                row.className = 'item';
-                row.innerHTML = `
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const e = doc.data();
+                    eventCache[doc.id] = e;
+                    const dateStr = e.eventDate && e.eventDate.toDate
+                        ? e.eventDate.toDate().toLocaleString('ru-RU')
+                        : '';
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(e.title)}</div>
 <div class="item-sub">${escapeHtml(dateStr)}</div>
@@ -1260,8 +1353,11 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
 <button class="danger" onclick="deleteEvent('${doc.id}')">Удалить</button>
 </div>
 `;
-                container.appendChild(row);
-            });
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить события: ' + err.message, loadEvents);
+            }
         }
 
         function editEvent(id) {
@@ -1286,6 +1382,256 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${doc.id}', true)">Опуб�
             if (!(await showConfirmDialog('Удалить это событие?'))) return;
             await db.collection('events').doc(id).delete();
             loadEvents();
+        }
+
+        // ---------- Рекламные баннеры (sponsored_content) ----------
+
+        async function addSponsored() {
+            const title = document.getElementById('sponsored-title').value.trim();
+            const imageUrl = document.getElementById('sponsored-image').value.trim();
+            const targetUrl = document.getElementById('sponsored-url').value.trim();
+            const organizationId = document.getElementById('sponsored-org-id').value.trim();
+            const activeUntilValue = document.getElementById('sponsored-active-until').value;
+            const order = parseInt(document.getElementById('sponsored-order').value, 10) || 0;
+
+            if (!title || !imageUrl || !targetUrl || !activeUntilValue) {
+                alert('Заполните заголовок, изображение, ссылку перехода и срок действия');
+                return;
+            }
+
+            const activeUntil = firebase.firestore.Timestamp.fromDate(new Date(activeUntilValue));
+
+            if (editingSponsoredId) {
+                await db.collection('sponsored_content').doc(editingSponsoredId).update({
+                    title, imageUrl, targetUrl,
+                    organizationId: organizationId || null,
+                    activeUntil, order
+                });
+                editingSponsoredId = null;
+                document.getElementById('sponsored-submit-btn').textContent = 'Опубликовать баннер';
+                showStatus('Баннер обновлён');
+            } else {
+                await db.collection('sponsored_content').add({
+                    title, imageUrl, targetUrl,
+                    organizationId: organizationId || null,
+                    activeUntil, order,
+                    district: currentDistrictId,
+                    clickCount: 0
+                });
+                showStatus('Баннер опубликован');
+            }
+
+            document.getElementById('sponsored-title').value = '';
+            document.getElementById('sponsored-image').value = '';
+            document.getElementById('sponsored-url').value = '';
+            document.getElementById('sponsored-org-id').value = '';
+            document.getElementById('sponsored-active-until').value = '';
+            document.getElementById('sponsored-order').value = '0';
+            loadSponsored();
+        }
+
+        async function loadSponsored() {
+            const container = document.getElementById('sponsored-list');
+            container.innerHTML = 'Загрузка...';
+            try {
+                // orderBy по возрастанию activeUntil — совпадает с направлением
+                // составного индекса (district+activeUntil), которым уже
+                // пользуется приложение; отдельный индекс на убывание не нужен.
+                const snapshot = await db.collection('sponsored_content')
+                    .where('district', '==', currentDistrictId)
+                    .orderBy('activeUntil')
+                    .get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет баннеров в этом районе</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const s = doc.data();
+                    sponsoredCache[doc.id] = s;
+                    const activeUntilDate = s.activeUntil && s.activeUntil.toDate ? s.activeUntil.toDate() : null;
+                    const isExpired = activeUntilDate && activeUntilDate < new Date();
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(s.title)}${isExpired ? ' (истёк)' : ''}</div>
+<div class="item-sub">До ${activeUntilDate ? escapeHtml(activeUntilDate.toLocaleString('ru-RU')) : '—'} · кликов: ${s.clickCount || 0}</div>
+</div>
+<div>
+<button class="secondary" onclick="editSponsored('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteSponsored('${doc.id}')">Удалить</button>
+</div>
+`;
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить баннеры: ' + err.message, loadSponsored);
+            }
+        }
+
+        function editSponsored(id) {
+            const s = sponsoredCache[id];
+            if (!s) return;
+            editingSponsoredId = id;
+            document.getElementById('sponsored-title').value = s.title || '';
+            document.getElementById('sponsored-image').value = s.imageUrl || '';
+            document.getElementById('sponsored-url').value = s.targetUrl || '';
+            document.getElementById('sponsored-org-id').value = s.organizationId || '';
+            document.getElementById('sponsored-order').value = s.order != null ? s.order : 0;
+            if (s.activeUntil && s.activeUntil.toDate) {
+                const d = s.activeUntil.toDate();
+                const pad = (n) => String(n).padStart(2, '0');
+                document.getElementById('sponsored-active-until').value =
+                    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+            document.getElementById('sponsored-submit-btn').textContent = 'Сохранить изменения';
+            document.getElementById('sponsored-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteSponsored(id) {
+            if (!(await showConfirmDialog('Удалить этот баннер?'))) return;
+            await db.collection('sponsored_content').doc(id).delete();
+            loadSponsored();
+        }
+
+        async function uploadSponsoredImage(btn) {
+            const fileInput = document.getElementById('sponsored-image-file');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Сначала выберите файл');
+                return;
+            }
+            const originalText = btn ? btn.textContent : null;
+            if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'my_preset');
+                const response = await fetch('https://api.cloudinary.com/v1_1/agidf3gy/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.secure_url) {
+                    document.getElementById('sponsored-image').value = data.secure_url;
+                    showStatus('Фото загружено');
+                    if (btn) btn.textContent = '✓ Загружено';
+                } else {
+                    alert('Ошибка загрузки: ' + JSON.stringify(data));
+                }
+            } catch (err) {
+                alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
+            } finally {
+                if (btn) {
+                    setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 1500);
+                }
+            }
+        }
+
+        // ---------- Автобусные маршруты (bus_routes) ----------
+
+        async function addBusRoute() {
+            const routeNumber = document.getElementById('bus-number').value.trim();
+            const routeName = document.getElementById('bus-name').value.trim();
+            const stopsRaw = document.getElementById('bus-stops').value.trim();
+            const timesRaw = document.getElementById('bus-times').value.trim();
+            const notes = document.getElementById('bus-notes').value.trim();
+            const order = parseInt(document.getElementById('bus-order').value, 10) || 0;
+
+            const stops = stopsRaw ? stopsRaw.split(',').map((s) => s.trim()).filter(Boolean) : [];
+            const departureTimes = timesRaw ? timesRaw.split(',').map((s) => s.trim()).filter(Boolean) : [];
+
+            if (!routeNumber || !routeName) {
+                alert('Заполните хотя бы номер и название маршрута');
+                return;
+            }
+
+            if (editingBusRouteId) {
+                await db.collection('bus_routes').doc(editingBusRouteId).update({
+                    routeNumber, routeName, stops, departureTimes,
+                    notes: notes || null,
+                    order
+                });
+                editingBusRouteId = null;
+                document.getElementById('bus-submit-btn').textContent = 'Опубликовать маршрут';
+                showStatus('Маршрут обновлён');
+            } else {
+                await db.collection('bus_routes').add({
+                    routeNumber, routeName, stops, departureTimes,
+                    notes: notes || null,
+                    order,
+                    district: currentDistrictId
+                });
+                showStatus('Маршрут опубликован');
+            }
+
+            document.getElementById('bus-number').value = '';
+            document.getElementById('bus-name').value = '';
+            document.getElementById('bus-stops').value = '';
+            document.getElementById('bus-times').value = '';
+            document.getElementById('bus-notes').value = '';
+            document.getElementById('bus-order').value = '0';
+            loadBusRoutes();
+        }
+
+        async function loadBusRoutes() {
+            const container = document.getElementById('bus-list');
+            container.innerHTML = 'Загрузка...';
+            try {
+                const snapshot = await db.collection('bus_routes')
+                    .where('district', '==', currentDistrictId)
+                    .orderBy('order')
+                    .get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет маршрутов в этом районе</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const b = doc.data();
+                    busRouteCache[doc.id] = b;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
+<div>
+<div class="item-title">№${escapeHtml(b.routeNumber)} ${escapeHtml(b.routeName)}</div>
+<div class="item-sub">${(b.departureTimes || []).length} рейсов, ${(b.stops || []).length} остановок</div>
+</div>
+<div>
+<button class="secondary" onclick="editBusRoute('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteBusRoute('${doc.id}')">Удалить</button>
+</div>
+`;
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить маршруты: ' + err.message, loadBusRoutes);
+            }
+        }
+
+        function editBusRoute(id) {
+            const b = busRouteCache[id];
+            if (!b) return;
+            editingBusRouteId = id;
+            document.getElementById('bus-number').value = b.routeNumber || '';
+            document.getElementById('bus-name').value = b.routeName || '';
+            document.getElementById('bus-stops').value = (b.stops || []).join(', ');
+            document.getElementById('bus-times').value = (b.departureTimes || []).join(', ');
+            document.getElementById('bus-notes').value = b.notes || '';
+            document.getElementById('bus-order').value = b.order != null ? b.order : 0;
+            document.getElementById('bus-submit-btn').textContent = 'Сохранить изменения';
+            document.getElementById('bus-number').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteBusRoute(id) {
+            if (!(await showConfirmDialog('Удалить этот маршрут?'))) return;
+            await db.collection('bus_routes').doc(id).delete();
+            loadBusRoutes();
         }
 
         let _confirmResolve = null;

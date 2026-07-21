@@ -47,7 +47,16 @@ class _OrganizationsListScreenState
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
-      appBar: AppBar(title: const Text('Организации')),
+      appBar: AppBar(
+        title: const Text('Организации'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_rounded),
+            tooltip: 'Мои закладки',
+            onPressed: () => context.push('/bookmarks'),
+          ),
+        ],
+      ),
       body: Builder(
         builder: (context) {
           if (state.isLoading) return const LoadingListWidget();
@@ -58,8 +67,9 @@ class _OrganizationsListScreenState
                   .refresh(),
             );
           }
-          if (state.items.isEmpty)
+          if (state.items.isEmpty) {
             return const EmptyStateWidget.noOrganizations();
+          }
 
           return RefreshIndicator(
             color: AppTheme.primaryBlue,

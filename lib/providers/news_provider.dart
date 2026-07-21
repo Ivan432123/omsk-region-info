@@ -129,6 +129,7 @@ final newsListByCategoryProvider = StateNotifierProvider.family<
 /// Важные объявления для главной (только push-триггерящие категории).
 final importantAnnouncementsProvider =
     FutureProvider.family<List<NewsModel>, String>((ref, districtId) async {
+  if (districtId.isEmpty) return [];
   final repo = ref.watch(newsRepositoryProvider);
   return repo.getImportantAnnouncements(districtId);
 });

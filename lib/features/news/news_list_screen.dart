@@ -111,8 +111,9 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                         .refresh(),
                   );
                 }
-                if (newsState.items.isEmpty)
+                if (newsState.items.isEmpty) {
                   return const EmptyStateWidget.noNews();
+                }
 
                 return RefreshIndicator(
                   color: AppTheme.primaryBlue,

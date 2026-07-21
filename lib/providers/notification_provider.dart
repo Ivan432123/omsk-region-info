@@ -7,14 +7,19 @@ final notificationRepositoryProvider =
 
 /// Живой поток уведомлений района — обновляется автоматически при получении
 /// нового push (документ создаётся в Firestore параллельно с отправкой FCM).
-final notificationsStreamProvider =
-    StreamProvider.family<List<NotificationModel>, String>((ref, districtId) {
+/// autoDispose обязателен: это единственная постоянная Firestore-подписка
+/// (.snapshots()) в приложении, и без него при смене района в "Настройках"
+/// подписка на уведомления старого района продолжала бы жить до конца
+/// сессии — никто её больше не watch'ит, но StreamProvider без autoDispose
+/// не закрывает listener сам.
+final notificationsStreamProvider = StreamProvider.autoDispose
+    .family<List<NotificationModel>, String>((ref, districtId) {
   final repo = ref.watch(notificationRepositoryProvider);
   return repo.watchNotifications(districtId);
 });
 
 final unreadNotificationsCountProvider =
-    Provider.family<int, String>((ref, districtId) {
+    Provider.autoDispose.family<int, String>((ref, districtId) {
   final notificationsAsync = ref.watch(notificationsStreamProvider(districtId));
   return notificationsAsync.maybeWhen(
     data: (list) => list.where((n) => !n.isRead).length,

@@ -97,8 +97,8 @@ class _AnnouncementsListScreenState
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
       children: [
         if (promoted.isNotEmpty) ...[
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.local_fire_department_rounded,
                   color: Color(0xFFE67E22), size: 20),
               SizedBox(width: 6),

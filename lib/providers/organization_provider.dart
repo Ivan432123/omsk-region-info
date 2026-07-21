@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/app_constants.dart';
 import '../models/organization_model.dart';
 import '../repositories/organization_repository.dart';
+import '../services/local_storage_service.dart';
 
 final organizationRepositoryProvider =
     Provider((ref) => OrganizationRepository());
@@ -104,4 +105,19 @@ final organizationDetailsProvider =
     FutureProvider.family<OrganizationModel?, String>((ref, id) async {
   final repo = ref.watch(organizationRepositoryProvider);
   return repo.getOrganizationById(id);
+});
+
+/// Организации, добавленные в закладки — не привязаны к текущему выбранному
+/// району (закладка могла быть сделана в любом, который житель посещал
+/// раньше). autoDispose — список должен быть свежим при каждом открытии
+/// экрана "Мои закладки", а не залипать в кэше после снятия закладки.
+final bookmarkedOrganizationsProvider =
+    FutureProvider.autoDispose<List<OrganizationModel>>((ref) async {
+  final storage = LocalStorageService();
+  final ids = await storage.getBookmarkedOrganizationIds();
+  if (ids.isEmpty) return [];
+
+  final repo = ref.watch(organizationRepositoryProvider);
+  final results = await Future.wait(ids.map(repo.getOrganizationById));
+  return results.whereType<OrganizationModel>().toList();
 });

@@ -49,6 +49,14 @@ class EmptyStateWidget extends StatelessWidget {
         actionLabel = null,
         onAction = null;
 
+  const EmptyStateWidget.noBookmarks({super.key})
+      : icon = Icons.bookmark_border_rounded,
+        title = 'Пока нет закладок',
+        subtitle =
+            'Нажмите на значок закладки на странице организации, чтобы быстро находить её здесь',
+        actionLabel = null,
+        onAction = null;
+
   factory EmptyStateWidget.error({VoidCallback? onRetry}) {
     return EmptyStateWidget(
       icon: Icons.wifi_off_rounded,

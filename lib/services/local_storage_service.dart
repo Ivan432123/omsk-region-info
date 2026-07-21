@@ -106,6 +106,11 @@ class LocalStorageService {
     return ids.contains(organizationId);
   }
 
+  Future<List<String>> getBookmarkedOrganizationIds() async {
+    final prefs = await _prefs;
+    return prefs.getStringList(_keyBookmarkedOrganizations) ?? [];
+  }
+
   Future<void> setOrganizationBookmarked(
     String organizationId,
     bool bookmarked,

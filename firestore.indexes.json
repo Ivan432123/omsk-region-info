@@ -42,14 +42,6 @@
       ]
     },
     {
-      "collectionGroup": "notifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "district", "order": "ASCENDING" },
-        { "fieldPath": "isRead", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "vacancies",
       "queryScope": "COLLECTION",
       "fields": [

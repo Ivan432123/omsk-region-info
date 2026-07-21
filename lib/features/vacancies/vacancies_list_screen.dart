@@ -84,6 +84,7 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
                           }
                           final vacancy = state.items[index];
                           return VacancyCard(
+                            key: ValueKey(vacancy.id),
                             vacancy: vacancy,
                             onTap: () =>
                                 context.push('/vacancies/${vacancy.id}'),

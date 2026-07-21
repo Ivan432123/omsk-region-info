@@ -264,8 +264,13 @@ class AppTheme {
       dividerTheme: DividerThemeData(color: dividerColor, thickness: 1),
       chipTheme: base.chipTheme.copyWith(
         backgroundColor: primaryContainer,
-        labelStyle: const TextStyle(
-            color: primaryBlue, fontWeight: FontWeight.w600, fontSize: 12),
+        // onPrimaryContainer, а не фиксированный primaryBlue — та же причина,
+        // что у navigationBarTheme выше: в тёмной теме primaryContainer сам
+        // становится тёмно-синим, и primaryBlue на нём почти не виден.
+        labelStyle: TextStyle(
+            color: base.colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.w600,
+            fontSize: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         side: BorderSide.none,
       ),

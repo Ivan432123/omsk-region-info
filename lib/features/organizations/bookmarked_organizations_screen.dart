@@ -34,6 +34,7 @@ class BookmarkedOrganizationsScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final org = organizations[index];
                     return OrganizationCard(
+                      key: ValueKey(org.id),
                       organization: org,
                       onTap: () => context.push('/organizations/${org.id}'),
                     );

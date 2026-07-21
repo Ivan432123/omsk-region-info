@@ -22,20 +22,22 @@ class OrganizationIconHelper {
         c.contains('фап')) {
       return Icons.local_hospital_rounded;
     }
-    if (c.contains('школ') ||
-        c.contains('образован') ||
-        c.contains('сад') ||
-        c.contains('универ')) {
-      return Icons.school_rounded;
-    }
     if (c.contains('культур') ||
         c.contains('театр') ||
         c.contains('музей') ||
         c.contains('библиотек')) {
       return Icons.theater_comedy_rounded;
     }
+    // Перед школой: "спортивная школа" должна получать иконку спорта, а не
+    // школы — иначе она перехватывается более общей проверкой ниже.
     if (c.contains('спорт') || c.contains('стадион') || c.contains('бассейн')) {
       return Icons.sports_soccer_rounded;
+    }
+    if (c.contains('школ') ||
+        c.contains('образован') ||
+        c.contains('детский сад') ||
+        c.contains('универ')) {
+      return Icons.school_rounded;
     }
     if (c.contains('почт')) {
       return Icons.local_post_office_rounded;
@@ -62,12 +64,6 @@ class OrganizationIconHelper {
         c.contains('фап')) {
       return AppTheme.success;
     }
-    if (c.contains('школ') ||
-        c.contains('образован') ||
-        c.contains('сад') ||
-        c.contains('универ')) {
-      return const Color(0xFF7B1FA2);
-    }
     if (c.contains('культур') ||
         c.contains('театр') ||
         c.contains('музей') ||
@@ -76,6 +72,12 @@ class OrganizationIconHelper {
     }
     if (c.contains('спорт') || c.contains('стадион') || c.contains('бассейн')) {
       return const Color(0xFF2E7D32);
+    }
+    if (c.contains('школ') ||
+        c.contains('образован') ||
+        c.contains('детский сад') ||
+        c.contains('универ')) {
+      return const Color(0xFF7B1FA2);
     }
     if (c.contains('почт')) {
       return const Color(0xFFEF6C00);

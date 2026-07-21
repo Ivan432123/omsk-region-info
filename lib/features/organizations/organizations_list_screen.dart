@@ -98,6 +98,7 @@ class _OrganizationsListScreenState
                 }
                 final org = state.items[index];
                 return OrganizationCard(
+                  key: ValueKey(org.id),
                   organization: org,
                   onTap: () => context.push('/organizations/${org.id}'),
                 );

@@ -11,6 +11,8 @@ class LocalStorageService {
   static const String _keyMyBannerRequests = 'my_banner_requests';
   static const String _keyLastSeenAnnouncementsPrefix =
       'last_seen_announcements_';
+  static const String _keyLastSeenNotificationsPrefix =
+      'last_seen_notifications_';
   static const String _keyBookmarkedOrganizations = 'bookmarked_organizations';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
@@ -37,13 +39,6 @@ class LocalStorageService {
     final prefs = await _prefs;
     await prefs.setString(AppConstants.prefsSelectedDistrictId, districtId);
     await prefs.setString(AppConstants.prefsSelectedDistrictName, districtName);
-  }
-
-  Future<void> clearSelectedDistrict() async {
-    final prefs = await _prefs;
-    await prefs.remove(AppConstants.prefsSelectedDistrictId);
-    await prefs.remove(AppConstants.prefsSelectedDistrictName);
-    await prefs.remove(AppConstants.prefsFcmTopicSubscribed);
   }
 
   Future<bool> isFcmTopicSubscribed(String topic) async {
@@ -117,6 +112,28 @@ class LocalStorageService {
     final prefs = await _prefs;
     await prefs.setString(
       '$_keyLastSeenAnnouncementsPrefix$districtId',
+      DateTime.now().toIso8601String(),
+    );
+  }
+
+  /// Отметка "когда житель последний раз заходил в раздел Уведомления этого
+  /// района" — по тому же принципу, что и объявления (см.
+  /// markAnnouncementsSeen). "Прочитано" для уведомлений намеренно хранится
+  /// только локально: раньше это был общий флаг isRead на документе
+  /// notifications, который читают все жители района одновременно —
+  /// открытие уведомления одним человеком помечало его прочитанным у всех
+  /// остальных.
+  Future<DateTime?> getLastSeenNotificationsTime(String districtId) async {
+    final prefs = await _prefs;
+    final raw = prefs.getString('$_keyLastSeenNotificationsPrefix$districtId');
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<void> markNotificationsSeen(String districtId) async {
+    final prefs = await _prefs;
+    await prefs.setString(
+      '$_keyLastSeenNotificationsPrefix$districtId',
       DateTime.now().toIso8601String(),
     );
   }

@@ -5,15 +5,18 @@
 class InputSanitizer {
   InputSanitizer._();
 
-  /// Убирает управляющие символы и лишние пробелы, ограничивает длину.
+  /// Убирает управляющие символы, HTML-теги и лишние пробелы, ограничивает
+  /// длину.
   static String sanitizeSearchQuery(String input, {int maxLength = 100}) {
     final trimmed = input.trim();
     final withoutControlChars =
         trimmed.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '');
-    if (withoutControlChars.length > maxLength) {
-      return withoutControlChars.substring(0, maxLength);
+    final withoutHtmlTags =
+        withoutControlChars.replaceAll(RegExp(r'<[^>]*>'), '');
+    if (withoutHtmlTags.length > maxLength) {
+      return withoutHtmlTags.substring(0, maxLength);
     }
-    return withoutControlChars;
+    return withoutHtmlTags;
   }
 
   /// Нормализация строки для поиска без учёта регистра (кириллица).

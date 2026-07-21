@@ -92,7 +92,11 @@ class NewsListNotifier extends StateNotifier<NewsListState> {
         categoryFilter: category,
       );
       state = state.copyWith(
-        items: [...state.items, ...result.items],
+        items: [
+          ...state.items,
+          ...result.items.where(
+              (n) => state.items.every((existing) => existing.id != n.id)),
+        ],
         isLoadingMore: false,
         hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,

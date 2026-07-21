@@ -21,7 +21,7 @@ class DistrictModel extends Equatable {
     this.regionId = 'omsk',
     this.imageUrl,
     this.villages = const [],
-    this.isActive = true,
+    this.isActive = false,
     this.order = 0,
   });
 
@@ -34,7 +34,7 @@ class DistrictModel extends Equatable {
       regionId: data['regionId'] as String? ?? 'omsk',
       imageUrl: data['imageUrl'] as String?,
       villages: List<String>.from(data['villages'] as List? ?? []),
-      isActive: data['isActive'] as bool? ?? true,
+      isActive: data['isActive'] as bool? ?? false,
       order: (data['order'] as num?)?.toInt() ?? 0,
     );
   }

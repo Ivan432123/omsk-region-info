@@ -31,12 +31,16 @@ class BusRouteCard extends StatelessWidget {
                 color: AppTheme.primaryContainer(context),
                 shape: BoxShape.circle,
               ),
-              child: Text(
-                route.routeNumber,
-                style: TextStyle(
-                  color: AppTheme.onPrimaryContainer(context),
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  route.routeNumber,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: AppTheme.onPrimaryContainer(context),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),
@@ -46,6 +50,8 @@ class BusRouteCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(route.routeName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium),
                   if (route.departureTimes.isNotEmpty) ...[
                     const SizedBox(height: 4),

@@ -6,15 +6,49 @@ import '../../core/utils/date_formatter.dart';
 import '../../models/notification_model.dart';
 import '../../providers/district_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../services/local_storage_service.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/category_chip.dart';
 
-class NotificationsScreen extends ConsumerWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  // Снимок "последний раз просмотрено" на МОМЕНТ ОТКРЫТИЯ экрана — используется
+  // для подсветки непрочитанных в этом посещении. Обновляется на новое
+  // значение уже после того, как снимок прочитан, поэтому при следующем
+  // заходе все текущие уведомления окажутся прочитанными, а не раньше.
+  DateTime? _lastSeenAtOpen;
+  bool _lastSeenLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _captureAndMarkSeen());
+  }
+
+  Future<void> _captureAndMarkSeen() async {
+    final districtId = ref.read(selectedDistrictProvider).id ?? '';
+    if (districtId.isEmpty) return;
+    final storage = LocalStorageService();
+    final lastSeen = await storage.getLastSeenNotificationsTime(districtId);
+    if (!mounted) return;
+    setState(() {
+      _lastSeenAtOpen = lastSeen;
+      _lastSeenLoaded = true;
+    });
+    await storage.markNotificationsSeen(districtId);
+    if (mounted) ref.invalidate(lastSeenNotificationsProvider(districtId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final districtId = ref.watch(selectedDistrictProvider).id ?? '';
     final notificationsAsync =
         ref.watch(notificationsStreamProvider(districtId));
@@ -38,15 +72,15 @@ class NotificationsScreen extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final notification = notifications[index];
+              final isRead = _lastSeenLoaded &&
+                  _lastSeenAtOpen != null &&
+                  notification.createdAt.isBefore(_lastSeenAtOpen!);
               return _NotificationTile(
+                key: ValueKey(notification.id),
                 notification: notification,
-                onTap: () async {
-                  if (!notification.isRead) {
-                    await ref
-                        .read(notificationRepositoryProvider)
-                        .markAsRead(notification.id);
-                  }
-                  if (notification.relatedNewsId != null && context.mounted) {
+                isRead: isRead,
+                onTap: () {
+                  if (notification.relatedNewsId != null) {
                     context.push('/news/${notification.relatedNewsId}');
                   }
                 },
@@ -61,9 +95,15 @@ class NotificationsScreen extends ConsumerWidget {
 
 class _NotificationTile extends StatelessWidget {
   final NotificationModel notification;
+  final bool isRead;
   final VoidCallback onTap;
 
-  const _NotificationTile({required this.notification, required this.onTap});
+  const _NotificationTile({
+    super.key,
+    required this.notification,
+    required this.isRead,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,12 +113,12 @@ class _NotificationTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: notification.isRead
+          color: isRead
               ? AppTheme.surface(context)
               : AppTheme.primaryContainer(context),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: notification.isRead
+            color: isRead
                 ? AppTheme.divider(context)
                 : AppTheme.primaryBlue.withValues(alpha: 0.3),
           ),
@@ -86,7 +126,7 @@ class _NotificationTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (!notification.isRead)
+            if (!isRead)
               Container(
                 margin: const EdgeInsets.only(top: 6, right: 10),
                 width: 8,

@@ -37,6 +37,7 @@ class BusRoutesListScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final route = routes[index];
                     return BusRouteCard(
+                      key: ValueKey(route.id),
                       route: route,
                       onTap: () => context.push('/bus-routes/${route.id}'),
                     );

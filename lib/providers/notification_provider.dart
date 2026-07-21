@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/notification_model.dart';
 import '../repositories/notification_repository.dart';
+import '../services/local_storage_service.dart';
 
 final notificationRepositoryProvider =
     Provider((ref) => NotificationRepository());
@@ -18,11 +19,25 @@ final notificationsStreamProvider = StreamProvider.autoDispose
   return repo.watchNotifications(districtId);
 });
 
+/// Момент, когда житель последний раз открывал раздел "Уведомления" этого
+/// района — источник истины для "прочитано", хранится только локально на
+/// устройстве (см. LocalStorageService.markNotificationsSeen). Инвалидируется
+/// из NotificationsScreen после того, как экран отмечает уведомления
+/// просмотренными.
+final lastSeenNotificationsProvider =
+    FutureProvider.autoDispose.family<DateTime?, String>((ref, districtId) {
+  return LocalStorageService().getLastSeenNotificationsTime(districtId);
+});
+
 final unreadNotificationsCountProvider =
     Provider.autoDispose.family<int, String>((ref, districtId) {
   final notificationsAsync = ref.watch(notificationsStreamProvider(districtId));
+  final lastSeen =
+      ref.watch(lastSeenNotificationsProvider(districtId)).valueOrNull;
   return notificationsAsync.maybeWhen(
-    data: (list) => list.where((n) => !n.isRead).length,
+    data: (list) => lastSeen == null
+        ? list.length
+        : list.where((n) => n.createdAt.isAfter(lastSeen)).length,
     orElse: () => 0,
   );
 });

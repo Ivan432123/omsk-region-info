@@ -83,6 +83,7 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                           }
                           final event = state.items[index];
                           return EventCard(
+                            key: ValueKey(event.id),
                             event: event,
                             onTap: () => context.push('/events/${event.id}'),
                           );

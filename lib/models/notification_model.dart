@@ -9,7 +9,6 @@ class NotificationModel extends Equatable {
   final String category;
   final String districtId;
   final DateTime createdAt;
-  final bool isRead;
 
   const NotificationModel({
     required this.id,
@@ -19,7 +18,6 @@ class NotificationModel extends Equatable {
     required this.category,
     required this.districtId,
     required this.createdAt,
-    this.isRead = false,
   });
 
   factory NotificationModel.fromFirestore(
@@ -33,24 +31,10 @@ class NotificationModel extends Equatable {
       category: data['category'] as String? ?? 'general',
       districtId: data['district'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      isRead: data['isRead'] as bool? ?? false,
-    );
-  }
-
-  NotificationModel copyWith({bool? isRead}) {
-    return NotificationModel(
-      id: id,
-      title: title,
-      body: body,
-      relatedNewsId: relatedNewsId,
-      category: category,
-      districtId: districtId,
-      createdAt: createdAt,
-      isRead: isRead ?? this.isRead,
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, title, body, relatedNewsId, category, districtId, createdAt, isRead];
+      [id, title, body, relatedNewsId, category, districtId, createdAt];
 }

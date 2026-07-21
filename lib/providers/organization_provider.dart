@@ -82,7 +82,11 @@ class OrganizationListNotifier extends StateNotifier<OrganizationListState> {
         startAfter: state.lastDoc,
       );
       state = state.copyWith(
-        items: [...state.items, ...result.items],
+        items: [
+          ...state.items,
+          ...result.items.where(
+              (o) => state.items.every((existing) => existing.id != o.id)),
+        ],
         isLoadingMore: false,
         hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,

@@ -42,43 +42,85 @@ exports.onNewsCreated = onDocumentCreated('news/{newsId}', async (event) => {
   const newsId = event.params.newsId;
   const category = news.category || 'general';
   const districtId = news.district;
+  const newsTitle = news.title;
 
   const shouldSendPush = PUSH_TRIGGERING_CATEGORIES.includes(category);
 
   // Фиксируем фактическое решение на самом документе — источник истины
   // сервер, а не то, что было (возможно, некорректно) прислано при создании.
-  await snapshot.ref.update({ sendPush: shouldSendPush });
+  // В try/catch: сбой здесь не должен блокировать остальную обработку.
+  try {
+    await snapshot.ref.update({ sendPush: shouldSendPush });
+  } catch (err) {
+    console.error(`onNewsCreated(${newsId}): не удалось записать sendPush`, err);
+  }
 
-  if (!shouldSendPush || !districtId) {
+  if (!shouldSendPush) {
+    return;
+  }
+
+  // Документ мог быть создан не через админ-панель (например, вручную в
+  // консоли Firestore) и не пройти её валидацию — не отправляем push с
+  // мусорным текстом и не роняем функцию без try/catch ниже.
+  if (typeof districtId !== 'string' || districtId.length === 0) {
+    console.error(`onNewsCreated(${newsId}): отсутствует/некорректен district, push не отправлен`);
+    return;
+  }
+  if (typeof newsTitle !== 'string' || newsTitle.length === 0) {
+    console.error(`onNewsCreated(${newsId}): отсутствует/некорректен title, push не отправлен`);
+    return;
+  }
+
+  const firestore = getFirestore();
+
+  // Идемпотентность: onDocumentCreated гарантирует "at-least-once" —
+  // Cloud Functions может повторно вызвать обработчик для того же
+  // документа при инфраструктурном retry. Без этой проверки повторный
+  // вызов отправил бы push и создал дубликат записи в notifications ещё раз.
+  const alreadyProcessed = await firestore
+      .collection('notifications')
+      .where('relatedNewsId', '==', newsId)
+      .limit(1)
+      .get();
+  if (!alreadyProcessed.empty) {
+    console.log(`onNewsCreated(${newsId}): уже обработано, пропускаем`);
     return;
   }
 
   const categoryLabel = CATEGORY_LABELS_RU[category] || 'Важно';
-  const title = `${categoryLabel}: ${news.title}`;
+  const title = `${categoryLabel}: ${newsTitle}`;
   const body = news.description || '';
   const topic = `district_${districtId}`;
 
   // 1. Отправка push через FCM Topic конкретного района.
-  await getMessaging().send({
-    topic,
-    notification: { title, body },
-    data: {
-      newsId,
-      category,
-      districtId,
-    },
-  });
+  try {
+    await getMessaging().send({
+      topic,
+      notification: { title, body },
+      data: {
+        newsId,
+        category,
+        districtId,
+      },
+    });
+  } catch (err) {
+    console.error(`onNewsCreated(${newsId}): отправка push через FCM не удалась`, err);
+    return;
+  }
 
-  // 2. Параллельно создаём документ в notifications — это то, что клиент
-  //    видит в истории уведомлений (экран "Уведомления"), даже если
-  //    устройство было офлайн в момент отправки push.
-  await getFirestore().collection('notifications').add({
-    title,
-    body,
-    relatedNewsId: newsId,
-    category,
-    district: districtId,
-    isRead: false,
-    createdAt: FieldValue.serverTimestamp(),
-  });
+  // 2. Создаём документ в notifications — это то, что клиент видит в
+  //    истории уведомлений (экран "Уведомления"), даже если устройство
+  //    было офлайн в момент отправки push.
+  try {
+    await firestore.collection('notifications').add({
+      title,
+      body,
+      relatedNewsId: newsId,
+      category,
+      district: districtId,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (err) {
+    console.error(`onNewsCreated(${newsId}): push отправлен, но запись в notifications не создана`, err);
+  }
 });

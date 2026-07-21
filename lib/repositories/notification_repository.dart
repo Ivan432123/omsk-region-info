@@ -17,21 +17,4 @@ class NotificationRepository {
         .snapshots()
         .map((snap) => snap.docs.map(NotificationModel.fromFirestore).toList());
   }
-
-  Future<void> markAsRead(String notificationId) async {
-    await _firestoreService
-        .collection(AppConstants.collectionNotifications)
-        .doc(notificationId)
-        .update({'isRead': true});
-  }
-
-  Future<int> getUnreadCount(String districtId) async {
-    final snapshot = await _firestoreService
-        .collection(AppConstants.collectionNotifications)
-        .where('district', isEqualTo: districtId)
-        .where('isRead', isEqualTo: false)
-        .count()
-        .get();
-    return snapshot.count ?? 0;
-  }
 }

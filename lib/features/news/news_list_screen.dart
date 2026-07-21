@@ -149,6 +149,7 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                       }
                       final news = newsState.items[index];
                       return NewsCard(
+                        key: ValueKey(news.id),
                         news: news,
                         heroTag: 'news_${news.id}',
                         onTap: () => context.push('/news/${news.id}'),

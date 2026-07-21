@@ -26,6 +26,12 @@ class BannerPricing {
     30: 1600,
   };
 
-  static int priceFor(int durationDays) =>
-      priceByDurationDays[durationDays] ?? 0;
+  static int priceFor(int durationDays) {
+    final price = priceByDurationDays[durationDays];
+    if (price == null) {
+      throw ArgumentError.value(
+          durationDays, 'durationDays', 'Нет тарифа для этого срока');
+    }
+    return price;
+  }
 }

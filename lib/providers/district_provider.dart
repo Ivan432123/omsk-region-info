@@ -13,7 +13,13 @@ final fcmServiceProvider = Provider((ref) => FcmService());
 typedef DistrictPickResult = ({String id, String name});
 
 /// Список всех активных районов (для экрана выбора района).
-final districtsListProvider = FutureProvider<List<DistrictModel>>((ref) async {
+/// autoDispose: без него список районов, однажды загруженный, кэшировался бы
+/// на всю сессию приложения — новый район, добавленный администратором,
+/// не появился бы без полного перезапуска. Экран District Selection
+/// посещается редко (первый запуск, смена района в настройках), поэтому
+/// повторный запрос при каждом заходе не создаёт заметной нагрузки.
+final districtsListProvider =
+    FutureProvider.autoDispose<List<DistrictModel>>((ref) async {
   final repo = ref.watch(districtRepositoryProvider);
   return repo.getDistricts();
 });

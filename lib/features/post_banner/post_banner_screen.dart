@@ -191,50 +191,64 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
           Text('Изображение баннера',
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          if (_imageUrlController.text.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: CachedNetworkImage(
-                    imageUrl: _imageUrlController.text,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        Container(color: AppTheme.surfaceVariant(context)),
-                    errorWidget: (_, __, ___) => Container(
-                      color: AppTheme.surfaceVariant(context),
-                      child: Icon(Icons.image_not_supported_outlined,
-                          color: AppTheme.textSecondary(context)),
+          // ValueListenableBuilder, а не onChanged+setState на весь _buildForm:
+          // только превью картинки и подпись кнопки зависят от текста ссылки,
+          // остальная форма (другие поля, варианты срока размещения) не
+          // должна перестраиваться на каждое нажатие клавиши.
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _imageUrlController,
+            builder: (context, value, _) {
+              final imageUrl = value.text;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (imageUrl.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(
+                                color: AppTheme.surfaceVariant(context)),
+                            errorWidget: (_, __, ___) => Container(
+                              color: AppTheme.surfaceVariant(context),
+                              child: Icon(Icons.image_not_supported_outlined,
+                                  color: AppTheme.textSecondary(context)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _isUploadingImage ? null : _pickAndUploadImage,
+                      icon: _isUploadingImage
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.photo_library_outlined, size: 18),
+                      label: Text(_isUploadingImage
+                          ? 'Загрузка...'
+                          : (imageUrl.isEmpty
+                              ? 'Загрузить фото с телефона'
+                              : 'Заменить фото')),
                     ),
                   ),
-                ),
-              ),
-            ),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _isUploadingImage ? null : _pickAndUploadImage,
-              icon: _isUploadingImage
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.photo_library_outlined, size: 18),
-              label: Text(_isUploadingImage
-                  ? 'Загрузка...'
-                  : (_imageUrlController.text.isEmpty
-                      ? 'Загрузить фото с телефона'
-                      : 'Заменить фото')),
-            ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _imageUrlController,
             keyboardType: TextInputType.url,
-            onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
               hintText: 'или вставьте ссылку на готовое изображение',
             ),

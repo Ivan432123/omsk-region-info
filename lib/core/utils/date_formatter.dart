@@ -20,7 +20,7 @@ class DateFormatter {
     final now = DateTime.now();
     final diff = now.difference(date);
 
-    if (diff.inSeconds < 60) return 'Только что';
+    if (diff.isNegative || diff.inSeconds < 60) return 'Только что';
     if (diff.inMinutes < 60) return '${diff.inMinutes} мин назад';
     if (diff.inHours < 24) return '${diff.inHours} ч назад';
     if (diff.inDays == 1) return 'Вчера';
@@ -40,7 +40,9 @@ class PhoneFormatter {
     final normalized =
         digits.startsWith('8') ? '7${digits.substring(1)}' : digits;
 
-    if (normalized.length != 11) return rawPhone;
+    if (normalized.length != 11 || !normalized.startsWith('7')) {
+      return rawPhone;
+    }
 
     final code = normalized.substring(1, 4);
     final part1 = normalized.substring(4, 7);
@@ -56,7 +58,7 @@ class PhoneFormatter {
   /// к полноценным российским номерам из 10-11 цифр, иначе он их портит.
   static String toDialFormat(String rawPhone) {
     final digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length < 10) {
+    if (digits.length < 10 || digits.length > 11) {
       return digits;
     }
     if (digits.startsWith('8') && digits.length == 11) {

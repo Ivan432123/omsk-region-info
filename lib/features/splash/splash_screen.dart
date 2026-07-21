@@ -52,11 +52,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     final selected = ref.read(selectedDistrictProvider);
 
-    // Если провайдер ещё не успел прочитать SharedPreferences — ждём его.
+    // Если провайдер ещё не успел прочитать SharedPreferences — ждём его,
+    // но не бесконечно: если что-то пошло не так и isLoading никогда не
+    // станет false, сплэш не должен зависать навсегда без запасного пути.
     if (selected.isLoading) {
+      var waited = Duration.zero;
+      const pollInterval = Duration(milliseconds: 100);
+      const maxWait = Duration(seconds: 5);
       await Future.doWhile(() async {
-        await Future.delayed(const Duration(milliseconds: 100));
-        return ref.read(selectedDistrictProvider).isLoading && mounted;
+        await Future.delayed(pollInterval);
+        waited += pollInterval;
+        return ref.read(selectedDistrictProvider).isLoading &&
+            mounted &&
+            waited < maxWait;
       });
     }
 

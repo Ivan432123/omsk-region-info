@@ -80,7 +80,11 @@ class VacancyListNotifier extends StateNotifier<VacancyListState> {
         startAfter: state.lastDoc,
       );
       state = state.copyWith(
-        items: [...state.items, ...result.items],
+        items: [
+          ...state.items,
+          ...result.items.where(
+              (v) => state.items.every((existing) => existing.id != v.id)),
+        ],
         isLoadingMore: false,
         hasMore: result.items.length == AppConstants.pageSize,
         lastDoc: result.lastDoc ?? state.lastDoc,

@@ -24,10 +24,15 @@ class VacancyCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(vacancy.title, style: Theme.of(context).textTheme.titleMedium),
+            Text(vacancy.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
               vacancy.company,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                   color: AppTheme.textSecondary(context), fontSize: 13),
             ),

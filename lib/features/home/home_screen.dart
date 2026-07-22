@@ -50,12 +50,10 @@ class HomeScreen extends ConsumerWidget {
             // гарантировано.
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              SliverToBoxAdapter(
-                child: _HeroHeader(
-                  districtName: district.name ?? '',
-                  onSearchTap: () => context.push('/search'),
-                  onSettingsTap: () => context.push('/settings'),
-                ),
+              _HeroHeader(
+                districtName: district.name ?? '',
+                onSearchTap: () => context.push('/search'),
+                onSettingsTap: () => context.push('/settings'),
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -523,6 +521,14 @@ class _HorizontalStripSkeleton extends StatelessWidget {
   }
 }
 
+/// Шапка Главной — теперь SliverAppBar, а не статичный блок: при скролле
+/// вниз крупный баннер (заголовок + подпись) сжимается в тонкую полосу,
+/// освобождая экран под реальный контент для тех, кто уже знает, что это
+/// за приложение и открывает его не первый раз. Район, поиск и настройки
+/// вынесены в title/actions самого SliverAppBar — они часть неподвижного
+/// тулбара и остаются на месте и в развёрнутом, и в свёрнутом виде
+/// (в отличие от "ОМСКРЕГИОН ИНФО" и подписи, которые живут только в
+/// flexibleSpace и исчезают при сворачивании).
 class _HeroHeader extends StatelessWidget {
   final String districtName;
   final VoidCallback onSearchTap;
@@ -536,97 +542,94 @@ class _HeroHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.primaryBlue, AppTheme.primaryBlueDark],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: 186,
+      backgroundColor: AppTheme.primaryBlueDark,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      titleSpacing: 12,
+      title: Row(
         children: [
-          Row(
+          const Icon(Icons.location_on_rounded, color: Colors.white, size: 18),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              districtName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        InkWell(
+          onTap: onSearchTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            margin: const EdgeInsets.only(right: 4),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.search_rounded, color: Colors.white),
+          ),
+        ),
+        InkWell(
+          onTap: onSettingsTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.settings_outlined, color: Colors.white),
+          ),
+        ),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppTheme.primaryBlue, AppTheme.primaryBlueDark],
+            ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(28),
+              bottomRight: Radius.circular(28),
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, kToolbarHeight + 16, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.location_on_rounded,
-                          color: Colors.white, size: 18),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        districtName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ],
+              const Text(
+                'ОМСКРЕГИОН ИНФО',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: onSearchTap,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.search_rounded, color: Colors.white),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: onSettingsTap,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child:
-                      const Icon(Icons.settings_outlined, color: Colors.white),
-                ),
+              const SizedBox(height: 4),
+              Text(
+                'Всё самое важное о вашем районе — в одном месте',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'ОМСКРЕГИОН ИНФО',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Всё самое важное о вашем районе — в одном месте',
-            style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -49,6 +49,16 @@ class _OrganizationsListScreenState
       appBar: AppBar(
         title: const Text('Организации'),
         actions: [
+          // На Главной поиск открывается по значку в шапке; здесь того же
+          // входа не было вообще — из раздела "Организации" до поиска можно
+          // было добраться только вернувшись на Главную. Экран поиска уже
+          // ищет по организациям (см. SearchScreen), просто сюда не было
+          // прямой ссылки.
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            tooltip: 'Поиск',
+            onPressed: () => context.push('/search'),
+          ),
           IconButton(
             icon: const Icon(Icons.bookmark_rounded),
             tooltip: 'Мои закладки',

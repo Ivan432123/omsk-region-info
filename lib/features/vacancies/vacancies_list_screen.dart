@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../providers/vacancy_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -45,9 +46,21 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
     final district = ref.watch(selectedDistrictProvider);
     final districtId = district.id ?? '';
     final state = ref.watch(vacancyListProvider(districtId));
+    final vacancySubmissionEnabled =
+        ref.watch(featureFlagsProvider).valueOrNull?.vacancySubmissionEnabled ??
+            false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Вакансии')),
+      appBar: AppBar(
+        title: const Text('Вакансии'),
+        actions: [
+          if (vacancySubmissionEnabled)
+            TextButton(
+              onPressed: () => context.push('/post-vacancy'),
+              child: const Text('Разместить →'),
+            ),
+        ],
+      ),
       body: state.isLoading
           ? const LoadingListWidget()
           : state.error != null

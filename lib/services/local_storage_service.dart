@@ -10,6 +10,7 @@ import '../core/constants/app_constants.dart';
 class LocalStorageService {
   static const String _keyMyAdRequests = 'my_ad_requests';
   static const String _keyMyBannerRequests = 'my_banner_requests';
+  static const String _keyMyVacancyRequests = 'my_vacancy_requests';
   static const String _keyLastSeenAnnouncementsPrefix =
       'last_seen_announcements_';
   static const String _keyLastSeenNotificationsPrefix =
@@ -95,6 +96,29 @@ class LocalStorageService {
   Future<List<Map<String, dynamic>>> getMyBannerRequests() async {
     final prefs = await _prefs;
     final raw = prefs.getString(_keyMyBannerRequests);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List;
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Сохраняет отправленную работодателем заявку на вакансию локально на
+  /// устройстве — по тому же принципу, что и заявки на баннер (см.
+  /// saveMyBannerRequest), чтобы реквизиты оплаты можно было посмотреть снова.
+  Future<void> saveMyVacancyRequest(Map<String, dynamic> request) async {
+    final prefs = await _prefs;
+    final existing = await getMyVacancyRequests();
+    existing.insert(0, request);
+    final trimmed = existing.take(10).toList();
+    await prefs.setString(_keyMyVacancyRequests, jsonEncode(trimmed));
+  }
+
+  Future<List<Map<String, dynamic>>> getMyVacancyRequests() async {
+    final prefs = await _prefs;
+    final raw = prefs.getString(_keyMyVacancyRequests);
     if (raw == null || raw.isEmpty) return [];
     try {
       final decoded = jsonDecode(raw) as List;

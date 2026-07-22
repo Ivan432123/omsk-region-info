@@ -23,6 +23,8 @@ import '../../features/post_announcement/post_announcement_screen.dart';
 import '../../features/post_announcement/my_ad_requests_screen.dart';
 import '../../features/post_banner/post_banner_screen.dart';
 import '../../features/post_banner/my_banner_requests_screen.dart';
+import '../../features/post_vacancy/post_vacancy_screen.dart';
+import '../../features/post_vacancy/my_vacancy_requests_screen.dart';
 import '../../features/bus_routes/bus_routes_list_screen.dart';
 import '../../features/bus_routes/bus_route_details_screen.dart';
 import 'scaffold_with_nav_bar.dart';
@@ -79,6 +81,14 @@ class AppRouter {
       GoRoute(
         path: '/my-banner-requests',
         builder: (context, state) => const MyBannerRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/post-vacancy',
+        builder: (context, state) => const PostVacancyScreen(),
+      ),
+      GoRoute(
+        path: '/my-vacancy-requests',
+        builder: (context, state) => const MyVacancyRequestsScreen(),
       ),
       GoRoute(
         path: '/vacancies',

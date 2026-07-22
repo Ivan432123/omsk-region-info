@@ -89,13 +89,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Районные админы больше не создают вакансии сами — платная подача
+    // через заявку работодателя (см. vacancy_requests ниже) модерируется
+    // только супер-админом, поэтому isDistrictAdminFor здесь больше не нужен.
     match /vacancies/{vacancyId} {
       allow read: if true;
-      allow create: if isAdmin() || isDistrictAdminFor(request.resource.data.district);
-      allow delete: if isAdmin() || isDistrictAdminFor(resource.data.district);
-      allow update: if isAdmin() ||
-          (isDistrictAdminFor(resource.data.district) &&
-           request.resource.data.district == resource.data.district);
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      allow update: if isAdmin();
     }
 
     match /announcements/{announcementId} {
@@ -229,6 +230,30 @@ service cloud.firestore {
           request.resource.data.price is int && request.resource.data.price > 0 &&
           request.resource.data.status == 'pending' &&
           request.resource.data.district is string;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Заявки работодателей на публикацию вакансии — видит и модерирует
+    // ТОЛЬКО супер-админ, сразу со всех районов (в отличие от ad_requests,
+    // где районный админ видит бесплатные заявки своего района). Цена
+    // фиксированная (см. VacancyRequestPricing), поэтому здесь нет полей
+    // durationDays/wantsPush, как у banner_requests/ad_requests.
+    match /vacancy_requests/{requestId} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.title is string &&
+          request.resource.data.title.size() > 0 && request.resource.data.title.size() < 200 &&
+          request.resource.data.company is string &&
+          request.resource.data.company.size() > 0 && request.resource.data.company.size() < 200 &&
+          request.resource.data.description is string &&
+          request.resource.data.description.size() < 3000 &&
+          request.resource.data.phone is string &&
+          request.resource.data.price is int && request.resource.data.price > 0 &&
+          request.resource.data.status == 'pending' &&
+          request.resource.data.district is string &&
+          (!('salary' in request.resource.data) ||
+           request.resource.data.salary == null ||
+           (request.resource.data.salary is string && request.resource.data.salary.size() < 100));
       allow update: if isAdmin();
       allow delete: if false;
     }

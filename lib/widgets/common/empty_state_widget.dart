@@ -65,6 +65,14 @@ class EmptyStateWidget extends StatelessWidget {
         actionLabel = null,
         onAction = null;
 
+  const EmptyStateWidget.vacancySubmissionDisabled({super.key})
+      : icon = Icons.work_outline_rounded,
+        title = 'Приём вакансий временно недоступен',
+        subtitle =
+            'Администратор сейчас не принимает новые заявки на публикацию вакансий — загляните позже',
+        actionLabel = null,
+        onAction = null;
+
   factory EmptyStateWidget.error({VoidCallback? onRetry}) {
     return EmptyStateWidget(
       icon: Icons.wifi_off_rounded,

@@ -56,3 +56,12 @@ class AnnouncementPromotionPricing {
     return price;
   }
 }
+
+/// Цена публикации вакансии работодателем — в отличие от баннеров и
+/// объявлений, фиксированная и без выбора срока: платного продвижения
+/// поверх стандартных 30 дней (см. VacancyRepository._maxAge) пока нет.
+class VacancyRequestPricing {
+  VacancyRequestPricing._();
+
+  static const int price = 600;
+}

@@ -1,122 +1,180 @@
 # ОМСКРЕГИОН ИНФО
 
-Информационный сервис для жителей районов Омской области. MVP-версия,
-готовая к коммерческому запуску в RuStore с последующим расширением
-на все районы Омской области и все регионы России.
+Информационный сервис для жителей районов Омской области. Вышло далеко за
+рамки исходного MVP: помимо новостей и организаций — вакансии, объявления
+жителей, афиша, автобусные маршруты, партнёрская реклама с самостоятельной
+подачей и платным продвижением, ролевая веб-админка (супер-админ + районные
+админы).
 
 ## Содержание
 
 1. Технологический стек
 2. Архитектура
 3. Структура проекта
-4. Логика push-уведомлений (важно)
-5. Настройка Firebase
-6. Настройка проекта и запуск
-7. Наполнение демо-данными
-8. Деплой в RuStore
-9. Дальнейшее расширение
-10. Безопасность
+4. Роли и модерация контента
+5. Монетизация
+6. Логика push-уведомлений (важно)
+7. Настройка Firebase
+8. Настройка проекта и запуск
+9. Тесты
+10. Наполнение демо-данными
+11. Веб-админка
+12. Сборка Android (Codemagic)
+13. Дальнейшее расширение
+14. Безопасность
+15. Статус проекта
 
 ---
 
 ## 1. Технологический стек
 
-- **Flutter 3.x**, null safety, Material 3
-- **Riverpod** — управление состоянием (StateNotifier + FutureProvider/StreamProvider)
-- **GoRouter** — навигация
-- **Firebase**: Firestore, Cloud Storage, Cloud Messaging, Cloud Functions
-- **MVVM + Repository Pattern**: экраны → провайдеры (ViewModel) → репозитории → Firestore
+- **Flutter 3.x**, null safety, Material 3, тёмная тема (`ThemeMode.system`)
+- **Riverpod** — управление состоянием (StateNotifier + FutureProvider,
+  большинство `autoDispose` — экраны должны сами обновляться после действий
+  админа, а не только при перезапуске приложения)
+- **GoRouter** — навигация, включая `StatefulShellBranch` для нижней панели
+- **Firebase**: Firestore, Cloud Storage, Cloud Messaging (только подписка
+  на topics — сама отправка push НЕ через Firebase, см. раздел 6)
+- **Cloudinary** — загрузка фото (объявления, баннеры, галереи организаций)
+  из приложения и из админки, общий пресет
+- **Open-Meteo** (без ключа) — погода и геокодирование координат района
+  (`WeatherRepository`, `GeocodingRepository`)
+- **Веб-админка** (`docs/index.html`) — не Flutter, обычный HTML/JS,
+  Firebase JS SDK (compat), захостена на GitHub Pages
+- **MVVM + Repository Pattern**: экраны → провайдеры (ViewModel) →
+  репозитории → Firestore/HTTP
 
 ## 2. Архитектура
 
 ```
 UI (features/*)
    ↓ читает/вызывает
-Providers (providers/*)      ← Riverpod StateNotifier / FutureProvider / StreamProvider
+Providers (providers/*)      ← Riverpod StateNotifier / FutureProvider
    ↓ вызывает
 Repositories (repositories/*) ← Repository Pattern, единственная точка доступа к данным
    ↓ использует
-Services (services/*)         ← FirestoreService, FcmService, LocalStorageService
+Services (services/*)         ← FirestoreService, FcmService, LocalStorageService, ImageUploadService
    ↓
-Firebase (Firestore / Storage / FCM)
+Firebase (Firestore / Storage / FCM) + Cloudinary + Open-Meteo
 ```
 
-Модели (`models/*`) — простые неизменяемые классы с `fromFirestore`/`toMap`,
-не содержат бизнес-логики.
-
-Каждый слой заменяем независимо от других (SOLID, Dependency Inversion) —
-например, `FirestoreService` можно подменить в тестах mock-реализацией без
-изменения репозиториев или UI.
+Модели (`models/*`) — простые неизменяемые классы с `fromFirestore`/`toMap`;
+почти без бизнес-логики, кроме единичных вычисляемых геттеров вроде
+`AnnouncementModel.isPromoted` (есть ли активное платное продвижение).
 
 ## 3. Структура проекта
 
 ```
 lib/
   core/
-    theme/app_theme.dart          — единая тема (Material 3, синий/белый/красный)
-    constants/app_constants.dart  — коллекции, ключи хранилища, категории
-    router/app_router.dart        — GoRouter конфигурация
-    utils/date_formatter.dart     — форматы даты/времени/телефона (ru_RU)
-    utils/input_sanitizer.dart    — валидация и очистка ввода
-  models/                         — District, News, Organization, Notification
-  repositories/                   — District/News/Organization/NotificationRepository
-  services/                       — FirestoreService, FcmService, LocalStorageService
+    theme/app_theme.dart          — тема (светлая/тёмная, Material 3)
+    constants/                    — коллекции, категории, тарифы рекламы, геокодинг районов
+    router/                       — GoRouter + нижняя навигация (собственная, не NavigationBar)
+    utils/                        — форматы даты/телефона, InputSanitizer, коды погоды
+  models/                         — District, News, Organization, Vacancy, Announcement,
+                                     AdRequest, BannerRequest, SponsoredContent, BusRoute,
+                                     Event, Notification, Weather
+  repositories/                   — по одному на модель + WeatherRepository/GeocodingRepository
+  services/                       — FirestoreService, FcmService, LocalStorageService, ImageUploadService
   providers/                      — Riverpod-провайдеры (состояние экранов)
   features/
-    splash/                       — Splash Screen
-    district_selection/           — Выбор района (поиск + список + сохранение навсегда)
-    home/                         — Главный экран
-    news/                         — Список новостей + детали новости
-    organizations/                — Список организаций + детали организации
-    notifications/                — История уведомлений
-  widgets/
-    common/                       — EmptyState, Loading, CategoryChip
-    news/news_card.dart
-    organizations/organization_card.dart
+    splash/, district_selection/, home/, news/, organizations/,
+    vacancies/, announcements/, post_announcement/, events/, bus_routes/,
+    post_banner/, search/, settings/, notifications/
+  widgets/                        — карточки и общие виджеты по фичам
   main.dart
-  firebase_options.dart           — ШАБЛОН, см. раздел 5
+  firebase_options.dart           — ШАБЛОН, см. раздел 7
+
+test/
+  models/                         — unit-тесты на бизнес-логику моделей (пока минимально)
+
+docs/
+  index.html                      — веб-админка (GitHub Pages), см. раздел 11
 
 functions/
-  index.js                        — Cloud Function: серверная логика push-уведомлений
-  package.json
+  index.js                        — Cloud Function НЕ ЗАДЕПЛОЕНА (Blaze недоступен на
+                                     текущем тарифе), оставлена как справочная реализация
+                                     той же логики фильтрации push. Реальный push идёт
+                                     через Cloudflare Worker из docs/index.html, см. раздел 6
 
 seed/
-  seed.js                         — Наполнение Firestore демо-данными
+  seed.js                         — наполнение Firestore демо-данными
 
-firestore.rules                  — правила безопасности
-firestore.indexes.json           — необходимые составные индексы
-firebase.json                    — конфигурация Firebase CLI
+codemagic.yaml                    — CI-сборка Android APK (запускается вручную)
+firestore.rules                   — правила безопасности (роли, см. раздел 4)
+firestore.indexes.json            — composite-индексы
+firebase.json                     — конфигурация Firebase CLI (hosting/firestore/functions)
 ```
 
-## 4. Логика push-уведомлений (важно)
+Папки `android/`, `ios/` в репозитории нет — их создаёт `flutter create` на
+каждой сборке Codemagic (см. раздел 12); правки манифеста живут в
+`codemagic.yaml`, а не в закоммиченных platform-файлах.
 
-**Требование продукта:** только категории `water`, `gas`, `electricity`,
-`emergency` должны автоматически рассылать push-уведомления. Категория
-`general` (и любые другие категории) — никогда.
+## 4. Роли и модерация контента
 
-**Это решение реализовано на сервере, а не на клиенте.** Клиентское
-приложение никогда не решает, отправлять push или нет — оно только:
+Два уровня доступа к веб-админке, оба через Firebase Auth (email/пароль):
 
-1. Подписывается на Firestore Cloud Messaging topic вида
-   `district_<districtId>` при выборе района (`FcmService.subscribeToDistrict`).
-2. Слушает коллекцию `notifications`, отфильтрованную по своему району,
-   для отображения истории (экран "Уведомления").
+- **Супер-админ** — единственный email, захардкоженный в `isAdmin()`
+  (`firestore.rules`). Видит и пишет всё, включая разделы, недоступные
+  районным админам: управление районами, назначение районных админов,
+  рекламные баннеры, платные заявки на объявления (со всех районов сразу).
+- **Районный админ** — документ в `district_admins/{uid}` (создаёт только
+  супер-админ), привязан к одному району. Видит и редактирует контент
+  только своего района (сверено и на клиенте через `currentDistrictId`, и на
+  сервере через `isDistrictAdminFor()` в правилах). Модерирует **только
+  бесплатные** заявки на объявления своего района.
 
-Фактическая отправка push происходит в `functions/index.js`
-(`onNewsCreated`): при создании документа в коллекции `news` Cloud Function
-проверяет поле `category`. Если категория входит в список
-push-триггерящих — функция:
-- отправляет push в topic `district_<districtId>`;
-- создаёт документ в `notifications` (чтобы история была видна даже тем,
-  кто был офлайн в момент отправки);
-- принудительно проставляет корректное значение `sendPush` в документе
-  новости (не доверяя значению, которое могло прийти от клиента/админки).
+Заявки жителей на объявления (`ad_requests`) с выбранным платным
+продвижением (🔥, push всем в районе) видит и публикует **только
+супер-админ** — районный админ не может задним числом включить платное
+продвижение или разослать push сам.
 
-Это гарантирует, что даже если админ-панель (future scope) отправит
-некорректное значение `sendPush`, финальное решение всё равно проверяется
-на сервере.
+## 5. Монетизация
 
-## 5. Настройка Firebase
+- **Объявления жителей**: подача без регистрации (`post_announcement`) →
+  заявка в `ad_requests` → модерация (см. раздел 4) → публикация в
+  `announcements`. При платном продвижении проставляется `promotedUntil`
+  (используется `AnnouncementModel.isPromoted` в приложении и админке).
+  Бесплатные объявления автоматически перестают показываться в ленте через
+  14 дней после публикации, но остаются в списке админки без ограничения.
+- **Рекламные баннеры**: самостоятельная подача рекламодателем
+  (`post_banner`, без регистрации) → заявка в `banner_requests` с тарифом
+  (7/14/30 дней, см. `BannerPricing` в `app_constants`/`payment_info`) →
+  модерация и публикация только супер-админом в `sponsored_content`.
+  Баннер может быть привязан к одному району или ко всем (`district: 'all'`).
+- **Оплата — вручную**: реквизиты для перевода (СБП) показываются жителю
+  после подачи заявки, администратор сверяет поступление перед публикацией.
+  Платёжный SDK (ЮKassa и т.п.) сознательно не подключался.
+
+## 6. Логика push-уведомлений (важно)
+
+**Продуктовое требование не изменилось:** только категории новостей `water`,
+`gas`, `electricity`, `emergency` рассылают push автоматически; `general` и
+любые другие — никогда. Платное продвижение объявления тоже рассылает push
+всем подписчикам района.
+
+**Как это реализовано сейчас (отличается от исходного плана в
+`functions/index.js`):** Firebase-проект на бесплатном тарифе Spark, Cloud
+Functions v2 требует Blaze — задеплоить нельзя. Поэтому:
+
+1. Приложение только подписывается на FCM topic `district_<districtId>`
+   (`FcmService.subscribeToDistrict`) и слушает коллекцию `notifications`
+   для истории — как и раньше.
+2. Реальную отправку делает веб-админка (`docs/index.html`): при публикации
+   новости push-категории или платного объявления она вызывает
+   `sendPushNotification()`, которая шлёт POST (с Firebase ID-токеном
+   администратора) на Cloudflare Worker (`PUSH_WORKER_URL` в
+   `docs/index.html`).
+3. Сам Worker **не хранится в этом репозитории** — управляется отдельно
+   (Cloudflare dashboard/wrangler). При изменении логики рассылки его нужно
+   редактировать там, правки в `docs/index.html` или `functions/index.js`
+   на него не влияют.
+4. `functions/index.js` оставлен только как справочная реализация той же
+   бизнес-логики на случай перехода на Blaze в будущем — это мёртвый код,
+   `firebase deploy --only functions` его не запускает автоматически ни при
+   каких обстоятельствах в текущем pipeline.
+
+## 7. Настройка Firebase
 
 1. Создайте проект в [Firebase Console](https://console.firebase.google.com).
 2. Включите Firestore, Storage, Cloud Messaging.
@@ -125,105 +183,115 @@ push-триггерящих — функция:
    dart pub global activate flutterfire_cli
    flutterfire configure --project=<ваш-project-id>
    ```
-   Это заменит шаблонный файл `lib/firebase_options.dart` реальными ключами.
 4. Разверните правила безопасности и индексы:
    ```bash
    firebase deploy --only firestore:rules,firestore:indexes
    ```
-5. Разверните Cloud Function:
-   ```bash
-   cd functions
-   npm install
-   cd ..
-   firebase deploy --only functions
-   ```
+5. Cloud Functions разворачивать не нужно (см. раздел 6) — только если
+   тариф проекта сменится на Blaze и вы осознанно решите перейти на них.
 
-## 6. Настройка проекта и запуск
+## 8. Настройка проекта и запуск
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-Для регенерации моделей (если добавите `freezed`/`json_serializable` поля):
+Регенерация моделей (если добавите `freezed`/`json_serializable` поля):
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-## 7. Наполнение демо-данными
+## 9. Тесты
+
+```bash
+flutter test
+```
+
+Покрытие пока минимальное (`test/models/`) — юнит-тесты только на чистую
+бизнес-логику моделей (например, `AnnouncementModel.isPromoted`). Модерация
+и права доступа проверяются `firestore.rules` и логикой `docs/index.html`,
+их тестирование потребовало бы Firebase emulator + `@firebase/rules-unit-testing`
+(в проекте пока не подключено).
+
+## 10. Наполнение демо-данными
 
 1. Firebase Console → Project Settings → Service Accounts →
    Generate new private key → сохраните как `seed/serviceAccountKey.json`
-   (файл уже добавлен в `.gitignore`, не коммитьте его).
+   (файл уже в `.gitignore`, не коммитьте его).
 2. Запустите:
    ```bash
    cd seed
    npm install firebase-admin
    node seed.js
    ```
-Скрипт создаст 6 демо-районов Омской области, набор новостей по всем
-категориям и организации (администрация, МФЦ, больница, поликлиника,
-школа, детский сад, дом культуры).
 
-## 8. Деплой в RuStore
+## 11. Веб-админка
 
-1. Соберите релизный APK/AAB:
-   ```bash
-   flutter build appbundle --release
-   ```
-2. Зарегистрируйтесь как разработчик в [RuStore Console](https://console.rustore.ru).
-3. Загрузите `.aab`, заполните карточку приложения на русском языке
-   (название "ОМСКРЕГИОН ИНФО", описание, скриншоты, политика конфиденциальности).
-4. Укажите разрешение на push-уведомления и обоснование геолокации не
-   требуется (MVP не запрашивает геолокацию устройства — район выбирается
-   вручную).
-5. Пройдите модерацию RuStore (обычно 1–3 рабочих дня).
+`docs/index.html` — единственная точка администрирования всего контента
+(новости, организации, вакансии, объявления, события, баннеры, автобусные
+маршруты), захостена на GitHub Pages (папка `docs/` в главной ветке).
+Обновляется обычным `git push` в `main` — отдельного деплоя не требует
+(в отличие от `firestore.rules`, который нужно деплоить через Firebase CLI
+отдельно).
 
-## 9. Дальнейшее расширение (архитектура уже это учитывает)
+Ролевой доступ — см. раздел 4. У супер-админа дополнительно есть простая
+статистика по объявлениям (всего/платных/бесплатных, за всё время и за
+7 дней, по всем районам сразу) со сбросом счётчика.
+
+## 12. Сборка Android (Codemagic)
+
+Автотриггера на push в репозиторий нет — сборка запускается вручную
+кнопкой "Start new build" в Codemagic. Текущий workflow (`codemagic.yaml`)
+собирает **debug APK**: генерирует `android/` через `flutter create`,
+добавляет разрешение `POST_NOTIFICATIONS` в манифест и собирает
+`flutter build apk --debug`.
+
+Для релизной сборки (RuStore) потребуется отдельный release-workflow с
+подписью (`flutter build appbundle --release`), это ещё не настроено.
+
+## 13. Дальнейшее расширение
 
 - **Фильтрация по сёлам внутри района** — поле `villages` уже есть в
   `DistrictModel`, поле `village` — в `NewsModel`. Остаётся добавить
   экран выбора села и фильтр в `NewsRepository`.
 - **Весь Омский регион / вся Россия** — поле `regionId` в `DistrictModel`
-  уже заложено (сейчас всегда `"omsk"`). Экран выбора района достаточно
-  расширить на выбор региона → района, репозитории не меняются.
-- **Админ-панель** — отдельное Flutter Web или React-приложение,
-  использующее Admin SDK для записи в те же коллекции; мобильное
-  приложение продолжит работать без изменений, так как вся запись и так
-  происходит только через сервер (см. `firestore.rules`).
-- **Бизнес-кабинет / реклама / платные push** — новые коллекции
-  (`businesses`, `ads`, `promoted_notifications`) добавляются без
-  изменения структуры `districts`/`news`/`organizations`.
-- **Погода, события** — новые фичи по аналогии с `features/news`, тот же
-  паттерн Repository → Provider → UI.
+  уже заложено (сейчас всегда `"omsk"`).
+- **Автоматизация оплаты** (ЮKassa/СБП-эквайринг) — сейчас админ сверяет
+  переводы вручную; интеграция потребует бэкенда, а Cloud Functions
+  недоступны (см. раздел 6) — вероятно, тоже через Cloudflare Worker.
+- **Платное продвижение вакансий** (по аналогии с `promotedUntil` у
+  объявлений) — у вакансий пока вообще нет пользовательского flow подачи
+  (только админ добавляет напрямую).
+- **Реальные данные автобусных маршрутов** — коллекция `bus_routes` в
+  проде пока пустая, форма добавления в админке уже готова.
 
-## 10. Безопасность
+## 14. Безопасность
 
-- Приложение работает без регистрации — клиент никогда не пишет в
-  `districts`, `news`, `organizations` (см. `firestore.rules`).
-- Единственная разрешённая клиенту операция записи — пометка одного
-  уведомления как прочитанного, ограниченная на уровне правил только
-  полем `isRead`.
-- Поисковый ввод и любые будущие поля форм проходят через
-  `InputSanitizer` (очистка управляющих символов, ограничение длины).
-- API-ключи Firebase, сгенерированные `flutterfire configure`, должны
-  быть ограничены в Google Cloud Console (API restrictions) до релиза.
-- Сервисный ключ для `seed.js` не должен попадать в систему контроля
-  версий — добавьте `seed/serviceAccountKey.json` в `.gitignore` (уже
-  сделано в шаблоне ниже).
+- Приложение работает без регистрации — клиент не пишет напрямую в
+  `districts`/`news`/`organizations`; создание `ad_requests`/`banner_requests`
+  разрешено анонимно, но с валидацией полей на уровне правил.
+- Запись в контентные коллекции требует либо `isAdmin()` (супер-админ),
+  либо `isDistrictAdminFor(district)` (районный админ, только свой район) —
+  см. `firestore.rules`.
+- Поисковый ввод и поля форм проходят через `InputSanitizer`.
+- API-ключи Firebase, сгенерированные `flutterfire configure`, должны быть
+  ограничены в Google Cloud Console (API restrictions) до релиза.
+- Сервисный ключ для `seed.js` не коммитится (`.gitignore`).
 
 ---
 
-## Статус MVP
+## 15. Статус проекта
 
-Реализовано: Splash → District Selection → Home → News (список/детали) →
-Organizations (список/детали) → Notifications, пагинация, пустые
-состояния, кэширование изображений, серверная логика push-уведомлений,
-правила безопасности Firestore, скрипт демо-данных.
+Далеко за пределами исходного MVP. Реализовано: District Selection → Home
+(погода, реклама, быстрые переходы) → News → Organizations (рейтинги,
+закладки) → Vacancies → Announcements (подача жителями, платное
+продвижение) → Events → Bus Routes → Notifications; ролевая веб-админка с
+модерацией и статистикой; самостоятельная подача рекламных баннеров;
+push-уведомления через Cloudflare Worker (не Cloud Functions); базовые
+unit-тесты.
 
-Не входит в MVP (сознательно, чтобы не размывать первый релиз):
-регистрация/личный кабинет, геолокация, оффлайн-режим, админ-панель,
-монетизация. Архитектура рассчитана на добавление всего перечисленного
-без переписывания существующего кода.
-# проверка push из Cloud Shell
-# проверка push из Cloud Shell
+Сознательно не сделано: платёжный SDK (оплата вручную), платное
+продвижение вакансий, релизный (не debug) Android-workflow, тестирование
+firestore.rules через emulator. Подробная история изменений по партиям —
+в `TASKS.md`.

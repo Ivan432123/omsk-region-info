@@ -15,6 +15,21 @@ service cloud.firestore {
           request.auth.token.email == 'ivansurmanov@yandex.ru';
     }
 
+    // Районный админ — второй уровень доступа, заведён поверх isAdmin() без
+    // custom claims (нет Admin SDK/бэкенда, значит claims выставить некому).
+    // Источник истины — документ district_admins/{uid}, который создаёт
+    // (и может удалить) только супер-админ через docs/index.html.
+    function isDistrictAdminFor(district) {
+      return request.auth != null &&
+          exists(/databases/$(database)/documents/district_admins/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/district_admins/$(request.auth.uid)).data.district == district;
+    }
+
+    match /district_admins/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
     match /districts/{districtId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -22,15 +37,22 @@ service cloud.firestore {
 
     match /news/{newsId} {
       allow read: if true;
-      allow create, delete: if isAdmin();
+      allow create: if isAdmin() || isDistrictAdminFor(request.resource.data.district);
+      allow delete: if isAdmin() || isDistrictAdminFor(resource.data.district);
       allow update: if isAdmin() ||
+          (isDistrictAdminFor(resource.data.district) &&
+           request.resource.data.district == resource.data.district) ||
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
            request.resource.data.viewCount == resource.data.get('viewCount', 0) + 1);
     }
 
     match /organizations/{orgId} {
       allow read: if true;
-      allow create, delete: if isAdmin();
+      allow create: if isAdmin() || (
+          isDistrictAdminFor(request.resource.data.district) &&
+          request.resource.data.rating == null &&
+          request.resource.data.reviewCount == null);
+      allow delete: if isAdmin() || isDistrictAdminFor(resource.data.district);
       // Помимо админа, разрешено анонимное обновление ТОЛЬКО агрегата
       // рейтинга (ratingSum/ratingCount), и только в пределах одного
       // голоса за запись — это самообслуживаемый счётчик, обновляемый
@@ -40,6 +62,11 @@ service cloud.firestore {
       // грубая граница дельты вместо полной верификации — сознательный
       // компромисс для приложения без входа.
       allow update: if isAdmin() || (
+          isDistrictAdminFor(resource.data.district) &&
+          request.resource.data.district == resource.data.district &&
+          request.resource.data.rating == resource.data.get('rating', null) &&
+          request.resource.data.reviewCount == resource.data.get('reviewCount', null)
+        ) || (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratingSum', 'ratingCount']) &&
           request.resource.data.ratingCount is int && request.resource.data.ratingSum is int &&
           request.resource.data.ratingCount >= resource.data.get('ratingCount', 0) &&
@@ -64,7 +91,11 @@ service cloud.firestore {
 
     match /vacancies/{vacancyId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isAdmin() || isDistrictAdminFor(request.resource.data.district);
+      allow delete: if isAdmin() || isDistrictAdminFor(resource.data.district);
+      allow update: if isAdmin() ||
+          (isDistrictAdminFor(resource.data.district) &&
+           request.resource.data.district == resource.data.district);
     }
 
     match /announcements/{announcementId} {
@@ -74,7 +105,11 @@ service cloud.firestore {
 
     match /events/{eventId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isAdmin() || isDistrictAdminFor(request.resource.data.district);
+      allow delete: if isAdmin() || isDistrictAdminFor(resource.data.district);
+      allow update: if isAdmin() ||
+          (isDistrictAdminFor(resource.data.district) &&
+           request.resource.data.district == resource.data.district);
     }
 
     match /notifications/{notificationId} {
@@ -91,7 +126,11 @@ service cloud.firestore {
 
     match /bus_routes/{routeId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isAdmin() || isDistrictAdminFor(request.resource.data.district);
+      allow delete: if isAdmin() || isDistrictAdminFor(resource.data.district);
+      allow update: if isAdmin() ||
+          (isDistrictAdminFor(resource.data.district) &&
+           request.resource.data.district == resource.data.district);
     }
 
     match /sponsored_content/{sponsoredId} {

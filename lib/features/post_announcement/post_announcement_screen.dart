@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/input_sanitizer.dart';
 import '../../providers/ad_request_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../repositories/announcement_repository.dart';
 import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
@@ -65,8 +66,8 @@ class _PostAnnouncementScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Не удалось загрузить фото — проверьте подключение к интернету'),
+          content: Text(
+              'Не удалось загрузить фото — проверьте подключение к интернету'),
           backgroundColor: AppTheme.accentRed,
         ),
       );
@@ -107,6 +108,13 @@ class _PostAnnouncementScreenState
 
     final districtId = ref.read(selectedDistrictProvider).id;
     if (districtId == null || districtId.isEmpty) return;
+
+    // Опция могла быть выключена супер-админом уже после того, как
+    // пользователь отметил чекбокс в этой сессии, — перепроверяем флаг
+    // прямо перед отправкой, а не доверяем состоянию виджета.
+    final paidPushEnabled =
+        ref.read(featureFlagsProvider).valueOrNull?.paidPushEnabled ?? false;
+    if (!paidPushEnabled) _wantsPush = false;
 
     final price = _wantsPush
         ? AnnouncementPromotionPricing.priceFor(_selectedDuration)
@@ -179,6 +187,8 @@ class _PostAnnouncementScreenState
   }
 
   Widget _buildForm() {
+    final paidPushEnabled =
+        ref.watch(featureFlagsProvider).valueOrNull?.paidPushEnabled ?? false;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -214,63 +224,65 @@ class _PostAnnouncementScreenState
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           _buildPhotosPicker(),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryContainer(context),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _wantsPush,
-                      onChanged: (v) =>
-                          setState(() => _wantsPush = v ?? false),
-                      activeColor: AppTheme.primaryBlue,
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _wantsPush = !_wantsPush),
-                        child: Text(
-                          'Хочу, чтобы объявление увидели все в районе, у кого установлено приложение (от ${AnnouncementPromotionPricing.priceByDurationDays.values.first} ₽)',
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: AppTheme.onPrimaryContainer(context)),
+          if (paidPushEnabled) ...[
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryContainer(context),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _wantsPush,
+                        onChanged: (v) =>
+                            setState(() => _wantsPush = v ?? false),
+                        activeColor: AppTheme.primaryBlue,
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _wantsPush = !_wantsPush),
+                          child: Text(
+                            'Хочу, чтобы объявление увидели все в районе, у кого установлено приложение (от ${AnnouncementPromotionPricing.priceByDurationDays.values.first} ₽)',
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: AppTheme.onPrimaryContainer(context)),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                if (_wantsPush) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: AnnouncementPromotionPricing
-                        .priceByDurationDays.keys
-                        .map(
-                          (days) => Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: DurationPriceOption(
-                                days: days,
-                                price: AnnouncementPromotionPricing
-                                    .priceByDurationDays[days]!,
-                                isSelected: _selectedDuration == days,
-                                onTap: () =>
-                                    setState(() => _selectedDuration = days),
+                    ],
+                  ),
+                  if (_wantsPush) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: AnnouncementPromotionPricing
+                          .priceByDurationDays.keys
+                          .map(
+                            (days) => Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: DurationPriceOption(
+                                  days: days,
+                                  price: AnnouncementPromotionPricing
+                                      .priceByDurationDays[days]!,
+                                  isSelected: _selectedDuration == days,
+                                  onTap: () =>
+                                      setState(() => _selectedDuration = days),
+                                ),
                               ),
                             ),
-                          ),
-                        )
-                        .toList(),
-                  ),
+                          )
+                          .toList(),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 28),
           SizedBox(
             width: double.infinity,

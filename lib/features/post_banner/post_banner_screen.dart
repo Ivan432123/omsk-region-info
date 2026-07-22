@@ -9,9 +9,11 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/input_sanitizer.dart';
 import '../../providers/banner_request_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
 import '../../widgets/common/duration_price_option.dart';
+import '../../widgets/common/empty_state_widget.dart';
 
 /// Экран заявки рекламодателя на размещение баннера в партнёрской ленте.
 /// Подаётся без входа в приложение, по образцу формы объявлений жителей
@@ -152,6 +154,9 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bannerSubmissionEnabled =
+        ref.watch(featureFlagsProvider).valueOrNull?.bannerSubmissionEnabled ??
+            false;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Разместить баннер'),
@@ -163,7 +168,9 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
         ],
       ),
       body: SafeArea(
-        child: _submittedRequestId != null ? _buildSuccess() : _buildForm(),
+        child: !bannerSubmissionEnabled
+            ? const EmptyStateWidget.bannerSubmissionDisabled()
+            : (_submittedRequestId != null ? _buildSuccess() : _buildForm()),
       ),
     );
   }

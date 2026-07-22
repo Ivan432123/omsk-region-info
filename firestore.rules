@@ -207,6 +207,15 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Фиче-флаги, включающие/выключающие для жителей опции подачи (платное
+    // продвижение объявлений с push, приём баннеров от жителей) — в отличие
+    // от app_settings выше, читать должно само приложение без входа в
+    // систему, поэтому чтение открыто всем. Меняет только супер-админ.
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /banner_requests/{requestId} {
       allow read: if isAdmin();
       allow create: if request.resource.data.title is string &&

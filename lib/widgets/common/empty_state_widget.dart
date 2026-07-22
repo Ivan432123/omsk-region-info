@@ -57,6 +57,14 @@ class EmptyStateWidget extends StatelessWidget {
         actionLabel = null,
         onAction = null;
 
+  const EmptyStateWidget.bannerSubmissionDisabled({super.key})
+      : icon = Icons.campaign_outlined,
+        title = 'Приём баннеров временно недоступен',
+        subtitle =
+            'Администратор сейчас не принимает новые заявки на размещение баннеров — загляните позже',
+        actionLabel = null,
+        onAction = null;
+
   factory EmptyStateWidget.error({VoidCallback? onRetry}) {
     return EmptyStateWidget(
       icon: Icons.wifi_off_rounded,

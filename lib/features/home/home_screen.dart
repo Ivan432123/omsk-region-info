@@ -12,6 +12,7 @@ import '../../models/sponsored_content_model.dart';
 import '../../core/utils/weather_code_info.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../providers/sponsored_content_provider.dart';
 import '../../providers/weather_provider.dart';
@@ -33,6 +34,9 @@ class HomeScreen extends ConsumerWidget {
     final promotedAdsAsync =
         ref.watch(promotedAnnouncementsProvider(districtId));
     final sponsoredAsync = ref.watch(sponsoredContentProvider(districtId));
+    final bannerSubmissionEnabled =
+        ref.watch(featureFlagsProvider).valueOrNull?.bannerSubmissionEnabled ??
+            false;
 
     return Scaffold(
       body: SafeArea(
@@ -137,7 +141,11 @@ class HomeScreen extends ConsumerWidget {
                   // жители видят содержательный контент от района, а не
                   // стороннюю рекламу сразу после шапки.
                   return SliverToBoxAdapter(
-                    child: _SponsoredSection(items: sponsored, ref: ref),
+                    child: _SponsoredSection(
+                      items: sponsored,
+                      ref: ref,
+                      bannerSubmissionEnabled: bannerSubmissionEnabled,
+                    ),
                   );
                 },
               ),
@@ -221,8 +229,13 @@ class HomeScreen extends ConsumerWidget {
 class _SponsoredSection extends StatelessWidget {
   final List<SponsoredContentModel> items;
   final WidgetRef ref;
+  final bool bannerSubmissionEnabled;
 
-  const _SponsoredSection({required this.items, required this.ref});
+  const _SponsoredSection({
+    required this.items,
+    required this.ref,
+    required this.bannerSubmissionEnabled,
+  });
 
   Future<void> _open(String id, String url) async {
     unawaited(recordSponsoredClick(ref, id));
@@ -253,17 +266,18 @@ class _SponsoredSection extends StatelessWidget {
                     letterSpacing: 0.3,
                   ),
                 ),
-                InkWell(
-                  onTap: () => context.push('/post-banner'),
-                  child: const Text(
-                    'Разместить →',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryBlue,
+                if (bannerSubmissionEnabled)
+                  InkWell(
+                    onTap: () => context.push('/post-banner'),
+                    child: const Text(
+                      'Разместить →',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryBlue,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

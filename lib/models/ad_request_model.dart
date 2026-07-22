@@ -46,7 +46,8 @@ class AdRequestModel extends Equatable {
       status: data['status'] as String? ?? 'pending',
       districtId: data['district'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      images: (data['images'] as List?)?.whereType<String>().toList() ?? const [],
+      images:
+          (data['images'] as List?)?.whereType<String>().toList() ?? const [],
     );
   }
 

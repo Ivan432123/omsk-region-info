@@ -14,6 +14,8 @@ class AppConstants {
   static const String collectionOrganizations = 'organizations';
   static const String collectionNotifications = 'notifications';
   static const String collectionBusRoutes = 'bus_routes';
+  static const String collectionSettings = 'settings';
+  static const String settingsFeaturesDocId = 'features';
 
   // ---------- Ключи локального хранилища ----------
   static const String prefsSelectedDistrictId = 'selected_district_id';

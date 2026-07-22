@@ -3,15 +3,24 @@ import 'package:http/http.dart' as http;
 
 /// Геокодирование через Open-Meteo Geocoding API (тот же бесплатный сервис
 /// без ключа, что и погода, см. weather_repository.dart) — превращает
-/// название района в координаты, чтобы виджет погоды на Главной работал
-/// для новых районов сам, без ручного ввода координат при добавлении
-/// района в админке.
+/// название населённого пункта в координаты.
 class GeocodingRepository {
-  Future<(double lat, double lon)?> geocode(String query) async {
+  /// [requireRegion] — подстрока, которую обязан содержать admin1
+  /// найденного результата (регистронезависимо), например "Омск" для
+  /// "Омская Область". Без этой проверки одноимённые населённые пункты в
+  /// других регионах матчились бы вместо нужного — проверено вручную:
+  /// "Одесское" находится и в Омской, и в Калининградской области,
+  /// "Таврическое" — сразу в трёх регионах кроме Омской. Если ни один
+  /// результат не подходит по региону — считаем, что совпадения нет
+  /// (возвращаем null), а не берём первый попавшийся из другого региона.
+  Future<(double lat, double lon)?> geocode(
+    String query, {
+    required String requireRegion,
+  }) async {
     final uri = Uri.parse(
       'https://geocoding-api.open-meteo.com/v1/search'
       '?name=${Uri.encodeQueryComponent(query)}'
-      '&count=5&language=ru&format=json',
+      '&count=10&language=ru&format=json',
     );
 
     final response = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -21,18 +30,18 @@ class GeocodingRepository {
     final results = json['results'] as List<dynamic>?;
     if (results == null || results.isEmpty) return null;
 
-    // Название района может теоретически совпасть с местом за пределами
-    // России (гео-база всемирная) — из нескольких совпадений предпочитаем
-    // результат с country_code RU, а не просто первый по релевантности.
+    final needle = requireRegion.toLowerCase();
     final list = results.cast<Map<String, dynamic>>();
-    final best = list.firstWhere(
-      (r) => r['country_code'] == 'RU',
-      orElse: () => list.first,
-    );
+    final match = list.cast<Map<String, dynamic>?>().firstWhere(
+          (r) =>
+              ((r?['admin1'] as String?) ?? '').toLowerCase().contains(needle),
+          orElse: () => null,
+        );
+    if (match == null) return null;
 
     return (
-      (best['latitude'] as num).toDouble(),
-      (best['longitude'] as num).toDouble(),
+      (match['latitude'] as num).toDouble(),
+      (match['longitude'] as num).toDouble(),
     );
   }
 }

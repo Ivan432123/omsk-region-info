@@ -301,6 +301,18 @@
 
         <div id="status-msg"></div>
 
+        <h2>Районы приложения</h2>
+        <div class="card">
+            <div class="item-sub" style="margin-bottom: 10px;">
+                Здесь включаются и выключаются районы, которые житель видит при выборе района в приложении (при
+                первом запуске и в настройках). Выключенный район из списка ниже никуда не пропадает — его контент
+                (новости, объявления и т.д.) остаётся, район просто не предлагается для выбора.
+            </div>
+            <button class="secondary" onclick="withButtonLock(this, addAllOmskDistricts)">Добавить все районы
+                Омской области</button>
+        </div>
+        <div class="card" id="districts-manage-list"></div>
+
         <h2>Добавить новость</h2>
         <div class="card">
             <label>Заголовок</label>
@@ -545,6 +557,7 @@
                 document.getElementById('banner-requests-section').style.display =
                     (user.email === SUPER_ADMIN_EMAIL) ? 'block' : 'none';
                 loadDistricts();
+                loadDistrictsManageList();
             } else {
                 document.getElementById('login-screen').style.display = 'block';
                 document.getElementById('admin-screen').style.display = 'none';
@@ -615,6 +628,130 @@
             } catch (err) {
                 select.innerHTML = '<option>Ошибка загрузки районов</option>';
                 alert('Не удалось загрузить список районов: ' + err.message);
+            }
+        }
+
+        // Полный список из 32 муниципальных районов Омской области —
+        // используется только кнопкой "Добавить все районы" ниже, чтобы
+        // единожды наполнить коллекцию districts. Идентификаторы для уже
+        // подключённых районов (sherbakulsky, azovsky, odessky, moskalensky,
+        // isilkulsky, tavrichesky) специально совпадают с теми, что уже
+        // используются в проде и в seed/seed.js — иначе кнопка создала бы
+        // дубликаты этих районов вместо пропуска уже существующих.
+        const OMSK_DISTRICTS = [
+            { id: 'azovsky', name: 'Азовский район' },
+            { id: 'bolsherechensky', name: 'Большереченский район' },
+            { id: 'bolsheukovsky', name: 'Большеуковский район' },
+            { id: 'gorkovsky', name: 'Горьковский район' },
+            { id: 'znamensky', name: 'Знаменский район' },
+            { id: 'isilkulsky', name: 'Исилькульский район' },
+            { id: 'kalachinsky', name: 'Калачинский район' },
+            { id: 'kolosovsky', name: 'Колосовский район' },
+            { id: 'kormilovsky', name: 'Кормиловский район' },
+            { id: 'krutinsky', name: 'Крутинский район' },
+            { id: 'lyubinsky', name: 'Любинский район' },
+            { id: 'maryanovsky', name: 'Марьяновский район' },
+            { id: 'moskalensky', name: 'Москаленский район' },
+            { id: 'muromtsevsky', name: 'Муромцевский район' },
+            { id: 'nazyvaevsky', name: 'Называевский район' },
+            { id: 'nizhneomsky', name: 'Нижнеомский район' },
+            { id: 'novovarshavsky', name: 'Нововаршавский район' },
+            { id: 'odessky', name: 'Одесский район' },
+            { id: 'okoneshnikovsky', name: 'Оконешниковский район' },
+            { id: 'omsky', name: 'Омский район' },
+            { id: 'pavlogradsky', name: 'Павлоградский район' },
+            { id: 'poltavsky', name: 'Полтавский район' },
+            { id: 'russkopolyansky', name: 'Русско-Полянский район' },
+            { id: 'sargatsky', name: 'Саргатский район' },
+            { id: 'sedelnikovsky', name: 'Седельниковский район' },
+            { id: 'sherbakulsky', name: 'Шербакульский район' },
+            { id: 'tavrichesky', name: 'Таврический район' },
+            { id: 'tarsky', name: 'Тарский район' },
+            { id: 'tevrizsky', name: 'Тевризский район' },
+            { id: 'tyukalinsky', name: 'Тюкалинский район' },
+            { id: 'ustishimsky', name: 'Усть-Ишимский район' },
+            { id: 'cherlaksky', name: 'Черлакский район' },
+        ];
+
+        // Добавляет в Firestore только те районы из OMSK_DISTRICTS, которых
+        // там ещё нет (сверка по id) — безопасно жать повторно, уже
+        // существующие районы (включая их isActive/order) не трогает.
+        // Новые добавляются с isActive:false — они не появятся у жителей,
+        // пока их явно не включат переключателем в списке ниже.
+        async function addAllOmskDistricts() {
+            try {
+                const snapshot = await db.collection('districts').get();
+                const existingIds = new Set(snapshot.docs.map((d) => d.id));
+                const missing = OMSK_DISTRICTS.filter((d) => !existingIds.has(d.id));
+
+                if (missing.length === 0) {
+                    showStatus('Все районы Омской области уже есть в базе');
+                    return;
+                }
+
+                const batch = db.batch();
+                missing.forEach((d, i) => {
+                    const ref = db.collection('districts').doc(d.id);
+                    batch.set(ref, {
+                        name: d.name,
+                        regionId: 'omsk',
+                        villages: [],
+                        isActive: false,
+                        order: 100 + i,
+                    });
+                });
+                await batch.commit();
+
+                showStatus(`Добавлено районов: ${missing.length} (пока скрыты — включите нужные ниже)`);
+                loadDistricts();
+                loadDistrictsManageList();
+            } catch (err) {
+                alert('Не удалось добавить районы: ' + err.message);
+            }
+        }
+
+        async function loadDistrictsManageList() {
+            const container = document.getElementById('districts-manage-list');
+            container.innerHTML = 'Загрузка...';
+            try {
+                const snapshot = await db.collection('districts').orderBy('order').get();
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Районов пока нет — нажмите "Добавить все районы Омской области" выше</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const d = doc.data();
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(d.name)}</div>
+<div class="item-sub">${d.isActive ? 'Виден жителям в выборе района' : 'Скрыт от жителей'}</div>
+</div>
+<div>
+<label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px;color:#1E2A22;">
+<input type="checkbox" ${d.isActive ? 'checked' : ''} onchange="toggleDistrictActive('${doc.id}', this.checked)">
+Показывать
+</label>
+</div>
+`;
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить районы: ' + err.message, loadDistrictsManageList);
+            }
+        }
+
+        async function toggleDistrictActive(id, value) {
+            try {
+                await db.collection('districts').doc(id).update({ isActive: value });
+                showStatus(value ? 'Район включён' : 'Район скрыт от жителей');
+                loadDistricts();
+            } catch (err) {
+                alert('Не удалось изменить район: ' + err.message);
+                loadDistrictsManageList();
             }
         }
 

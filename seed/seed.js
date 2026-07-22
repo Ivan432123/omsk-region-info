@@ -15,13 +15,45 @@ const serviceAccount = require('./serviceAccountKey.json');
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
+// Полный список из 32 муниципальных районов Омской области. isActive
+// выставлен true только шести районам, которые реально наполнены демо-
+// контентом ниже (news/organizations привязаны к district: '<id>') —
+// у остальных 26 isActive: false, чтобы они не предлагались жителю для
+// выбора без контента. Включать/выключать районы дальше — через
+// админку (docs/index.html, раздел "Районы приложения").
 const districts = [
-  { id: 'sherbakulsky', name: 'Шербакульский район', order: 1 },
-  { id: 'azovsky', name: 'Азовский район', order: 2 },
-  { id: 'odessky', name: 'Одесский район', order: 3 },
-  { id: 'moskalensky', name: 'Москаленский район', order: 4 },
-  { id: 'isilkulsky', name: 'Исилькульский район', order: 5 },
-  { id: 'tavrichesky', name: 'Таврический район', order: 6 },
+  { id: 'sherbakulsky', name: 'Шербакульский район', order: 1, isActive: true },
+  { id: 'azovsky', name: 'Азовский район', order: 2, isActive: true },
+  { id: 'odessky', name: 'Одесский район', order: 3, isActive: true },
+  { id: 'moskalensky', name: 'Москаленский район', order: 4, isActive: true },
+  { id: 'isilkulsky', name: 'Исилькульский район', order: 5, isActive: true },
+  { id: 'tavrichesky', name: 'Таврический район', order: 6, isActive: true },
+  { id: 'bolsherechensky', name: 'Большереченский район', order: 100, isActive: false },
+  { id: 'bolsheukovsky', name: 'Большеуковский район', order: 101, isActive: false },
+  { id: 'gorkovsky', name: 'Горьковский район', order: 102, isActive: false },
+  { id: 'znamensky', name: 'Знаменский район', order: 103, isActive: false },
+  { id: 'kalachinsky', name: 'Калачинский район', order: 104, isActive: false },
+  { id: 'kolosovsky', name: 'Колосовский район', order: 105, isActive: false },
+  { id: 'kormilovsky', name: 'Кормиловский район', order: 106, isActive: false },
+  { id: 'krutinsky', name: 'Крутинский район', order: 107, isActive: false },
+  { id: 'lyubinsky', name: 'Любинский район', order: 108, isActive: false },
+  { id: 'maryanovsky', name: 'Марьяновский район', order: 109, isActive: false },
+  { id: 'muromtsevsky', name: 'Муромцевский район', order: 110, isActive: false },
+  { id: 'nazyvaevsky', name: 'Называевский район', order: 111, isActive: false },
+  { id: 'nizhneomsky', name: 'Нижнеомский район', order: 112, isActive: false },
+  { id: 'novovarshavsky', name: 'Нововаршавский район', order: 113, isActive: false },
+  { id: 'okoneshnikovsky', name: 'Оконешниковский район', order: 114, isActive: false },
+  { id: 'omsky', name: 'Омский район', order: 115, isActive: false },
+  { id: 'pavlogradsky', name: 'Павлоградский район', order: 116, isActive: false },
+  { id: 'poltavsky', name: 'Полтавский район', order: 117, isActive: false },
+  { id: 'russkopolyansky', name: 'Русско-Полянский район', order: 118, isActive: false },
+  { id: 'sargatsky', name: 'Саргатский район', order: 119, isActive: false },
+  { id: 'sedelnikovsky', name: 'Седельниковский район', order: 120, isActive: false },
+  { id: 'tarsky', name: 'Тарский район', order: 121, isActive: false },
+  { id: 'tevrizsky', name: 'Тевризский район', order: 122, isActive: false },
+  { id: 'tyukalinsky', name: 'Тюкалинский район', order: 123, isActive: false },
+  { id: 'ustishimsky', name: 'Усть-Ишимский район', order: 124, isActive: false },
+  { id: 'cherlaksky', name: 'Черлакский район', order: 125, isActive: false },
 ];
 
 const news = [
@@ -163,7 +195,7 @@ async function seed() {
       name: d.name,
       regionId: 'omsk',
       villages: [],
-      isActive: true,
+      isActive: d.isActive,
       order: d.order,
     });
   });

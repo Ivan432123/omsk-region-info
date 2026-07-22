@@ -490,8 +490,8 @@
         <div class="card" id="vacancy-list"></div>
         </details>
 
-        <div id="announcement-section">
-        <h2>Добавить объявление</h2>
+        <details class="admin-section" id="announcement-section" open>
+        <summary><h2>Добавить объявление</h2></summary>
         <div class="card">
             <label>Заголовок</label>
             <input type="text" id="announcement-title">
@@ -507,7 +507,7 @@
             <button id="announcement-submit-btn" onclick="withButtonLock(this, addAnnouncement)">Опубликовать объявление</button>
             <button type="button" class="secondary" id="announcement-cancel-btn" style="display:none;" onclick="cancelEditAnnouncement()">Отмена</button>
         </div>
-        </div>
+        </details>
 
         <details class="admin-section" id="announcement-list-section" open>
         <summary><h2>Объявления жителей</h2></summary>

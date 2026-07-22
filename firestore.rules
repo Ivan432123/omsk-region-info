@@ -111,7 +111,9 @@ service cloud.firestore {
           request.resource.data.phone is string &&
           request.resource.data.wantsPush is bool &&
           request.resource.data.status == 'pending' &&
-          request.resource.data.district is string;
+          request.resource.data.district is string &&
+          (!('images' in request.resource.data) ||
+           (request.resource.data.images is list && request.resource.data.images.size() <= 5));
       allow update: if isAdmin();
       allow delete: if false;
     }

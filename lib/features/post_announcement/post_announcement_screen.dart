@@ -1,17 +1,24 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/constants/payment_info.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/input_sanitizer.dart';
 import '../../providers/ad_request_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
 
 /// Стоимость платного продвижения (push всем подписчикам района).
 /// Реквизиты для перевода — см. PaymentInfo (общие с размещением баннеров).
 const String _pushPromotionPrice = '350';
+
+/// Не больше 5 фото на объявление — достаточно, чтобы показать товар/услугу
+/// с разных сторон, и не даёт форме превратиться в фотогалерею.
+const int _maxImages = 5;
 
 class PostAnnouncementScreen extends ConsumerStatefulWidget {
   const PostAnnouncementScreen({super.key});
@@ -28,6 +35,8 @@ class _PostAnnouncementScreenState
   final _phoneController = TextEditingController();
   bool _wantsPush = false;
   bool _isSubmitting = false;
+  bool _isUploadingImage = false;
+  final List<String> _images = [];
   String? _submittedRequestId;
 
   @override
@@ -36,6 +45,39 @@ class _PostAnnouncementScreenState
     _descriptionController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  /// Выбирает фото из галереи и загружает его в Cloudinary (тот же
+  /// облачный аккаунт, что и у веб-панели) — по образцу PostBannerScreen.
+  Future<void> _pickAndUploadImage() async {
+    if (_images.length >= _maxImages) return;
+    final XFile? file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1600,
+    );
+    if (file == null) return;
+
+    setState(() => _isUploadingImage = true);
+    try {
+      final url = await ImageUploadService().uploadImage(file.path);
+      if (mounted) setState(() => _images.add(url));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Не удалось загрузить фото — проверьте подключение к интернету'),
+          backgroundColor: AppTheme.accentRed,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
+    }
+  }
+
+  void _removeImage(String url) {
+    setState(() => _images.remove(url));
   }
 
   Future<void> _submit() async {
@@ -75,6 +117,7 @@ class _PostAnnouncementScreenState
             phone: phone,
             wantsPush: _wantsPush,
             districtId: districtId,
+            images: _images,
           );
 
       await LocalStorageService().saveMyAdRequest({
@@ -161,6 +204,11 @@ class _PostAnnouncementScreenState
             decoration: const InputDecoration(hintText: '79135551234'),
           ),
           const SizedBox(height: 20),
+          Text('Фото (необязательно)',
+              style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          _buildPhotosPicker(),
+          const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -205,6 +253,81 @@ class _PostAnnouncementScreenState
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPhotosPicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_images.isNotEmpty)
+          SizedBox(
+            height: 90,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _images.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final url = _images[index];
+                return Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: url,
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                            width: 90,
+                            height: 90,
+                            color: AppTheme.surfaceVariant(context)),
+                        errorWidget: (_, __, ___) => Container(
+                          width: 90,
+                          height: 90,
+                          color: AppTheme.surfaceVariant(context),
+                          child: Icon(Icons.image_not_supported_outlined,
+                              color: AppTheme.textSecondary(context)),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: GestureDetector(
+                        onTap: () => _removeImage(url),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close_rounded,
+                              size: 16, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        if (_images.isNotEmpty) const SizedBox(height: 8),
+        if (_images.length < _maxImages)
+          OutlinedButton.icon(
+            onPressed: _isUploadingImage ? null : _pickAndUploadImage,
+            icon: _isUploadingImage
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add_a_photo_outlined, size: 18),
+            label: Text(_isUploadingImage
+                ? 'Загрузка...'
+                : (_images.isEmpty ? 'Добавить фото' : 'Добавить ещё фото')),
+          ),
+      ],
     );
   }
 

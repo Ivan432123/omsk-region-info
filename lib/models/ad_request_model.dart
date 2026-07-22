@@ -14,6 +14,7 @@ class AdRequestModel extends Equatable {
   final String status;
   final String districtId;
   final DateTime createdAt;
+  final List<String> images;
 
   const AdRequestModel({
     required this.id,
@@ -24,6 +25,7 @@ class AdRequestModel extends Equatable {
     this.status = 'pending',
     required this.districtId,
     required this.createdAt,
+    this.images = const [],
   });
 
   factory AdRequestModel.fromFirestore(
@@ -38,10 +40,20 @@ class AdRequestModel extends Equatable {
       status: data['status'] as String? ?? 'pending',
       districtId: data['district'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      images: (data['images'] as List?)?.whereType<String>().toList() ?? const [],
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, title, description, phone, wantsPush, status, districtId, createdAt];
+  List<Object?> get props => [
+        id,
+        title,
+        description,
+        phone,
+        wantsPush,
+        status,
+        districtId,
+        createdAt,
+        images
+      ];
 }

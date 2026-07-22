@@ -175,7 +175,10 @@ service cloud.firestore {
           request.resource.data.status == 'pending' &&
           request.resource.data.district is string &&
           (!('images' in request.resource.data) ||
-           (request.resource.data.images is list && request.resource.data.images.size() <= 5));
+           (request.resource.data.images is list && request.resource.data.images.size() <= 5)) &&
+          (request.resource.data.wantsPush == false ||
+           (request.resource.data.durationDays in [7, 14, 30] &&
+            request.resource.data.price is int && request.resource.data.price > 0));
       // Районному админу доступны два вида правок бесплатной заявки своего
       // района, но не одновременно: смена статуса (публикация/удаление)
       // ИЛИ правка текста, пока заявка ещё pending. Район и wantsPush

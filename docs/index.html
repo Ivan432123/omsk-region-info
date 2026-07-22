@@ -1072,7 +1072,7 @@
             row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(r.title)}${r.wantsPush ? ' 🔥 (платное продвижение)' : ''}${districtSuffix}</div>
-<div class="item-sub" style="font-weight:700;color:#1E2A22;">Заявка №${id.substring(0, 8)}</div>
+<div class="item-sub" style="font-weight:700;color:#1E2A22;">Заявка №${id.substring(0, 8)}${r.wantsPush ? ` · ${r.durationDays || 7} дн. · ${r.price || ''} ₽` : ''}</div>
 <div class="item-sub">${escapeHtml(r.description)}</div>
 <div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>
 ${images.length ? `<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">${images.map(u => `<img src="${escapeHtml(u)}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;">`).join('')}</div>` : ''}
@@ -1163,13 +1163,14 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${id}', true)">Опубли�
         async function approveAdRequest(id, withPush) {
             const r = adRequestCache[id];
             if (!r) return;
+            const durationDays = r.durationDays || 7;
             const confirmText = withPush
-                ? 'Опубликовать и разослать push всем в районе?'
+                ? `Опубликовать и разослать push всем в районе на ${durationDays} дней (после проверки поступления ${r.price || ''} ₽)?`
                 : 'Опубликовать это объявление?';
             if (!(await showConfirmDialog(confirmText, 'Опубликовать'))) return;
 
             const promotedUntil = withPush
-                ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
+                ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000))
                 : null;
 
             const docRef = await db.collection('announcements').add({
@@ -1919,11 +1920,13 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${id}', true)">Опубли�
                 snapshot.forEach((doc) => {
                     const a = doc.data();
                     announcementCache[doc.id] = a;
+                    const promotedUntilDate = a.promotedUntil && a.promotedUntil.toDate ? a.promotedUntil.toDate() : null;
+                    const isPromotionActive = promotedUntilDate && promotedUntilDate > new Date();
                     const row = document.createElement('div');
                     row.className = 'item';
                     row.innerHTML = `
 <div>
-<div class="item-title">${escapeHtml(a.title)}</div>
+<div class="item-title">${escapeHtml(a.title)}${promotedUntilDate ? ` 🔥 ${isPromotionActive ? 'платное продвижение до ' + escapeHtml(promotedUntilDate.toLocaleString('ru-RU')) : '(продвижение истекло ' + escapeHtml(promotedUntilDate.toLocaleDateString('ru-RU')) + ')'}` : ''}</div>
 </div>
 <div>
 <button class="secondary" onclick="editAnnouncement('${doc.id}')">Изменить</button>

@@ -11,6 +11,7 @@ import '../../providers/banner_request_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
+import '../../widgets/common/duration_price_option.dart';
 
 /// Экран заявки рекламодателя на размещение баннера в партнёрской ленте.
 /// Подаётся без входа в приложение, по образцу формы объявлений жителей
@@ -280,7 +281,7 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
                   (days) => Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: _DurationOption(
+                      child: DurationPriceOption(
                         days: days,
                         price: BannerPricing.priceByDurationDays[days]!,
                         isSelected: _selectedDuration == days,
@@ -386,69 +387,6 @@ class _PostBannerScreenState extends ConsumerState<PostBannerScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _DurationOption extends StatelessWidget {
-  final int days;
-  final int price;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _DurationOption({
-    required this.days,
-    required this.price,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.primaryContainer(context)
-              : AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color:
-                isSelected ? AppTheme.primaryBlue : AppTheme.divider(context),
-            width: isSelected ? 1.6 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$days дн.',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-                color: isSelected
-                    ? AppTheme.onPrimaryContainer(context)
-                    : AppTheme.textPrimary(context),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '$price ₽',
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected
-                    ? AppTheme.onPrimaryContainer(context)
-                    : AppTheme.textSecondary(context),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

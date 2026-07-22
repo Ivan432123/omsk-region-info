@@ -11,6 +11,8 @@ class AdRequestModel extends Equatable {
   final String description;
   final String phone;
   final bool wantsPush;
+  final int? durationDays;
+  final int? price;
   final String status;
   final String districtId;
   final DateTime createdAt;
@@ -22,6 +24,8 @@ class AdRequestModel extends Equatable {
     required this.description,
     required this.phone,
     this.wantsPush = false,
+    this.durationDays,
+    this.price,
     this.status = 'pending',
     required this.districtId,
     required this.createdAt,
@@ -37,6 +41,8 @@ class AdRequestModel extends Equatable {
       description: data['description'] as String? ?? '',
       phone: data['phone'] as String? ?? '',
       wantsPush: data['wantsPush'] as bool? ?? false,
+      durationDays: (data['durationDays'] as num?)?.toInt(),
+      price: (data['price'] as num?)?.toInt(),
       status: data['status'] as String? ?? 'pending',
       districtId: data['district'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -51,6 +57,8 @@ class AdRequestModel extends Equatable {
         description,
         phone,
         wantsPush,
+        durationDays,
+        price,
         status,
         districtId,
         createdAt,

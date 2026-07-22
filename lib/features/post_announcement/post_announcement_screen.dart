@@ -11,10 +11,7 @@ import '../../providers/ad_request_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
-
-/// Стоимость платного продвижения (push всем подписчикам района).
-/// Реквизиты для перевода — см. PaymentInfo (общие с размещением баннеров).
-const String _pushPromotionPrice = '350';
+import '../../widgets/common/duration_price_option.dart';
 
 /// Не больше 5 фото на объявление — достаточно, чтобы показать товар/услугу
 /// с разных сторон, и не даёт форме превратиться в фотогалерею.
@@ -34,6 +31,7 @@ class _PostAnnouncementScreenState
   final _descriptionController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _wantsPush = false;
+  int _selectedDuration = 7;
   bool _isSubmitting = false;
   bool _isUploadingImage = false;
   final List<String> _images = [];
@@ -109,6 +107,10 @@ class _PostAnnouncementScreenState
     final districtId = ref.read(selectedDistrictProvider).id;
     if (districtId == null || districtId.isEmpty) return;
 
+    final price = _wantsPush
+        ? AnnouncementPromotionPricing.priceFor(_selectedDuration)
+        : null;
+
     setState(() => _isSubmitting = true);
     try {
       final id = await ref.read(adRequestRepositoryProvider).submitRequest(
@@ -118,13 +120,16 @@ class _PostAnnouncementScreenState
             wantsPush: _wantsPush,
             districtId: districtId,
             images: _images,
+            durationDays: _wantsPush ? _selectedDuration : null,
+            price: price,
           );
 
       await LocalStorageService().saveMyAdRequest({
         'id': id,
         'title': title,
         'wantsPush': _wantsPush,
-        'amount': _pushPromotionPrice,
+        'durationDays': _selectedDuration,
+        'amount': price,
         'paymentPhone': PaymentInfo.phoneNumber,
         'banks': PaymentInfo.banks,
         'createdAt': DateTime.now().toIso8601String(),
@@ -215,24 +220,53 @@ class _PostAnnouncementScreenState
               color: AppTheme.primaryContainer(context),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Checkbox(
-                  value: _wantsPush,
-                  onChanged: (v) => setState(() => _wantsPush = v ?? false),
-                  activeColor: AppTheme.primaryBlue,
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _wantsPush = !_wantsPush),
-                    child: Text(
-                      'Хочу, чтобы объявление увидели все в районе, у кого установлено приложение ($_pushPromotionPrice ₽)',
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.onPrimaryContainer(context)),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _wantsPush,
+                      onChanged: (v) =>
+                          setState(() => _wantsPush = v ?? false),
+                      activeColor: AppTheme.primaryBlue,
                     ),
-                  ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _wantsPush = !_wantsPush),
+                        child: Text(
+                          'Хочу, чтобы объявление увидели все в районе, у кого установлено приложение (от ${AnnouncementPromotionPricing.priceByDurationDays.values.first} ₽)',
+                          style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.onPrimaryContainer(context)),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                if (_wantsPush) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: AnnouncementPromotionPricing
+                        .priceByDurationDays.keys
+                        .map(
+                          (days) => Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: DurationPriceOption(
+                                days: days,
+                                price: AnnouncementPromotionPricing
+                                    .priceByDurationDays[days]!,
+                                isSelected: _selectedDuration == days,
+                                onTap: () =>
+                                    setState(() => _selectedDuration = days),
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
               ],
             ),
           ),
@@ -334,6 +368,9 @@ class _PostAnnouncementScreenState
   Widget _buildSuccess() {
     final shortId = _submittedRequestId!
         .substring(0, _submittedRequestId!.length.clamp(0, 8));
+    final amount = _wantsPush
+        ? AnnouncementPromotionPricing.priceFor(_selectedDuration)
+        : 0;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -372,13 +409,13 @@ class _PostAnnouncementScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Для рассылки объявления всем в районе:',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                  Text(
+                    'Рассылка на $_selectedDuration дней всем в районе:',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                      '1. Переведите $_pushPromotionPrice ₽ по номеру ${PaymentInfo.phoneNumber} (СБП)'),
+                  Text(
+                      '1. Переведите $amount ₽ по номеру ${PaymentInfo.phoneNumber} (СБП)'),
                   const SizedBox(height: 4),
                   Text('Доступно через: ${PaymentInfo.banks.join(', ')}'),
                   const SizedBox(height: 6),

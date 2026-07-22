@@ -24,6 +24,8 @@ class AdRequestRepository {
     required bool wantsPush,
     required String districtId,
     List<String> images = const [],
+    int? durationDays,
+    int? price,
   }) async {
     final docRef = await _firestoreService.collection(_collection).add({
       'title': title,
@@ -34,6 +36,8 @@ class AdRequestRepository {
       'district': districtId,
       'images': images,
       'createdAt': FieldValue.serverTimestamp(),
+      if (wantsPush) 'durationDays': durationDays,
+      if (wantsPush) 'price': price,
     });
     return docRef.id;
   }

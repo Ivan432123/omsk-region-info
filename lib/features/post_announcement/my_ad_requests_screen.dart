@@ -69,6 +69,7 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
     final id = r['id'] as String? ?? '';
     final shortId = id.substring(0, id.length.clamp(0, 8));
     final wantsPush = r['wantsPush'] as bool? ?? false;
+    final durationDays = r['durationDays'] as int? ?? 0;
     final banks = (r['banks'] as List?)?.join(', ') ?? '';
 
     return Container(
@@ -109,6 +110,9 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text('Рассылка на $durationDays дней',
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
                   Text(
                       'Переведите ${r['amount']} ₽ по номеру ${r['paymentPhone']} (СБП)'),
                   const SizedBox(height: 4),

@@ -35,3 +35,24 @@ class BannerPricing {
     return price;
   }
 }
+
+/// Тарифы на платное продвижение объявления жителя (push всем подписчикам
+/// района) — та же схема "срок → цена", что и у баннеров.
+class AnnouncementPromotionPricing {
+  AnnouncementPromotionPricing._();
+
+  static const Map<int, int> priceByDurationDays = {
+    7: 350,
+    14: 600,
+    30: 1200,
+  };
+
+  static int priceFor(int durationDays) {
+    final price = priceByDurationDays[durationDays];
+    if (price == null) {
+      throw ArgumentError.value(
+          durationDays, 'durationDays', 'Нет тарифа для этого срока');
+    }
+    return price;
+  }
+}

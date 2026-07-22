@@ -9,10 +9,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/announcement_model.dart';
 import '../../models/sponsored_content_model.dart';
+import '../../core/utils/weather_code_info.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../providers/sponsored_content_provider.dart';
+import '../../providers/weather_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/news/news_card.dart';
 
@@ -39,6 +41,7 @@ class HomeScreen extends ConsumerWidget {
             ref.invalidate(promotedAnnouncementsProvider(districtId));
             ref.invalidate(unreadAnnouncementsCountProvider(districtId));
             ref.invalidate(sponsoredContentProvider(districtId));
+            ref.invalidate(weatherProvider(districtId));
             await ref.read(newsListProvider(districtId).notifier).refresh();
           },
           child: CustomScrollView(
@@ -63,6 +66,12 @@ class HomeScreen extends ConsumerWidget {
                     onEvents: () => context.push('/events'),
                     onBusRoutes: () => context.push('/bus-routes'),
                   ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                  child: _WeatherCard(districtId: districtId),
                 ),
               ),
               promotedAdsAsync.when(
@@ -631,6 +640,65 @@ class _HeroHeader extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Погода — "проверяю каждый день" триггер вернуться в приложение чаще, чем
+/// только по мере локальных новостей. Компактная строка без заголовка и без
+/// скелетона/спиннера на загрузке: это необязательный вспомогательный блок,
+/// а не ключевой контент, поэтому при загрузке/ошибке/отсутствии координат
+/// для района он просто не занимает места (SizedBox.shrink), а не показывает
+/// пользователю пустую рамку или "не удалось загрузить".
+class _WeatherCard extends ConsumerWidget {
+  final String districtId;
+
+  const _WeatherCard({required this.districtId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weatherAsync = ref.watch(weatherProvider(districtId));
+
+    return weatherAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (weather) {
+        if (weather == null) return const SizedBox.shrink();
+        final info = weatherCodeInfo(weather.weatherCode);
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.divider(context)),
+            boxShadow: AppTheme.cardShadow,
+          ),
+          child: Row(
+            children: [
+              Icon(info.icon, color: AppTheme.primaryBlue, size: 26),
+              const SizedBox(width: 12),
+              Text(
+                '${weather.temperature.round()}°',
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  info.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppTheme.textSecondary(context),
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

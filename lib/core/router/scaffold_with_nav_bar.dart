@@ -7,6 +7,7 @@ import '../../providers/news_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/organization_provider.dart';
 import '../../providers/sponsored_content_provider.dart';
+import '../../providers/weather_provider.dart';
 import '../theme/app_theme.dart';
 
 /// Оболочка с нижней навигацией (5 вкладок). Каждая вкладка хранит свой
@@ -66,6 +67,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
             ref.invalidate(promotedAnnouncementsProvider);
             ref.invalidate(unreadAnnouncementsCountProvider);
             ref.invalidate(sponsoredContentProvider);
+            ref.invalidate(weatherProvider);
           case 1:
             ref.invalidate(newsListByCategoryProvider);
           case 2:

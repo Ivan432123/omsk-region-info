@@ -108,7 +108,14 @@ service cloud.firestore {
       allow create: if isAdmin() || (
           isDistrictAdminFor(request.resource.data.district) &&
           request.resource.data.promotedUntil == null);
-      allow update, delete: if isAdmin();
+      // Редактировать/удалять свои опубликованные объявления районный админ
+      // может, но не может перекинуть их в другой район или задним числом
+      // включить платное продвижение (promotedUntil).
+      allow delete: if isAdmin() || isDistrictAdminFor(resource.data.district);
+      allow update: if isAdmin() ||
+          (isDistrictAdminFor(resource.data.district) &&
+           request.resource.data.district == resource.data.district &&
+           request.resource.data.promotedUntil == resource.data.promotedUntil);
     }
 
     match /events/{eventId} {

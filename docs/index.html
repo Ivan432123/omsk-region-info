@@ -40,6 +40,41 @@
             padding-top: 16px;
         }
 
+        /* Сворачиваемые разделы админки (details/summary) — список разделов
+           растёт, и держать все их всегда развёрнутыми стало неудобно.
+           Состояние (свёрнут/развёрнут) сохраняется в localStorage — см.
+           обработчик toggle в основном скрипте страницы. */
+        details.admin-section {
+            margin: 0;
+        }
+
+        details.admin-section > summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        details.admin-section > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.admin-section > summary h2 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        details.admin-section > summary h2::before {
+            content: '▸';
+            display: inline-block;
+            color: #8C8571;
+            font-size: 13px;
+            transition: transform 0.15s;
+        }
+
+        details.admin-section[open] > summary h2::before {
+            transform: rotate(90deg);
+        }
+
         .card {
             background: #fff;
             border: 1px solid #DEDACD;
@@ -302,8 +337,8 @@
 
         <div id="status-msg"></div>
 
-        <div id="districts-manage-section">
-        <h2>Районы приложения</h2>
+        <details class="admin-section" id="districts-manage-section" open>
+        <summary><h2>Районы приложения</h2></summary>
         <div class="card">
             <div class="item-sub" style="margin-bottom: 10px;">
                 Здесь включаются и выключаются районы, которые житель видит при выборе района в приложении (при
@@ -314,10 +349,10 @@
                 Омской области</button>
         </div>
         <div class="card" id="districts-manage-list"></div>
-        </div>
+        </details>
 
-        <div id="district-admins-section">
-        <h2>Админы районов</h2>
+        <details class="admin-section" id="district-admins-section" open>
+        <summary><h2>Админы районов</h2></summary>
         <div class="card">
             <div class="item-sub" style="margin-bottom: 10px;">
                 Создайте отдельный логин и пароль для админа конкретного района — он увидит только новости,
@@ -335,9 +370,10 @@
             <button onclick="withButtonLock(this, createDistrictAdmin)">Создать админа района</button>
         </div>
         <div class="card" id="district-admins-list"></div>
-        </div>
+        </details>
 
-        <h2>Добавить новость</h2>
+        <details class="admin-section" id="news-section" open>
+        <summary><h2>Добавить новость</h2></summary>
         <div class="card">
             <label>Заголовок</label>
             <input type="text" id="news-title">
@@ -362,8 +398,10 @@
             <button id="news-submit-btn" onclick="withButtonLock(this, addNews)">Опубликовать новость</button>
         </div>
         <div class="card" id="news-list"></div>
+        </details>
 
-        <h2>Добавить организацию</h2>
+        <details class="admin-section" id="organizations-section" open>
+        <summary><h2>Добавить организацию</h2></summary>
         <div class="card">
             <label>Название</label>
             <input type="text" id="org-name">
@@ -407,8 +445,10 @@
             <button id="org-submit-btn" onclick="withButtonLock(this, addOrganization)">Добавить организацию</button>
         </div>
         <div class="card" id="org-list"></div>
+        </details>
 
-        <h2>Добавить вакансию</h2>
+        <details class="admin-section" id="vacancies-section" open>
+        <summary><h2>Добавить вакансию</h2></summary>
         <div class="card">
             <label>Должность</label>
             <input type="text" id="vacancy-title">
@@ -423,6 +463,7 @@
             <button id="vacancy-submit-btn" onclick="withButtonLock(this, addVacancy)">Опубликовать вакансию</button>
         </div>
         <div class="card" id="vacancy-list"></div>
+        </details>
 
         <div id="announcement-section">
         <h2>Добавить объявление</h2>
@@ -443,30 +484,36 @@
         </div>
         </div>
 
-        <div id="announcement-list-section">
-        <h2>Объявления жителей</h2>
-        <div class="card" id="announcement-list"></div>
+        <details class="admin-section" id="announcement-list-section" open>
+        <summary><h2>Объявления жителей</h2></summary>
+        <div class="item-sub" style="margin-bottom:10px;">
+            Бесплатные объявления автоматически скрываются из ленты приложения через 14 дней после публикации (но
+            остаются здесь, в этом списке, без ограничения по сроку — редактировать и удалять можно в любой момент).
+            Платные (🔥) видны в ленте, пока не истечёт оплаченный срок продвижения.
         </div>
+        <div class="card" id="announcement-list"></div>
+        </details>
 
-        <div id="ad-requests-section">
-        <h2>Заявки на объявления от жителей</h2>
+        <details class="admin-section" id="ad-requests-section" open>
+        <summary><h2>Заявки на объявления от жителей</h2></summary>
         <div class="item-sub" style="margin-bottom:10px;">
             Здесь только бесплатные заявки своего района. Заявки с платным продвижением (отмечены 🔥) — в разделе
             «Платные заявки на объявления» ниже, их видит и публикует только супер-админ.
         </div>
         <div class="card" id="ad-requests-list"></div>
-        </div>
+        </details>
 
-        <div id="paid-ad-requests-section">
-        <h2>Платные заявки на объявления (все районы)</h2>
+        <details class="admin-section" id="paid-ad-requests-section" open>
+        <summary><h2>Платные заявки на объявления (все районы)</h2></summary>
         <div class="item-sub" style="margin-bottom:10px;">
             Заявки с платным продвижением (🔥) со всех районов сразу, независимо от выбранного района вверху —
             подписаны районом-отправителем. Публикует и сверяет оплату только супер-админ.
         </div>
         <div class="card" id="paid-ad-requests-list"></div>
-        </div>
+        </details>
 
-        <h2>Добавить событие в афишу</h2>
+        <details class="admin-section" id="events-section" open>
+        <summary><h2>Добавить событие в афишу</h2></summary>
         <div class="card">
             <label>Название события</label>
             <input type="text" id="event-title">
@@ -483,9 +530,10 @@
             <button id="event-submit-btn" onclick="withButtonLock(this, addEvent)">Опубликовать событие</button>
         </div>
         <div class="card" id="event-list"></div>
+        </details>
 
-        <div id="sponsored-section">
-        <h2>Добавить рекламный баннер</h2>
+        <details class="admin-section" id="sponsored-section" open>
+        <summary><h2>Добавить рекламный баннер</h2></summary>
         <div class="card">
             <label>Заголовок (виден на баннере)</label>
             <input type="text" id="sponsored-title">
@@ -508,14 +556,15 @@
             <button id="sponsored-submit-btn" onclick="withButtonLock(this, addSponsored)">Опубликовать баннер</button>
         </div>
         <div class="card" id="sponsored-list"></div>
-        </div>
+        </details>
 
-        <div id="banner-requests-section" style="display:none;">
-        <h2>Заявки на баннеры от рекламодателей</h2>
+        <details class="admin-section" id="banner-requests-section" style="display:none;" open>
+        <summary><h2>Заявки на баннеры от рекламодателей</h2></summary>
         <div class="card" id="banner-requests-list"></div>
-        </div>
+        </details>
 
-        <h2>Добавить автобусный маршрут</h2>
+        <details class="admin-section" id="bus-routes-section" open>
+        <summary><h2>Добавить автобусный маршрут</h2></summary>
         <div class="card">
             <label>Номер маршрута</label>
             <input type="text" id="bus-number" placeholder="101">
@@ -532,6 +581,7 @@
             <button id="bus-submit-btn" onclick="withButtonLock(this, addBusRoute)">Опубликовать маршрут</button>
         </div>
         <div class="card" id="bus-list"></div>
+        </details>
     </div>
 
     <div id="confirm-overlay">
@@ -597,6 +647,18 @@
         let editingBusRouteId = null;
 
         const SUPER_ADMIN_EMAIL = 'ivansurmanov@yandex.ru';
+
+        // Сворачиваемые разделы (details/summary) запоминают состояние в
+        // localStorage — иначе они разворачивались бы заново при каждой
+        // перезагрузке страницы, а с ростом числа разделов пролистывать
+        // до нужного стало неудобно.
+        document.querySelectorAll('#admin-screen details.admin-section').forEach((section) => {
+            const key = 'sectionCollapsed:' + section.id;
+            if (localStorage.getItem(key) === '1') section.open = false;
+            section.addEventListener('toggle', () => {
+                localStorage.setItem(key, section.open ? '0' : '1');
+            });
+        });
 
         auth.onAuthStateChanged((user) => {
             if (user) {

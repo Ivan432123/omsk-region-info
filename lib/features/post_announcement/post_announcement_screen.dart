@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/input_sanitizer.dart';
 import '../../providers/ad_request_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../repositories/announcement_repository.dart';
 import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
 import '../../widgets/common/duration_price_option.dart';
@@ -281,7 +282,8 @@ class _PostAnnouncementScreenState
           ),
           const SizedBox(height: 12),
           Text(
-            'Объявление появится в приложении после проверки администратором района.',
+            'Объявление появится в приложении после проверки администратором района '
+            'и будет показано ${AnnouncementRepository.maxAge.inDays} дней с момента публикации.',
             style:
                 TextStyle(fontSize: 12, color: AppTheme.textSecondary(context)),
           ),
@@ -435,8 +437,9 @@ class _PostAnnouncementScreenState
               textAlign: TextAlign.center,
             ),
           ] else
-            const Text(
-              'Объявление опубликуют после проверки администратором, обычно в течение дня.',
+            Text(
+              'Объявление опубликуют после проверки администратором, обычно в течение дня, '
+              'и оно будет показано ${AnnouncementRepository.maxAge.inDays} дней с момента публикации.',
               textAlign: TextAlign.center,
             ),
           const SizedBox(height: 24),

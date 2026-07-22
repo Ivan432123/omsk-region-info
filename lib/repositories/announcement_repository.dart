@@ -12,7 +12,10 @@ import '../services/firestore_service.dart';
 class AnnouncementRepository {
   static const String _collection = 'announcements';
   static const int _pageSize = 15;
-  static const Duration _maxAge = Duration(days: 14);
+
+  /// Публичная — так же используется в форме подачи объявления
+  /// (PostAnnouncementScreen), чтобы житель видел этот срок при отправке.
+  static const Duration maxAge = Duration(days: 14);
 
   final FirestoreService _firestoreService;
 
@@ -20,7 +23,7 @@ class AnnouncementRepository {
       : _firestoreService = firestoreService ?? FirestoreService();
 
   Query<Map<String, dynamic>> _baseQuery(String districtId) {
-    final cutoff = Timestamp.fromDate(DateTime.now().subtract(_maxAge));
+    final cutoff = Timestamp.fromDate(DateTime.now().subtract(maxAge));
     return _firestoreService
         .collection(_collection)
         .where('district', isEqualTo: districtId)

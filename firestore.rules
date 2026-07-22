@@ -100,7 +100,15 @@ service cloud.firestore {
 
     match /announcements/{announcementId} {
       allow read: if true;
-      allow write: if isAdmin();
+      // Публикация из заявки жителя (см. approveAdRequest в docs/index.html)
+      // — единственный путь, которым районный админ создаёт объявление,
+      // своя форма "Добавить объявление" ему не показывается. promotedUntil
+      // обязан быть null: платное продвижение (push всем в районе) решает
+      // только супер-админ, у районного админа таких заявок в очереди нет.
+      allow create: if isAdmin() || (
+          isDistrictAdminFor(request.resource.data.district) &&
+          request.resource.data.promotedUntil == null);
+      allow update, delete: if isAdmin();
     }
 
     match /events/{eventId} {
@@ -142,7 +150,15 @@ service cloud.firestore {
     }
 
     match /ad_requests/{requestId} {
-      allow read: if isAdmin();
+      // Районный админ видит и модерирует только БЕСПЛАТНЫЕ заявки своего
+      // района (wantsPush == false) — платные (заказан push-охват района)
+      // всегда проходят только через супер-админа, оплату вручную сверяет
+      // только он. Для list-запросов Firestore требует, чтобы условие
+      // резолвилось из фильтров самого запроса (см. loadAdRequests —
+      // добавляет .where('wantsPush','==',false) для районного админа),
+      // иначе весь запрос будет отклонён целиком, а не просто отфильтрован.
+      allow read: if isAdmin() ||
+          (isDistrictAdminFor(resource.data.district) && resource.data.wantsPush == false);
       allow create: if request.resource.data.title is string &&
           request.resource.data.title.size() > 0 && request.resource.data.title.size() < 200 &&
           request.resource.data.description is string &&
@@ -153,7 +169,25 @@ service cloud.firestore {
           request.resource.data.district is string &&
           (!('images' in request.resource.data) ||
            (request.resource.data.images is list && request.resource.data.images.size() <= 5));
-      allow update: if isAdmin();
+      // Районному админу доступны два вида правок бесплатной заявки своего
+      // района, но не одновременно: смена статуса (публикация/удаление)
+      // ИЛИ правка текста, пока заявка ещё pending. Район и wantsPush
+      // менять нельзя в обоих случаях — это заблокировало бы, например,
+      // попытку "перекрасить" платную заявку в бесплатную для себя.
+      allow update: if isAdmin() || (
+          isDistrictAdminFor(resource.data.district) &&
+          resource.data.wantsPush == false &&
+          request.resource.data.wantsPush == false &&
+          request.resource.data.district == resource.data.district &&
+          (
+            (resource.data.status == 'pending' &&
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+             request.resource.data.status in ['approved', 'rejected']) ||
+            (resource.data.status == 'pending' &&
+             request.resource.data.status == 'pending' &&
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'description', 'phone', 'images']))
+          )
+        );
       allow delete: if false;
     }
 

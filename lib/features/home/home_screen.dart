@@ -67,22 +67,6 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              sponsoredAsync.when(
-                loading: () =>
-                    const SliverToBoxAdapter(child: _HorizontalStripSkeleton()),
-                error: (_, __) =>
-                    const SliverToBoxAdapter(child: SizedBox.shrink()),
-                data: (sponsored) {
-                  // Заголовок "Реклама" + ссылка "Разместить" показываются
-                  // всегда (это единственная точка входа для самостоятельной
-                  // подачи заявки рекламодателем), даже если баннеров пока
-                  // нет — лента под ним рисуется только когда есть что
-                  // листать.
-                  return SliverToBoxAdapter(
-                    child: _SponsoredSection(items: sponsored, ref: ref),
-                  );
-                },
-              ),
               promotedAdsAsync.when(
                 loading: () =>
                     const SliverToBoxAdapter(child: _HorizontalStripSkeleton()),
@@ -127,6 +111,24 @@ class HomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
+                  );
+                },
+              ),
+              sponsoredAsync.when(
+                loading: () =>
+                    const SliverToBoxAdapter(child: _HorizontalStripSkeleton()),
+                error: (_, __) =>
+                    const SliverToBoxAdapter(child: SizedBox.shrink()),
+                data: (sponsored) {
+                  // Заголовок "Реклама" + ссылка "Разместить" показываются
+                  // всегда (это единственная точка входа для самостоятельной
+                  // подачи заявки рекламодателем), даже если баннеров пока
+                  // нет — лента под ним рисуется только когда есть что
+                  // листать. Блок стоит ниже "Важных объявлений": сначала
+                  // жители видят содержательный контент от района, а не
+                  // стороннюю рекламу сразу после шапки.
+                  return SliverToBoxAdapter(
+                    child: _SponsoredSection(items: sponsored, ref: ref),
                   );
                 },
               ),

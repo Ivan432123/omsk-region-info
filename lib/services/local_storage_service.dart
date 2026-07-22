@@ -18,6 +18,7 @@ class LocalStorageService {
   static const String _keyBookmarkedNews = 'bookmarked_news';
   static const String _keyBookmarkedAnnouncements = 'bookmarked_announcements';
   static const String _keyDeviceId = 'device_id';
+  static const String _keyDistrictCoordsPrefix = 'district_coords_';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -215,5 +216,28 @@ class LocalStorageService {
     final id = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     await prefs.setString(_keyDeviceId, id);
     return id;
+  }
+
+  /// Координаты района для виджета погоды на Главной — определяются
+  /// геокодированием названия района (см. GeocodingRepository) при первом
+  /// обращении и кэшируются здесь навсегда: у района не бывает переезда,
+  /// а без кэша каждое обновление Главной заново дёргало бы geocoding API.
+  Future<(double, double)?> getCachedDistrictCoordinates(
+      String districtId) async {
+    final prefs = await _prefs;
+    final raw = prefs.getString('$_keyDistrictCoordsPrefix$districtId');
+    if (raw == null) return null;
+    final parts = raw.split(',');
+    if (parts.length != 2) return null;
+    final lat = double.tryParse(parts[0]);
+    final lon = double.tryParse(parts[1]);
+    if (lat == null || lon == null) return null;
+    return (lat, lon);
+  }
+
+  Future<void> cacheDistrictCoordinates(
+      String districtId, double lat, double lon) async {
+    final prefs = await _prefs;
+    await prefs.setString('$_keyDistrictCoordsPrefix$districtId', '$lat,$lon');
   }
 }

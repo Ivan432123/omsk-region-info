@@ -25,6 +25,8 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final district = ref.watch(selectedDistrictProvider);
     final districtId = district.id ?? '';
+    final districtName = district.name ?? '';
+    final weatherQuery = (districtId: districtId, districtName: districtName);
     final newsState = ref.watch(newsListProvider(districtId));
     final announcementsAsync =
         ref.watch(importantAnnouncementsProvider(districtId));
@@ -41,7 +43,7 @@ class HomeScreen extends ConsumerWidget {
             ref.invalidate(promotedAnnouncementsProvider(districtId));
             ref.invalidate(unreadAnnouncementsCountProvider(districtId));
             ref.invalidate(sponsoredContentProvider(districtId));
-            ref.invalidate(weatherProvider(districtId));
+            ref.invalidate(weatherProvider(weatherQuery));
             await ref.read(newsListProvider(districtId).notifier).refresh();
           },
           child: CustomScrollView(
@@ -71,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                  child: _WeatherCard(districtId: districtId),
+                  child: _WeatherCard(query: weatherQuery),
                 ),
               ),
               promotedAdsAsync.when(
@@ -651,13 +653,13 @@ class _HeroHeader extends StatelessWidget {
 /// для района он просто не занимает места (SizedBox.shrink), а не показывает
 /// пользователю пустую рамку или "не удалось загрузить".
 class _WeatherCard extends ConsumerWidget {
-  final String districtId;
+  final WeatherQuery query;
 
-  const _WeatherCard({required this.districtId});
+  const _WeatherCard({required this.query});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final weatherAsync = ref.watch(weatherProvider(districtId));
+    final weatherAsync = ref.watch(weatherProvider(query));
 
     return weatherAsync.when(
       loading: () => const SizedBox.shrink(),

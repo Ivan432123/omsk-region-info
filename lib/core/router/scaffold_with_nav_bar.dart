@@ -78,66 +78,83 @@ class ScaffoldWithNavBar extends ConsumerWidget {
       navigationShell.goBranch(index, initialLocation: index == currentIndex);
     }
 
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppTheme.scaffoldBackground(context),
-          border: Border(top: BorderSide(color: AppTheme.divider(context))),
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            height: 68,
-            child: Row(
-              children: [
-                Expanded(
-                  child: _NavBarItem(
-                    icon: Icons.home_outlined,
-                    selectedIcon: Icons.home_rounded,
-                    label: 'Главная',
-                    isSelected: currentIndex == 0,
-                    onTap: () => onTap(0),
+    return PopScope(
+      // На вкладках "Новости"/"Объявления"/"Организации"/"Уведомления"
+      // (индекс != 0) их собственный Navigator пуст (в стеке только
+      // список), поэтому системный жест "назад" (и он же — свайп от края
+      // экрана) не находит, что поднимать, и уходит в корневой Navigator,
+      // у которого тоже только один элемент — сама StatefulShellRoute.
+      // Итог: приложение не возвращается на Главную, а закрывается
+      // целиком. canPop:false на всех вкладках, кроме Главной, отдаёт
+      // системе "мне есть что показать взамен" — вместо pop переключаем
+      // на вкладку 0; закрытие приложения остаётся доступно только с неё,
+      // как и ожидает пользователь.
+      canPop: currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        onTap(0);
+      },
+      child: Scaffold(
+        body: navigationShell,
+        bottomNavigationBar: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppTheme.scaffoldBackground(context),
+            border: Border(top: BorderSide(color: AppTheme.divider(context))),
+          ),
+          child: SafeArea(
+            child: SizedBox(
+              height: 68,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _NavBarItem(
+                      icon: Icons.home_outlined,
+                      selectedIcon: Icons.home_rounded,
+                      label: 'Главная',
+                      isSelected: currentIndex == 0,
+                      onTap: () => onTap(0),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _NavBarItem(
-                    icon: Icons.article_outlined,
-                    selectedIcon: Icons.article_rounded,
-                    label: 'Новости',
-                    isSelected: currentIndex == 1,
-                    onTap: () => onTap(1),
+                  Expanded(
+                    child: _NavBarItem(
+                      icon: Icons.article_outlined,
+                      selectedIcon: Icons.article_rounded,
+                      label: 'Новости',
+                      isSelected: currentIndex == 1,
+                      onTap: () => onTap(1),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _NavBarItem(
-                    icon: Icons.campaign_outlined,
-                    selectedIcon: Icons.campaign_rounded,
-                    label: 'Объявления',
-                    badgeCount: unreadAnnouncements,
-                    isSelected: currentIndex == 2,
-                    onTap: () => onTap(2),
+                  Expanded(
+                    child: _NavBarItem(
+                      icon: Icons.campaign_outlined,
+                      selectedIcon: Icons.campaign_rounded,
+                      label: 'Объявления',
+                      badgeCount: unreadAnnouncements,
+                      isSelected: currentIndex == 2,
+                      onTap: () => onTap(2),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _NavBarItem(
-                    icon: Icons.apartment_outlined,
-                    selectedIcon: Icons.apartment_rounded,
-                    label: 'Организации',
-                    isSelected: currentIndex == 3,
-                    onTap: () => onTap(3),
+                  Expanded(
+                    child: _NavBarItem(
+                      icon: Icons.apartment_outlined,
+                      selectedIcon: Icons.apartment_rounded,
+                      label: 'Организации',
+                      isSelected: currentIndex == 3,
+                      onTap: () => onTap(3),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _NavBarItem(
-                    icon: Icons.notifications_outlined,
-                    selectedIcon: Icons.notifications_rounded,
-                    label: 'Уведомления',
-                    badgeCount: unreadNotifications,
-                    isSelected: currentIndex == 4,
-                    onTap: () => onTap(4),
+                  Expanded(
+                    child: _NavBarItem(
+                      icon: Icons.notifications_outlined,
+                      selectedIcon: Icons.notifications_rounded,
+                      label: 'Уведомления',
+                      badgeCount: unreadNotifications,
+                      isSelected: currentIndex == 4,
+                      onTap: () => onTap(4),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

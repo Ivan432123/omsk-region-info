@@ -27,6 +27,7 @@ import '../../features/post_vacancy/post_vacancy_screen.dart';
 import '../../features/post_vacancy/my_vacancy_requests_screen.dart';
 import '../../features/feedback/feedback_screen.dart';
 import '../../features/feedback/my_feedback_requests_screen.dart';
+import '../../features/feedback/feedback_request_detail_screen.dart';
 import '../../features/bus_routes/bus_routes_list_screen.dart';
 import '../../features/bus_routes/bus_route_details_screen.dart';
 import 'scaffold_with_nav_bar.dart';
@@ -99,6 +100,11 @@ class AppRouter {
       GoRoute(
         path: '/my-feedback-requests',
         builder: (context, state) => const MyFeedbackRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/feedback-requests/:id',
+        builder: (context, state) => FeedbackRequestDetailScreen(
+            requestId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/vacancies',

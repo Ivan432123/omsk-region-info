@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feedback_request_provider.dart';
 
 /// Версия приложения — читается из платформенного манифеста (тот же номер,
 /// что в pubspec.yaml), а не хранится второй копией здесь вручную, чтобы
@@ -23,6 +24,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final district = ref.watch(selectedDistrictProvider);
     final packageInfo = ref.watch(_packageInfoProvider);
+    final unreadFeedback =
+        ref.watch(unreadFeedbackRepliesCountProvider).value ?? 0;
     final appVersion = packageInfo.maybeWhen(
       data: (info) => info.version,
       orElse: () => '…',
@@ -74,7 +77,11 @@ class SettingsScreen extends ConsumerWidget {
             title: 'Мои обращения',
             subtitle: 'История отправленных обращений и ответов',
             trailingLabel: 'Открыть',
-            onTap: () => context.push('/my-feedback-requests'),
+            badgeCount: unreadFeedback,
+            onTap: () async {
+              await context.push('/my-feedback-requests');
+              ref.invalidate(unreadFeedbackRepliesCountProvider);
+            },
           ),
         ],
       ),
@@ -107,6 +114,7 @@ class _SettingsTile extends StatelessWidget {
   final String? subtitle;
   final String? trailingLabel;
   final VoidCallback? onTap;
+  final int badgeCount;
 
   const _SettingsTile({
     required this.icon,
@@ -114,6 +122,7 @@ class _SettingsTile extends StatelessWidget {
     this.subtitle,
     this.trailingLabel,
     this.onTap,
+    this.badgeCount = 0,
   });
 
   @override
@@ -134,14 +143,19 @@ class _SettingsTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryContainer(context),
-                    shape: BoxShape.circle,
+                Badge(
+                  isLabelVisible: badgeCount > 0,
+                  label: Text('$badgeCount'),
+                  backgroundColor: AppTheme.accentRed,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryContainer(context),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon,
+                        color: AppTheme.onPrimaryContainer(context), size: 20),
                   ),
-                  child: Icon(icon,
-                      color: AppTheme.onPrimaryContainer(context), size: 20),
                 ),
                 const SizedBox(width: 14),
                 Expanded(

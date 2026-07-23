@@ -13,7 +13,14 @@ String? notificationDeepLinkPath(RemoteMessage message) {
   if (itemId == null || itemId.toString().isEmpty) return null;
 
   final type = message.data['type'];
-  return type == 'announcement' ? '/announcements/$itemId' : '/news/$itemId';
+  switch (type) {
+    case 'announcement':
+      return '/announcements/$itemId';
+    case 'feedback':
+      return '/feedback-requests/$itemId';
+    default:
+      return '/news/$itemId';
+  }
 }
 
 /// Сервис push-уведомлений.

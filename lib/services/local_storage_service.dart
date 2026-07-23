@@ -13,6 +13,8 @@ class LocalStorageService {
   static const String _keyMyVacancyRequests = 'my_vacancy_requests';
   static const String _keyMyFeedbackRequests = 'my_feedback_requests';
   static const String _keyFeedbackTopicSubscribed = 'feedback_topic_subscribed';
+  static const String _keyFeedbackLastSeenCountPrefix =
+      'feedback_last_seen_count_';
   static const String _keyLastSeenAnnouncementsPrefix =
       'last_seen_announcements_';
   static const String _keyLastSeenNotificationsPrefix =
@@ -168,6 +170,23 @@ class LocalStorageService {
   Future<void> markFeedbackTopicSubscribed() async {
     final prefs = await _prefs;
     await prefs.setBool(_keyFeedbackTopicSubscribed, true);
+  }
+
+  /// Сколько сообщений в переписке по обращению [requestId] житель уже
+  /// видел — используется вместо time-based подхода (как у объявлений),
+  /// потому что время сообщений в чате проставляет клиент (см.
+  /// FeedbackMessage), а счётчик не зависит от точности локальных часов:
+  /// непрочитано ровно тогда, когда messages.length выросло с последнего
+  /// просмотра.
+  Future<int> getFeedbackLastSeenCount(String requestId) async {
+    final prefs = await _prefs;
+    return prefs.getInt('$_keyFeedbackLastSeenCountPrefix$requestId') ?? 0;
+  }
+
+  Future<void> markFeedbackThreadSeen(String requestId, int messageCount) async {
+    final prefs = await _prefs;
+    await prefs.setInt(
+        '$_keyFeedbackLastSeenCountPrefix$requestId', messageCount);
   }
 
   /// Отметка "когда житель последний раз заходил в раздел Объявления

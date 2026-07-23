@@ -259,28 +259,52 @@ service cloud.firestore {
     }
 
     // Обращения к супер-администратору (вопросы по сотрудничеству, работе
-    // приложения, пожелания). В отличие от banner_requests/vacancy_requests
-    // выше (allow read: if isAdmin()), автору обращения без входа в
-    // приложение тоже нужно прочитать СВОЙ документ — иначе он не увидит
-    // ответ. get и list разделены намеренно: get разрешён всем (документ
-    // читается по известному ID, сохранённому на устройстве при отправке —
-    // Firestore auto-ID не перечислим и не угадаем, тот же компромисс, что и
-    // у deviceId в organizations/{orgId}/ratings), а list (просмотр/
-    // перечисление всех обращений сразу) — только супер-админу.
+    // приложения, пожелания) — формат чата, переписка продолжается по
+    // одному и тому же документу. В отличие от banner_requests/
+    // vacancy_requests выше (allow read: if isAdmin()), автору обращения без
+    // входа в приложение тоже нужно прочитать СВОЙ документ — иначе он не
+    // увидит ответ. get и list разделены намеренно: get разрешён всем
+    // (документ читается по известному ID, сохранённому на устройстве при
+    // отправке — Firestore auto-ID не перечислим и не угадаем, тот же
+    // компромисс, что и у deviceId в organizations/{orgId}/ratings), а list
+    // (просмотр/перечисление всех обращений сразу) — только супер-админу.
     match /feedback_requests/{requestId} {
       allow get: if true;
       allow list: if isAdmin();
-      allow create: if request.resource.data.message is string &&
-          request.resource.data.message.size() > 0 && request.resource.data.message.size() < 2000 &&
-          request.resource.data.district is string &&
+      // messages — переписка по обращению (см. FeedbackRequestModel):
+      // [{sender:'resident'|'admin', text, createdAt}]. При создании в
+      // массиве ровно одно сообщение от жителя.
+      allow create: if request.resource.data.district is string &&
           request.resource.data.deviceId is string &&
           request.resource.data.deviceId.size() > 0 &&
           request.resource.data.status == 'pending' &&
+          request.resource.data.messages is list &&
+          request.resource.data.messages.size() == 1 &&
+          request.resource.data.messages[0].sender == 'resident' &&
+          request.resource.data.messages[0].text is string &&
+          request.resource.data.messages[0].text.size() > 0 &&
+          request.resource.data.messages[0].text.size() < 2000 &&
           (!('phone' in request.resource.data) ||
            request.resource.data.phone == null ||
            (request.resource.data.phone is string && request.resource.data.phone.size() < 30));
-      allow update: if isAdmin();
-      allow delete: if false;
+      // Супер-админ отвечает/удаляет без ограничений. Житель (не аутентифи-
+      // цирован — тот же компромисс "ID известен = как бы токен", что и у
+      // get выше) может ТОЛЬКО дописать одно своё сообщение в конец chatа:
+      // messages.size() растёт ровно на 1 через arrayUnion (Firestore не
+      // даёт arrayUnion переписать/удалить существующие элементы — поэтому
+      // прошлые сообщения, в т.ч. ответы админа, гарантированно нельзя
+      // подделать этим правилом), новое сообщение — обязательно
+      // sender:'resident', и после дописывания status снова 'pending'
+      // (админ увидит, что ветка ждёт ответа).
+      allow update: if isAdmin() || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['messages', 'status', 'updatedAt']) &&
+          request.resource.data.messages.size() == resource.data.messages.size() + 1 &&
+          request.resource.data.messages[resource.data.messages.size()].sender == 'resident' &&
+          request.resource.data.messages[resource.data.messages.size()].text is string &&
+          request.resource.data.messages[resource.data.messages.size()].text.size() > 0 &&
+          request.resource.data.messages[resource.data.messages.size()].text.size() < 2000 &&
+          request.resource.data.status == 'pending');
+      allow delete: if isAdmin();
     }
   }
 }

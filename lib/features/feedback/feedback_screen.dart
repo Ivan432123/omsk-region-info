@@ -88,13 +88,22 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final unreadFeedback = ref.watch(unreadFeedbackRepliesCountProvider).value ?? 0;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Обратная связь'),
         actions: [
           TextButton(
-            onPressed: () => context.push('/my-feedback-requests'),
-            child: const Text('Мои обращения'),
+            onPressed: () async {
+              await context.push('/my-feedback-requests');
+              ref.invalidate(unreadFeedbackRepliesCountProvider);
+            },
+            child: Badge(
+              isLabelVisible: unreadFeedback > 0,
+              label: Text('$unreadFeedback'),
+              backgroundColor: AppTheme.accentRed,
+              child: const Text('Мои обращения'),
+            ),
           ),
         ],
       ),

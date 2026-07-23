@@ -143,6 +143,55 @@
             background: #9C3F2E;
         }
 
+        button.filter-btn {
+            width: auto;
+            display: inline-block;
+            margin: 0 6px 6px 0;
+            padding: 8px 14px;
+            font-size: 13px;
+            background: transparent;
+            color: #1E2A22;
+            border: 1px solid #DEDACD;
+        }
+
+        button.filter-btn.active {
+            background: #1E2A22;
+            color: #F6F3EC;
+            border-color: #1E2A22;
+        }
+
+        .feedback-thread {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .feedback-bubble {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .feedback-bubble.resident {
+            align-self: flex-start;
+            background: #EFEBDF;
+        }
+
+        .feedback-bubble.admin {
+            align-self: flex-end;
+            background: #E4DCC8;
+        }
+
+        .feedback-bubble .meta {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
         .item {
             display: flex;
             flex-wrap: wrap;
@@ -510,7 +559,14 @@
         <summary><h2>Обращения к администрации (все районы)</h2></summary>
         <div class="item-sub" style="margin-bottom:10px;">
             Вопросы по сотрудничеству, работе приложения, пожелания — со всех районов сразу, подписаны
-            районом-отправителем. Ответ уходит push-уведомлением лично автору обращения.
+            районом-отправителем. Это чат: житель может писать дальше по тому же обращению, каждый ответ и
+            каждое новое сообщение жителя уходят push-уведомлением лично автору.
+        </div>
+        <div id="feedback-summary" class="item-sub" style="margin-bottom:10px; font-weight:700;"></div>
+        <div>
+            <button type="button" class="filter-btn" id="feedback-filter-pending" onclick="setFeedbackFilter('pending')">Ожидают ответа</button>
+            <button type="button" class="filter-btn" id="feedback-filter-answered" onclick="setFeedbackFilter('answered')">Отвечено</button>
+            <button type="button" class="filter-btn" id="feedback-filter-all" onclick="setFeedbackFilter('all')">Все</button>
         </div>
         <div class="card" id="feedback-list"></div>
         </details>
@@ -2072,13 +2128,44 @@ ${r.salary ? `<div class="item-sub">Зарплата: ${escapeHtml(r.salary)}</d
 
         // ---------- Обращения к супер-администратору (feedback_requests) ----------
         // Видит и модерирует только супер-админ, сразу со всех районов — по
-        // тому же принципу, что и loadVacancyRequests() выше. В отличие от
-        // заявок на объявление/баннер/вакансию, ответ пишется прямо в этот же
-        // документ (reply/status/repliedAt) и уходит push ЛИЧНО автору
-        // обращения — не всему району, см. sendFeedbackReplyPush().
+        // тому же принципу, что и loadVacancyRequests() выше. Это чат:
+        // переписка хранится в массиве messages того же документа
+        // ([{sender:'resident'|'admin', text, createdAt}]), житель может
+        // писать дальше после ответа админа (арpend через arrayUnion — см.
+        // правила Firestore и FeedbackRequestRepository.sendMessage в
+        // приложении). Каждый ответ уходит push ЛИЧНО автору обращения — не
+        // всему району, см. sendFeedbackReplyPush().
+        //
+        // getFeedbackMessages() читает и НОВЫЙ формат (messages), и СТАРЫЙ
+        // (одиночные message/reply/repliedAt — документы, созданные до
+        // введения чата) без миграции данных: submitFeedbackReply() сам
+        // "долепляет" messages при первом ответе через этот код.
 
         let feedbackRequestCache = {};
         let feedbackRequestIds = [];
+        let feedbackFilter = 'pending';
+
+        function getFeedbackMessages(r) {
+            if (Array.isArray(r.messages)) return r.messages;
+            const messages = [
+                { sender: 'resident', text: r.message || '', createdAt: r.createdAt || null }
+            ];
+            if (r.reply) {
+                messages.push({ sender: 'admin', text: r.reply, createdAt: r.repliedAt || r.createdAt || null });
+            }
+            return messages;
+        }
+
+        function feedbackTimestampMs(ts) {
+            if (!ts) return 0;
+            if (typeof ts.toMillis === 'function') return ts.toMillis();
+            if (ts instanceof Date) return ts.getTime();
+            return 0;
+        }
+
+        function feedbackSortTime(r) {
+            return feedbackTimestampMs(r.updatedAt) || feedbackTimestampMs(r.repliedAt) || feedbackTimestampMs(r.createdAt);
+        }
 
         async function loadFeedbackRequests() {
             if (currentUserRole !== 'super') return;
@@ -2100,14 +2187,52 @@ ${r.salary ? `<div class="item-sub">Зарплата: ${escapeHtml(r.salary)}</d
             }
         }
 
+        function setFeedbackFilter(filter) {
+            feedbackFilter = filter;
+            renderFeedbackRequestsList();
+        }
+
         function renderFeedbackRequestsList() {
             const container = document.getElementById('feedback-list');
-            if (feedbackRequestIds.length === 0) {
-                container.innerHTML = '<div class="item-sub">Обращений пока нет</div>';
+            const summary = document.getElementById('feedback-summary');
+
+            ['all', 'pending', 'answered'].forEach((f) => {
+                const btn = document.getElementById('feedback-filter-' + f);
+                if (btn) btn.classList.toggle('active', f === feedbackFilter);
+            });
+
+            const pendingCount = feedbackRequestIds.filter((id) => feedbackRequestCache[id].status !== 'answered').length;
+            summary.textContent = feedbackRequestIds.length === 0 ? '' :
+                (pendingCount > 0
+                    ? pendingCount + ' из ' + feedbackRequestIds.length + ' ожидают ответа'
+                    : 'Все обращения отвечены (' + feedbackRequestIds.length + ')');
+
+            const filteredIds = feedbackRequestIds.filter((id) => {
+                if (feedbackFilter === 'all') return true;
+                const status = feedbackRequestCache[id].status === 'answered' ? 'answered' : 'pending';
+                return status === feedbackFilter;
+            });
+
+            // Ожидающие ответа — сверху; внутри своей группы — сначала самые
+            // свежие (по updatedAt, с фолбэком на старые repliedAt/createdAt
+            // для документов старого формата).
+            filteredIds.sort((a, b) => {
+                const ra = feedbackRequestCache[a];
+                const rb = feedbackRequestCache[b];
+                const aPending = ra.status !== 'answered' ? 0 : 1;
+                const bPending = rb.status !== 'answered' ? 0 : 1;
+                if (aPending !== bPending) return aPending - bPending;
+                return feedbackSortTime(rb) - feedbackSortTime(ra);
+            });
+
+            if (filteredIds.length === 0) {
+                container.innerHTML = '<div class="item-sub">' +
+                    (feedbackRequestIds.length === 0 ? 'Обращений пока нет' : 'Ничего не найдено по этому фильтру') +
+                    '</div>';
                 return;
             }
             container.innerHTML = '';
-            feedbackRequestIds.forEach((id) => {
+            filteredIds.forEach((id) => {
                 container.appendChild(buildFeedbackRequestRow(id));
             });
         }
@@ -2119,13 +2244,26 @@ ${r.salary ? `<div class="item-sub">Зарплата: ${escapeHtml(r.salary)}</d
             const districtLabel = escapeHtml(districtNamesById[r.district] || r.district || '');
             const isAnswered = r.status === 'answered';
             const textareaId = 'feedback-reply-' + id;
+            const messages = getFeedbackMessages(r);
+
+            const bubblesHtml = messages.map((m) => {
+                const isAdminMsg = m.sender === 'admin';
+                const ms = feedbackTimestampMs(m.createdAt);
+                const time = ms ? new Date(ms).toLocaleString('ru-RU') : '';
+                return `<div class="feedback-bubble ${isAdminMsg ? 'admin' : 'resident'}">
+<div>${escapeHtml(m.text || '')}</div>
+<div class="meta">${isAdminMsg ? 'Администрация' : 'Житель'}${time ? ' · ' + escapeHtml(time) : ''}</div>
+</div>`;
+            }).join('');
+
             row.innerHTML = `
 <div style="width:100%;">
 <div class="item-title">${districtLabel} · ${isAnswered ? 'Отвечено' : 'Ожидает ответа'}</div>
-<div class="item-sub">${escapeHtml(r.message)}</div>
 ${r.phone ? `<div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>` : ''}
-<textarea id="${textareaId}" placeholder="Ваш ответ">${escapeHtml(r.reply || '')}</textarea>
-<button onclick="submitFeedbackReply('${id}')">${isAnswered ? 'Обновить ответ' : 'Отправить ответ'}</button>
+<div class="feedback-thread">${bubblesHtml}</div>
+<textarea id="${textareaId}" placeholder="Ваш ответ"></textarea>
+<button onclick="submitFeedbackReply('${id}')">${isAnswered ? 'Ответить ещё' : 'Отправить ответ'}</button>
+${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">Удалить обращение</button>` : ''}
 </div>
 `;
             return row;
@@ -2134,28 +2272,52 @@ ${r.phone ? `<div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>`
         async function submitFeedbackReply(id) {
             const r = feedbackRequestCache[id];
             if (!r) return;
-            const reply = document.getElementById('feedback-reply-' + id).value.trim();
+            const textarea = document.getElementById('feedback-reply-' + id);
+            const reply = textarea.value.trim();
             if (!reply) {
                 alert('Введите текст ответа');
                 return;
             }
 
+            // Документы старого (до чата) формата ещё не имеют поля messages —
+            // пишем ПОЛНЫЙ массив (исходный вопрос жителя + новый ответ), а не
+            // arrayUnion, чтобы первое сообщение жителя не потерялось при
+            // первом же ответе через этот код.
+            const newMessages = [...getFeedbackMessages(r), {
+                sender: 'admin',
+                text: reply,
+                createdAt: firebase.firestore.Timestamp.now()
+            }];
+
             await db.collection('feedback_requests').doc(id).update({
-                reply,
+                messages: newMessages,
                 status: 'answered',
-                repliedAt: firebase.firestore.FieldValue.serverTimestamp()
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            const pushOk = await sendFeedbackReplyPush(r.deviceId, reply);
+            textarea.value = '';
+            const pushOk = await sendFeedbackReplyPush(r.deviceId, reply, id);
             showStatus(pushOk ? 'Ответ отправлен, push доставлен' : 'Ответ сохранён, НО push НЕ отправлен');
             loadFeedbackRequests();
+        }
+
+        async function deleteFeedbackRequest(id) {
+            if (!(await showConfirmDialog('Удалить это обращение?'))) return;
+            await db.collection('feedback_requests').doc(id).delete();
+            delete feedbackRequestCache[id];
+            feedbackRequestIds = feedbackRequestIds.filter((existingId) => existingId !== id);
+            showStatus('Обращение удалено');
+            renderFeedbackRequestsList();
         }
 
         // Личный push автору обращения — в отличие от sendPushNotification()
         // выше (тема district_<id>, весь район разом), Worker получает явный
         // topic (feedback_<deviceId>) и шлёт FCM-сообщение напрямую в него,
-        // не вычисляя тему из districtId.
-        async function sendFeedbackReplyPush(deviceId, replyText) {
+        // не вычисляя тему из districtId. newsId (id обращения) + type:
+        // 'feedback' в data-пейлоаде — чтобы тап по уведомлению в приложении
+        // вёл прямо в это обращение (см. notificationDeepLinkPath в
+        // fcm_service.dart), а не просто открывал приложение.
+        async function sendFeedbackReplyPush(deviceId, replyText, requestId) {
             try {
                 const idToken = await auth.currentUser.getIdToken();
                 const response = await fetch(PUSH_WORKER_URL, {
@@ -2168,6 +2330,7 @@ ${r.phone ? `<div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>`
                         topic: 'feedback_' + deviceId,
                         title: 'Ответ на ваше обращение',
                         body: replyText,
+                        newsId: requestId,
                         type: 'feedback'
                     })
                 });

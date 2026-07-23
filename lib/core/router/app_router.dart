@@ -27,6 +27,8 @@ import '../../features/post_vacancy/post_vacancy_screen.dart';
 import '../../features/post_vacancy/my_vacancy_requests_screen.dart';
 import '../../features/bus_routes/bus_routes_list_screen.dart';
 import '../../features/bus_routes/bus_route_details_screen.dart';
+import '../../features/feedback/send_feedback_screen.dart';
+import '../../features/feedback/my_feedback_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
 class AppRouter {
@@ -111,6 +113,14 @@ class AppRouter {
       GoRoute(
         path: '/bus-routes',
         builder: (context, state) => const BusRoutesListScreen(),
+      ),
+      GoRoute(
+        path: '/feedback',
+        builder: (context, state) => const SendFeedbackScreen(),
+      ),
+      GoRoute(
+        path: '/my-feedback',
+        builder: (context, state) => const MyFeedbackScreen(),
       ),
       GoRoute(
         path: '/bookmarks',

@@ -11,6 +11,7 @@ class LocalStorageService {
   static const String _keyMyAdRequests = 'my_ad_requests';
   static const String _keyMyBannerRequests = 'my_banner_requests';
   static const String _keyMyVacancyRequests = 'my_vacancy_requests';
+  static const String _keyMyFeedbackIds = 'my_feedback_ids';
   static const String _keyLastSeenAnnouncementsPrefix =
       'last_seen_announcements_';
   static const String _keyLastSeenNotificationsPrefix =
@@ -126,6 +127,26 @@ class LocalStorageService {
     } catch (_) {
       return [];
     }
+  }
+
+  /// Сохраняет id отправленного обращения в поддержку локально на
+  /// устройстве. В отличие от saveMyAdRequest/saveMyVacancyRequest здесь
+  /// хранится только id, а не снимок данных: ответ супер-админа появляется
+  /// позже, поэтому экран "Мои обращения" каждый раз перезапрашивает
+  /// актуальное состояние из Firestore по этим id (см. FeedbackRepository.
+  /// getFeedbackById), а не показывает то, что было на момент отправки.
+  Future<void> saveMyFeedbackId(String id) async {
+    final prefs = await _prefs;
+    final existing = prefs.getStringList(_keyMyFeedbackIds) ?? [];
+    existing.remove(id);
+    existing.insert(0, id);
+    final trimmed = existing.take(20).toList();
+    await prefs.setStringList(_keyMyFeedbackIds, trimmed);
+  }
+
+  Future<List<String>> getMyFeedbackIds() async {
+    final prefs = await _prefs;
+    return prefs.getStringList(_keyMyFeedbackIds) ?? [];
   }
 
   /// Отметка "когда житель последний раз заходил в раздел Объявления

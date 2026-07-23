@@ -506,6 +506,15 @@
         <div class="card" id="vacancy-requests-list"></div>
         </details>
 
+        <details class="admin-section" id="feedback-section" style="display:none;" open>
+        <summary><h2>Обращения (все районы)</h2></summary>
+        <div class="item-sub" style="margin-bottom:10px;">
+            Вопросы по сотрудничеству, работе приложения, пожелания — со всех районов сразу.
+            Ответ уходит push-уведомлением тому, кто отправил обращение.
+        </div>
+        <div class="card" id="feedback-list"></div>
+        </details>
+
         <details class="admin-section" id="announcement-section" open>
         <summary><h2>Добавить объявление</h2></summary>
         <div class="card">
@@ -729,6 +738,7 @@
                 loadDistrictAdmins();
                 loadPaidAdRequests(); // не зависит от выбранного района — все районы сразу
                 loadVacancyRequests(); // тоже не зависит от выбранного района — все районы сразу
+                loadFeedback(); // тоже не зависит от выбранного района — все районы сразу
                 loadFeatureFlags();
                 return;
             }
@@ -772,7 +782,8 @@
                 'sponsored-section', 'banner-requests-section',
                 'paid-ad-requests-section', 'org-admin-fields',
                 'announcement-stats', 'feature-flags-section',
-                'vacancies-section', 'vacancy-requests-section'
+                'vacancies-section', 'vacancy-requests-section',
+                'feedback-section'
             ];
             superOnlyIds.forEach((id) => {
                 const el = document.getElementById(id);
@@ -2057,6 +2068,91 @@ ${r.salary ? `<div class="item-sub">Зарплата: ${escapeHtml(r.salary)}</d
             await db.collection('vacancy_requests').doc(id).update({ status: 'rejected' });
             showStatus('Заявка отклонена');
             loadVacancyRequests();
+        }
+
+        // ---------- Обращения в поддержку (feedback) ----------
+        // Видит и отвечает только супер-админ, сразу со всех районов — по
+        // тому же принципу, что и loadVacancyRequests() выше. Запрос без
+        // .where() по status, чтобы не заводить composite-индекс: сортировка
+        // "новые/отвеченные" делается на клиенте при отрисовке.
+
+        let feedbackCache = {};
+        let feedbackIds = [];
+
+        async function loadFeedback() {
+            if (currentUserRole !== 'super') return;
+            const container = document.getElementById('feedback-list');
+            container.innerHTML = 'Загрузка...';
+            try {
+                const snapshot = await db.collection('feedback')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                feedbackIds = [];
+                snapshot.forEach((doc) => {
+                    feedbackCache[doc.id] = doc.data();
+                    feedbackIds.push(doc.id);
+                });
+                renderFeedbackList();
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить обращения: ' + err.message, loadFeedback);
+            }
+        }
+
+        function renderFeedbackList() {
+            const container = document.getElementById('feedback-list');
+            if (feedbackIds.length === 0) {
+                container.innerHTML = '<div class="item-sub">Обращений нет</div>';
+                return;
+            }
+            container.innerHTML = '';
+            feedbackIds.forEach((id) => {
+                container.appendChild(buildFeedbackRow(id));
+            });
+        }
+
+        function buildFeedbackRow(id) {
+            const f = feedbackCache[id];
+            const row = document.createElement('div');
+            row.className = 'item';
+            const isAnswered = f.status === 'answered';
+            const createdAtDate = f.createdAt && f.createdAt.toDate ? f.createdAt.toDate() : null;
+            const districtLabel = escapeHtml(f.districtName || districtNamesById[f.district] || f.district || '');
+            row.innerHTML = `
+<div>
+<div class="item-title">${districtLabel} ${isAnswered ? '· <span style="color:#3E7B4F;">отвечено</span>' : '· <span style="color:#B8860B;">ожидает ответа</span>'}</div>
+<div class="item-sub">${createdAtDate ? createdAtDate.toLocaleString('ru-RU') : ''}</div>
+<div class="item-sub" style="margin-top:6px;">${escapeHtml(f.message)}</div>
+${f.contact ? `<div class="item-sub">Контакт: ${escapeHtml(f.contact)}</div>` : ''}
+${isAnswered
+    ? `<div class="item-sub" style="margin-top:6px;font-weight:700;color:#1E2A22;">Ответ: ${escapeHtml(f.reply)}</div>`
+    : `<textarea id="feedback-reply-${id}" placeholder="Ответ..." style="margin-top:8px;"></textarea>
+<button onclick="withButtonLock(this, () => submitFeedbackReply('${id}'))">Отправить ответ</button>`}
+</div>
+`;
+            return row;
+        }
+
+        async function submitFeedbackReply(id) {
+            const textarea = document.getElementById('feedback-reply-' + id);
+            const reply = textarea.value.trim();
+            if (!reply) {
+                alert('Введите текст ответа');
+                return;
+            }
+
+            await db.collection('feedback').doc(id).update({
+                reply,
+                status: 'answered',
+                repliedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Персональный topic обращения (см. FcmService.subscribeToFeedbackReply
+            // в приложении) — тот же sendPushNotification, что и для новостей,
+            // просто вместо districtId подставлен id обращения.
+            const pushOk = await sendPushNotification('feedback_' + id, 'Ответ от ОМСКРЕГИОН ИНФО', reply, id, 'feedback_reply');
+            showStatus(pushOk ? 'Ответ сохранён, push отправлен' : 'Ответ сохранён, НО push НЕ отправлен');
+            loadFeedback();
         }
 
         // ---------- Опции для жителей (фиче-флаги) ----------

@@ -234,6 +234,34 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Обращения жителей в поддержку (вопросы по сотрудничеству, работе
+    // приложения, пожелания) — читает и отвечает только супер-админ, район
+    // прикладывается лишь для сортировки в панели, районному админу здесь
+    // делать нечего. Житель не входит в приложение, поэтому id документа
+    // (непредсказуемый Firestore push-id) — единственный пропуск к своему
+    // обращению: allow get разрешён всем, у кого есть id (нужно экрану
+    // "Мои обращения" — см. FeedbackRepository.getFeedbackById), а
+    // allow list ограничен супер-админом, иначе перебором можно было бы
+    // прочитать чужие обращения.
+    match /feedback/{feedbackId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if request.resource.data.message is string &&
+          request.resource.data.message.size() > 0 && request.resource.data.message.size() < 3000 &&
+          request.resource.data.district is string &&
+          request.resource.data.districtName is string &&
+          request.resource.data.status == 'new' &&
+          !('reply' in request.resource.data) &&
+          (!('contact' in request.resource.data) ||
+           request.resource.data.contact == null ||
+           (request.resource.data.contact is string && request.resource.data.contact.size() < 200));
+      // Ответ (reply/status/repliedAt) прописывает только супер-админ —
+      // именно этот update и триггерит push жителю через sendPushNotification
+      // в docs/index.html (Cloud Function здесь не участвует, см. functions/index.js).
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
     // Заявки работодателей на публикацию вакансии — видит и модерирует
     // ТОЛЬКО супер-админ, сразу со всех районов (в отличие от ad_requests,
     // где районный админ видит бесплатные заявки своего района). Цена

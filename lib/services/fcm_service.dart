@@ -9,10 +9,15 @@ import 'local_storage_service.dart';
 /// Возвращает null, если уведомление не ссылается на конкретную запись
 /// (например, обычный информационный пуш без data.newsId).
 String? notificationDeepLinkPath(RemoteMessage message) {
+  final type = message.data['type'];
+  // Ответ супер-админа на обращение в поддержку — отдельная ветка: у него
+  // нет news-документа, на который можно сослаться, ведёт всегда в один и
+  // тот же список "Мои обращения", а не на конкретную запись.
+  if (type == 'feedback_reply') return '/my-feedback';
+
   final itemId = message.data['newsId'];
   if (itemId == null || itemId.toString().isEmpty) return null;
 
-  final type = message.data['type'];
   return type == 'announcement' ? '/announcements/$itemId' : '/news/$itemId';
 }
 
@@ -57,6 +62,17 @@ class FcmService {
   }
 
   Future<String?> getToken() => _messaging.getToken();
+
+  /// Подписывает устройство на push-ответ супер-админа по конкретному
+  /// обращению в поддержку. В проекте нет адресной отправки по токену
+  /// устройства — единственный реально работающий канал push (Cloudflare
+  /// Worker, вызываемый из docs/index.html) умеет слать только в topic
+  /// вида district_<id>. Поэтому вместо района сюда подставляется id
+  /// самого обращения (topicForDistrict('feedback_$feedbackId') даёт
+  /// district_feedback_<id>) — это не про район, а способ получить
+  /// персональный topic на уже готовой инфраструктуре, не трогая Worker.
+  Future<void> subscribeToFeedbackReply(String feedbackId) =>
+      _messaging.subscribeToTopic(topicForDistrict('feedback_$feedbackId'));
 
   String? _consumedDeepLinkMessageId;
 

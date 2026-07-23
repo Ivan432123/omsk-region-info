@@ -32,6 +32,8 @@ class FcmService {
 
   static String topicForDistrict(String districtId) => 'district_$districtId';
 
+  static String topicForDevice(String deviceId) => 'feedback_$deviceId';
+
   Future<void> initialize() async {
     await _messaging.requestPermission(
       alert: true,
@@ -54,6 +56,18 @@ class FcmService {
   /// При смене района (future scope: настройки) — отписка от старого.
   Future<void> unsubscribeFromDistrict(String districtId) async {
     await _messaging.unsubscribeFromTopic(topicForDistrict(districtId));
+  }
+
+  /// Подписывает устройство на его персональную тему обратной связи —
+  /// ответ супер-администратора на обращение приходит именно в неё, а не в
+  /// district_<id> (это разослало бы личный ответ всему району). Одна и та
+  /// же тема обслуживает ВСЕ обращения, отправленные с этого устройства, —
+  /// подписка постоянна и оформляется один раз, отписки не предусмотрено.
+  Future<void> subscribeToFeedbackTopic(String deviceId) async {
+    if (await _storage.isFeedbackTopicSubscribed()) return;
+
+    await _messaging.subscribeToTopic(topicForDevice(deviceId));
+    await _storage.markFeedbackTopicSubscribed();
   }
 
   Future<String?> getToken() => _messaging.getToken();

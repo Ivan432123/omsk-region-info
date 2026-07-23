@@ -11,6 +11,8 @@ class LocalStorageService {
   static const String _keyMyAdRequests = 'my_ad_requests';
   static const String _keyMyBannerRequests = 'my_banner_requests';
   static const String _keyMyVacancyRequests = 'my_vacancy_requests';
+  static const String _keyMyFeedbackRequests = 'my_feedback_requests';
+  static const String _keyFeedbackTopicSubscribed = 'feedback_topic_subscribed';
   static const String _keyLastSeenAnnouncementsPrefix =
       'last_seen_announcements_';
   static const String _keyLastSeenNotificationsPrefix =
@@ -126,6 +128,46 @@ class LocalStorageService {
     } catch (_) {
       return [];
     }
+  }
+
+  /// Сохраняет отправленное обращение к супер-администратору локально на
+  /// устройстве — по тому же принципу, что и заявки на вакансию (см.
+  /// saveMyVacancyRequest), только тут ID нужен ещё и чтобы позже перечитать
+  /// документ из Firestore и подтянуть ответ супер-админа (см.
+  /// FeedbackRequestRepository.getById и MyFeedbackRequestsScreen).
+  Future<void> saveMyFeedbackRequest(Map<String, dynamic> request) async {
+    final prefs = await _prefs;
+    final existing = await getMyFeedbackRequests();
+    existing.insert(0, request);
+    final trimmed = existing.take(10).toList();
+    await prefs.setString(_keyMyFeedbackRequests, jsonEncode(trimmed));
+  }
+
+  Future<List<Map<String, dynamic>>> getMyFeedbackRequests() async {
+    final prefs = await _prefs;
+    final raw = prefs.getString(_keyMyFeedbackRequests);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List;
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Персональная тема push-уведомлений (feedback_<deviceId>, см.
+  /// FcmService.subscribeToFeedbackTopic) — отдельный постоянный флаг,
+  /// а не isFcmTopicSubscribed/markFcmTopicSubscribed: тот хранит РОВНО
+  /// ОДНУ активную тему района и переключается при смене района, а тема
+  /// обратной связи должна жить бессрочно и не сбрасываться вместе с ней.
+  Future<bool> isFeedbackTopicSubscribed() async {
+    final prefs = await _prefs;
+    return prefs.getBool(_keyFeedbackTopicSubscribed) ?? false;
+  }
+
+  Future<void> markFeedbackTopicSubscribed() async {
+    final prefs = await _prefs;
+    await prefs.setBool(_keyFeedbackTopicSubscribed, true);
   }
 
   /// Отметка "когда житель последний раз заходил в раздел Объявления

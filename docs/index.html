@@ -506,6 +506,15 @@
         <div class="card" id="vacancy-requests-list"></div>
         </details>
 
+        <details class="admin-section" id="feedback-section" style="display:none;" open>
+        <summary><h2>Обращения к администрации (все районы)</h2></summary>
+        <div class="item-sub" style="margin-bottom:10px;">
+            Вопросы по сотрудничеству, работе приложения, пожелания — со всех районов сразу, подписаны
+            районом-отправителем. Ответ уходит push-уведомлением лично автору обращения.
+        </div>
+        <div class="card" id="feedback-list"></div>
+        </details>
+
         <details class="admin-section" id="announcement-section" open>
         <summary><h2>Добавить объявление</h2></summary>
         <div class="card">
@@ -729,6 +738,7 @@
                 loadDistrictAdmins();
                 loadPaidAdRequests(); // не зависит от выбранного района — все районы сразу
                 loadVacancyRequests(); // тоже не зависит от выбранного района — все районы сразу
+                loadFeedbackRequests(); // тоже не зависит от выбранного района — все районы сразу
                 loadFeatureFlags();
                 return;
             }
@@ -772,7 +782,8 @@
                 'sponsored-section', 'banner-requests-section',
                 'paid-ad-requests-section', 'org-admin-fields',
                 'announcement-stats', 'feature-flags-section',
-                'vacancies-section', 'vacancy-requests-section'
+                'vacancies-section', 'vacancy-requests-section',
+                'feedback-section'
             ];
             superOnlyIds.forEach((id) => {
                 const el = document.getElementById(id);
@@ -2057,6 +2068,119 @@ ${r.salary ? `<div class="item-sub">Зарплата: ${escapeHtml(r.salary)}</d
             await db.collection('vacancy_requests').doc(id).update({ status: 'rejected' });
             showStatus('Заявка отклонена');
             loadVacancyRequests();
+        }
+
+        // ---------- Обращения к супер-администратору (feedback_requests) ----------
+        // Видит и модерирует только супер-админ, сразу со всех районов — по
+        // тому же принципу, что и loadVacancyRequests() выше. В отличие от
+        // заявок на объявление/баннер/вакансию, ответ пишется прямо в этот же
+        // документ (reply/status/repliedAt) и уходит push ЛИЧНО автору
+        // обращения — не всему району, см. sendFeedbackReplyPush().
+
+        let feedbackRequestCache = {};
+        let feedbackRequestIds = [];
+
+        async function loadFeedbackRequests() {
+            if (currentUserRole !== 'super') return;
+            const container = document.getElementById('feedback-list');
+            container.innerHTML = 'Загрузка...';
+            try {
+                const snapshot = await db.collection('feedback_requests')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                feedbackRequestIds = [];
+                snapshot.forEach((doc) => {
+                    feedbackRequestCache[doc.id] = doc.data();
+                    feedbackRequestIds.push(doc.id);
+                });
+                renderFeedbackRequestsList();
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить обращения: ' + err.message, loadFeedbackRequests);
+            }
+        }
+
+        function renderFeedbackRequestsList() {
+            const container = document.getElementById('feedback-list');
+            if (feedbackRequestIds.length === 0) {
+                container.innerHTML = '<div class="item-sub">Обращений пока нет</div>';
+                return;
+            }
+            container.innerHTML = '';
+            feedbackRequestIds.forEach((id) => {
+                container.appendChild(buildFeedbackRequestRow(id));
+            });
+        }
+
+        function buildFeedbackRequestRow(id) {
+            const r = feedbackRequestCache[id];
+            const row = document.createElement('div');
+            row.className = 'item';
+            const districtLabel = escapeHtml(districtNamesById[r.district] || r.district || '');
+            const isAnswered = r.status === 'answered';
+            const textareaId = 'feedback-reply-' + id;
+            row.innerHTML = `
+<div style="width:100%;">
+<div class="item-title">${districtLabel} · ${isAnswered ? 'Отвечено' : 'Ожидает ответа'}</div>
+<div class="item-sub">${escapeHtml(r.message)}</div>
+${r.phone ? `<div class="item-sub">Телефон: ${escapeHtml(r.phone)}</div>` : ''}
+<textarea id="${textareaId}" placeholder="Ваш ответ">${escapeHtml(r.reply || '')}</textarea>
+<button onclick="submitFeedbackReply('${id}')">${isAnswered ? 'Обновить ответ' : 'Отправить ответ'}</button>
+</div>
+`;
+            return row;
+        }
+
+        async function submitFeedbackReply(id) {
+            const r = feedbackRequestCache[id];
+            if (!r) return;
+            const reply = document.getElementById('feedback-reply-' + id).value.trim();
+            if (!reply) {
+                alert('Введите текст ответа');
+                return;
+            }
+
+            await db.collection('feedback_requests').doc(id).update({
+                reply,
+                status: 'answered',
+                repliedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            const pushOk = await sendFeedbackReplyPush(r.deviceId, reply);
+            showStatus(pushOk ? 'Ответ отправлен, push доставлен' : 'Ответ сохранён, НО push НЕ отправлен');
+            loadFeedbackRequests();
+        }
+
+        // Личный push автору обращения — в отличие от sendPushNotification()
+        // выше (тема district_<id>, весь район разом), Worker получает явный
+        // topic (feedback_<deviceId>) и шлёт FCM-сообщение напрямую в него,
+        // не вычисляя тему из districtId.
+        async function sendFeedbackReplyPush(deviceId, replyText) {
+            try {
+                const idToken = await auth.currentUser.getIdToken();
+                const response = await fetch(PUSH_WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + idToken
+                    },
+                    body: JSON.stringify({
+                        topic: 'feedback_' + deviceId,
+                        title: 'Ответ на ваше обращение',
+                        body: replyText,
+                        type: 'feedback'
+                    })
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    alert('Push НЕ отправлен. Ответ сервера: ' + text);
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                alert('Push НЕ отправлен (ошибка сети): ' + err.message);
+                return false;
+            }
         }
 
         // ---------- Опции для жителей (фиче-флаги) ----------

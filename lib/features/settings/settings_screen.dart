@@ -12,9 +12,10 @@ final _packageInfoProvider =
     FutureProvider<PackageInfo>((ref) => PackageInfo.fromPlatform());
 
 /// Экран настроек.
-/// MVP-скоуп: смена района и справочная информация о приложении.
+/// MVP-скоуп: смена района, обратная связь с супер-администратором и
+/// справочная информация о приложении.
 /// Будущий скоуп (не реализовано намеренно): управление push-категориями,
-/// тёмная тема, обратная связь — задел под них ниже в комментариях.
+/// тёмная тема.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -56,6 +57,24 @@ class SettingsScreen extends ConsumerWidget {
             subtitle:
                 'Включены автоматически для вашего района: вода, газ, электричество, '
                 'экстренные оповещения',
+          ),
+          const SizedBox(height: 28),
+          Text('Обратная связь',
+              style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 10),
+          _SettingsTile(
+            icon: Icons.mail_outline_rounded,
+            title: 'Написать администрации',
+            subtitle: 'Вопросы по сотрудничеству, работе приложения, пожелания',
+            trailingLabel: 'Открыть',
+            onTap: () => context.push('/feedback'),
+          ),
+          _SettingsTile(
+            icon: Icons.history_rounded,
+            title: 'Мои обращения',
+            subtitle: 'История отправленных обращений и ответов',
+            trailingLabel: 'Открыть',
+            onTap: () => context.push('/my-feedback-requests'),
           ),
         ],
       ),

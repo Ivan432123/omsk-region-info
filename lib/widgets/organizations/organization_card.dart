@@ -15,9 +15,9 @@ class OrganizationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = OrganizationIconHelper.iconFor(organization.category);
-    final color = OrganizationIconHelper.colorFor(organization.category);
+    final color = OrganizationIconHelper.colorFor(context, organization.category);
     final background =
-        OrganizationIconHelper.backgroundFor(organization.category);
+        OrganizationIconHelper.backgroundFor(context, organization.category);
 
     return InkWell(
       onTap: onTap,

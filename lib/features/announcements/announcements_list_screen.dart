@@ -100,7 +100,7 @@ class _AnnouncementsListScreenState
                       subtitle: 'Загляните позже',
                     )
                   : RefreshIndicator(
-                      color: AppTheme.primaryBlue,
+                      color: AppTheme.primaryBlueText(context),
                       onRefresh: () => ref
                           .read(announcementListProvider(districtId).notifier)
                           .refresh(),
@@ -165,10 +165,11 @@ class _AnnouncementsListScreenState
           ),
         ),
         if (state.hasMore)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryBlueText(context)),
             ),
           ),
       ],

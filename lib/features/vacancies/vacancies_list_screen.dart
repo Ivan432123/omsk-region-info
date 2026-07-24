@@ -76,7 +76,7 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
                       subtitle: 'Загляните позже',
                     )
                   : RefreshIndicator(
-                      color: AppTheme.primaryBlue,
+                      color: AppTheme.primaryBlueText(context),
                       onRefresh: () => ref
                           .read(vacancyListProvider(districtId).notifier)
                           .refresh(),
@@ -88,11 +88,11 @@ class _VacanciesListScreenState extends ConsumerState<VacanciesListScreen> {
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           if (index >= state.items.length) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               child: Center(
                                 child: CircularProgressIndicator(
-                                    color: AppTheme.primaryBlue),
+                                    color: AppTheme.primaryBlueText(context)),
                               ),
                             );
                           }

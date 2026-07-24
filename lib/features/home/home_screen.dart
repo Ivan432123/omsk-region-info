@@ -44,7 +44,7 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
-          color: AppTheme.primaryBlue,
+          color: AppTheme.primaryBlueText(context),
           onRefresh: () async {
             ref.invalidate(importantAnnouncementsProvider(districtId));
             ref.invalidate(promotedAnnouncementsProvider(districtId));
@@ -169,12 +169,12 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               if (newsState.isLoading)
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.only(top: 40),
+                    padding: const EdgeInsets.only(top: 40),
                     child: Center(
                         child: CircularProgressIndicator(
-                            color: AppTheme.primaryBlue)),
+                            color: AppTheme.primaryBlueText(context))),
                   ),
                 )
               else if (newsState.error != null)
@@ -276,12 +276,12 @@ class _SponsoredSection extends StatelessWidget {
                 ),
                 InkWell(
                   onTap: () => context.push('/post-banner'),
-                  child: const Text(
+                  child: Text(
                     'Разместить →',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryBlue,
+                      color: AppTheme.primaryBlueText(context),
                     ),
                   ),
                 ),
@@ -699,7 +699,7 @@ class _WeatherCard extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              Icon(info.icon, color: AppTheme.primaryBlue, size: 26),
+              Icon(info.icon, color: AppTheme.primaryBlueText(context), size: 26),
               const SizedBox(width: 12),
               Text(
                 '${weather.temperature.round()}°',
@@ -805,7 +805,7 @@ class _QuickNavButton extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, color: AppTheme.primaryBlue, size: 24),
+            Icon(icon, color: AppTheme.primaryBlueText(context), size: 24),
             const SizedBox(height: 6),
             // FittedBox + ширина на всю доступную область: без этого длинная
             // подпись переносится на вторую строку и делает свою кнопку выше

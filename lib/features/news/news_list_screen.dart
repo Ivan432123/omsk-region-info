@@ -128,7 +128,7 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                 }
 
                 return RefreshIndicator(
-                  color: AppTheme.primaryBlue,
+                  color: AppTheme.primaryBlueText(context),
                   onRefresh: () => ref
                       .read(newsListByCategoryProvider(
                         (districtId: districtId, category: _selectedCategory),
@@ -143,15 +143,15 @@ class _NewsListScreenState extends ConsumerState<NewsListScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       if (index >= newsState.items.length) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           child: Center(
                             child: SizedBox(
                               width: 24,
                               height: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.4,
-                                color: AppTheme.primaryBlue,
+                                color: AppTheme.primaryBlueText(context),
                               ),
                             ),
                           ),

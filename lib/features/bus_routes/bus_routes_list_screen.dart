@@ -27,7 +27,7 @@ class BusRoutesListScreen extends ConsumerWidget {
         data: (routes) => routes.isEmpty
             ? const EmptyStateWidget.noBusRoutes()
             : RefreshIndicator(
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primaryBlueText(context),
                 onRefresh: () async =>
                     ref.invalidate(busRoutesProvider(districtId)),
                 child: ListView.separated(

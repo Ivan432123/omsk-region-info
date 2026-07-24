@@ -42,8 +42,9 @@ class _MyAdRequestsScreenState extends State<MyAdRequestsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Мои заявки')),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryBlue))
+          ? Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryBlueText(context)))
           : _requests.isEmpty
               ? Center(
                   child: Padding(

@@ -57,7 +57,7 @@ class UsefulOffersListScreen extends ConsumerWidget {
                 subtitle: 'Полезные предложения от партнёров появятся здесь',
               )
             : RefreshIndicator(
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primaryBlueText(context),
                 onRefresh: () async => ref.invalidate(usefulOffersProvider),
                 child: ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),

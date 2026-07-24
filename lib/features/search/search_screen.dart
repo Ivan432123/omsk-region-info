@@ -77,9 +77,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       (districtId: districtId, query: _query)),
                 );
                 return resultsAsync.when(
-                  loading: () => const Center(
+                  loading: () => Center(
                       child: CircularProgressIndicator(
-                          color: AppTheme.primaryBlue)),
+                          color: AppTheme.primaryBlueText(context))),
                   error: (_, __) => Center(
                     child: Text('Не удалось выполнить поиск',
                         style:

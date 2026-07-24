@@ -217,8 +217,8 @@ class _DistrictSelectionScreenState
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.notifications_active_outlined,
-            color: AppTheme.primaryBlue, size: 32),
+        icon: Icon(Icons.notifications_active_outlined,
+            color: AppTheme.primaryBlueText(dialogContext), size: 32),
         title: const Text('Включить уведомления?'),
         content: const Text(
           'Мы сообщим о срочных ситуациях в вашем районе — отключениях воды, '

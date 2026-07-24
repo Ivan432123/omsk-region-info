@@ -51,47 +51,56 @@ class OrganizationIconHelper {
     return Icons.apartment_rounded;
   }
 
-  static Color colorFor(String category) {
+  /// Требует BuildContext: несколько категорий (администрация/мед/культура/
+  /// спорт/образование/полиция) используют цвета, которые на тёмном фоне
+  /// проваливают контраст ниже WCAG-минимума (4.5:1 для текста — этот цвет
+  /// используется и как цвет строки категории, и как цвет иконки), поэтому
+  /// в тёмной теме отдаются поднятые по светлоте варианты — та же логика,
+  /// что у AppTheme.primaryBlueText/successText/errorText. Почта и такси не
+  /// нуждаются в замене — их базовые цвета уже достаточно светлые в обеих
+  /// темах.
+  static Color colorFor(BuildContext context, String category) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final c = category.toLowerCase();
     if (c.contains('администра') ||
         c.contains('госучрежд') ||
         c.contains('мфц')) {
-      return AppTheme.primaryBlue;
+      return AppTheme.primaryBlueText(context);
     }
     if (c.contains('больниц') ||
         c.contains('поликлин') ||
         c.contains('мед') ||
         c.contains('фап')) {
-      return AppTheme.success;
+      return AppTheme.successText(context);
     }
     if (c.contains('культур') ||
         c.contains('театр') ||
         c.contains('музей') ||
         c.contains('библиотек')) {
-      return const Color(0xFFD81B60);
+      return isDark ? const Color(0xFFF06292) : const Color(0xFFD81B60);
     }
     if (c.contains('спорт') || c.contains('стадион') || c.contains('бассейн')) {
-      return const Color(0xFF2E7D32);
+      return AppTheme.successText(context);
     }
     if (c.contains('школ') ||
         c.contains('образован') ||
         c.contains('детский сад') ||
         c.contains('универ')) {
-      return const Color(0xFF7B1FA2);
+      return isDark ? const Color(0xFFCE93D8) : const Color(0xFF7B1FA2);
     }
     if (c.contains('почт')) {
       return const Color(0xFFEF6C00);
     }
     if (c.contains('полиц') || c.contains('мчс') || c.contains('пожар')) {
-      return AppTheme.accentRed;
+      return AppTheme.errorText(context);
     }
     if (c.contains('такси')) {
       return const Color(0xFFFBC02D);
     }
-    return AppTheme.primaryBlue;
+    return AppTheme.primaryBlueText(context);
   }
 
-  static Color backgroundFor(String category) {
-    return colorFor(category).withValues(alpha: 0.12);
+  static Color backgroundFor(BuildContext context, String category) {
+    return colorFor(context, category).withValues(alpha: 0.12);
   }
 }

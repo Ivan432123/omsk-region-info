@@ -29,7 +29,7 @@ class BookmarkedAnnouncementsScreen extends ConsumerWidget {
                     'Нажмите на значок закладки на странице объявления, чтобы быстро находить его здесь',
               )
             : RefreshIndicator(
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primaryBlueText(context),
                 onRefresh: () async =>
                     ref.invalidate(bookmarkedAnnouncementsProvider),
                 child: ListView.separated(

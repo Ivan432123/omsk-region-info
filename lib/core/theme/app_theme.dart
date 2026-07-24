@@ -91,6 +91,43 @@ class AppTheme {
           ? _darkShimmerHighlight
           : const Color(0xFFEDEFF2);
 
+  /// primaryBlue, поднятый в тёмной теме до читаемого контраста. Сам
+  /// primaryBlue (0x1B4F9C) на белом фоне даёт контраст ~7.9:1 — отлично,
+  /// но на почти чёрном фоне (_darkBackground/_darkSurface) — только
+  /// ~2.3:1, при том что WCAG требует минимум 4.5:1 для текста и 3:1 даже
+  /// для некрупных UI-элементов вроде спиннера. Это не оптический эффект:
+  /// синий текст в тёмной теме реально плохо читается. Использовать вместо
+  /// primaryBlue везде, где он служит цветом ТЕКСТА или ИКОНКИ поверх
+  /// фона/поверхности — но не там, где primaryBlue сам является закрашенным
+  /// фоном (кружки/кнопки с белым текстом или иконкой поверх — там тёмная
+  /// тема ни на что не влияет, белое на насыщенном синем контрастно всегда).
+  static const Color _darkPrimaryBlueText = Color(0xFF5B8DEF);
+
+  static Color primaryBlueText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? _darkPrimaryBlueText
+          : primaryBlue;
+
+  /// Тот же приём для success/accentRed: сами константы (0x2E7D32 / 0xD32F2F)
+  /// подобраны для контраста на белом/светлом фоне (~5:1) и годятся как
+  /// ЗАЛИВКА (кнопки, крупные декоративные иконки 48px+, где порог мягче) в
+  /// любой теме — но как цвет НЕБОЛЬШОГО текста/иконки поверх поверхности в
+  /// тёмной теме падают ниже 3.5:1, а WCAG требует 4.5:1. Используются
+  /// приподнятые варианты (материаловские green 400 / red 300) — та же
+  /// логика, что у primaryBlueText.
+  static const Color _darkSuccessText = Color(0xFF66BB6A);
+  static const Color _darkErrorText = Color(0xFFE57373);
+
+  static Color successText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? _darkSuccessText
+          : success;
+
+  static Color errorText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? _darkErrorText
+          : accentRed;
+
   static ThemeData get lightTheme => _buildTheme(
         brightness: Brightness.light,
         background: _lightBackground,

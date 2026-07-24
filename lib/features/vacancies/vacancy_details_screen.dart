@@ -76,8 +76,8 @@ class VacancyDetailsScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     vacancy.salary!,
-                    style: const TextStyle(
-                      color: AppTheme.primaryBlue,
+                    style: TextStyle(
+                      color: AppTheme.primaryBlueText(context),
                       fontWeight: FontWeight.w700,
                       fontSize: 18,
                     ),

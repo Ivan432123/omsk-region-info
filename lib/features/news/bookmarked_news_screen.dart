@@ -29,7 +29,7 @@ class BookmarkedNewsScreen extends ConsumerWidget {
                     'Нажмите на значок закладки на странице новости, чтобы быстро находить её здесь',
               )
             : RefreshIndicator(
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primaryBlueText(context),
                 onRefresh: () async => ref.invalidate(bookmarkedNewsProvider),
                 child: ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),

@@ -62,7 +62,7 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                       subtitle: 'Загляните позже',
                     )
                   : RefreshIndicator(
-                      color: AppTheme.primaryBlue,
+                      color: AppTheme.primaryBlueText(context),
                       onRefresh: () => ref
                           .read(eventListProvider(districtId).notifier)
                           .refresh(),
@@ -74,11 +74,11 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           if (index >= state.items.length) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               child: Center(
                                 child: CircularProgressIndicator(
-                                    color: AppTheme.primaryBlue),
+                                    color: AppTheme.primaryBlueText(context)),
                               ),
                             );
                           }

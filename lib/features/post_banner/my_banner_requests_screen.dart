@@ -42,8 +42,9 @@ class _MyBannerRequestsScreenState extends State<MyBannerRequestsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Мои заявки на баннер')),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryBlue))
+          ? Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryBlueText(context)))
           : _requests.isEmpty
               ? Center(
                   child: Padding(

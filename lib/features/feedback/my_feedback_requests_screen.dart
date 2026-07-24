@@ -86,8 +86,9 @@ class _MyFeedbackRequestsScreenState
     return Scaffold(
       appBar: AppBar(title: const Text('Мои обращения')),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryBlue))
+          ? Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryBlueText(context)))
           : _requests.isEmpty
               ? Center(
                   child: Padding(
@@ -152,7 +153,7 @@ class _MyFeedbackRequestsScreenState
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: isAnswered
-                          ? AppTheme.success
+                          ? AppTheme.successText(context)
                           : AppTheme.textSecondary(context),
                     ),
                   ),
@@ -168,11 +169,11 @@ class _MyFeedbackRequestsScreenState
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text('Новое',
+                  Text('Новое',
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.accentRed)),
+                          color: AppTheme.errorText(context))),
                 ],
               ],
             ),

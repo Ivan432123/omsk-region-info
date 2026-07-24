@@ -186,7 +186,7 @@ class _EmptyStateIllustration extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: AppTheme.cardShadow,
             ),
-            child: Icon(icon, size: 36, color: AppTheme.primaryBlue),
+            child: Icon(icon, size: 36, color: AppTheme.primaryBlueText(context)),
           ),
         ],
       ),

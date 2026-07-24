@@ -223,14 +223,14 @@ class _SettingsTile extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     trailingLabel!,
-                    style: const TextStyle(
-                      color: AppTheme.primaryBlue,
+                    style: TextStyle(
+                      color: AppTheme.primaryBlueText(context),
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded,
-                      color: AppTheme.primaryBlue),
+                  Icon(Icons.chevron_right_rounded,
+                      color: AppTheme.primaryBlueText(context)),
                 ],
               ],
             ),

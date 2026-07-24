@@ -136,8 +136,9 @@ class _FeedbackRequestDetailScreenState
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryBlue));
+      return Center(
+          child: CircularProgressIndicator(
+              color: AppTheme.primaryBlueText(context)));
     }
     if (_error != null || _request == null) {
       return Center(
@@ -258,7 +259,8 @@ class _FeedbackRequestDetailScreenState
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.send_rounded, color: AppTheme.primaryBlue),
+                  : Icon(Icons.send_rounded,
+                      color: AppTheme.primaryBlueText(context)),
             ),
           ],
         ),

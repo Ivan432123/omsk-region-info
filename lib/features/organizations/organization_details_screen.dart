@@ -193,8 +193,9 @@ class _OrganizationDetailsScreenState
           }
 
           final icon = OrganizationIconHelper.iconFor(org.category);
-          final color = OrganizationIconHelper.colorFor(org.category);
-          final background = OrganizationIconHelper.backgroundFor(org.category);
+          final color = OrganizationIconHelper.colorFor(context, org.category);
+          final background =
+              OrganizationIconHelper.backgroundFor(context, org.category);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),

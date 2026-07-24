@@ -67,7 +67,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           }
 
           return RefreshIndicator(
-            color: AppTheme.primaryBlue,
+            color: AppTheme.primaryBlueText(context),
             onRefresh: () async =>
                 ref.invalidate(notificationsStreamProvider(districtId)),
             child: ListView.separated(

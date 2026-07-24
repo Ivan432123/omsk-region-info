@@ -81,7 +81,7 @@ class _OrganizationsListScreenState
           }
 
           return RefreshIndicator(
-            color: AppTheme.primaryBlue,
+            color: AppTheme.primaryBlueText(context),
             onRefresh: () => ref
                 .read(organizationListProvider(districtId).notifier)
                 .refresh(),
@@ -93,15 +93,15 @@ class _OrganizationsListScreenState
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 if (index >= state.items.length) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Center(
                       child: SizedBox(
                         width: 24,
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.4,
-                          color: AppTheme.primaryBlue,
+                          color: AppTheme.primaryBlueText(context),
                         ),
                       ),
                     ),

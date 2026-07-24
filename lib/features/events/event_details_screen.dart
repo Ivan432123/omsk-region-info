@@ -55,13 +55,13 @@ class EventDetailsScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.event_rounded,
-                        size: 18, color: AppTheme.primaryBlue),
+                    Icon(Icons.event_rounded,
+                        size: 18, color: AppTheme.primaryBlueText(context)),
                     const SizedBox(width: 8),
                     Text(
                       DateFormatter.formatDateTime(event.eventDate),
-                      style: const TextStyle(
-                        color: AppTheme.primaryBlue,
+                      style: TextStyle(
+                        color: AppTheme.primaryBlueText(context),
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),

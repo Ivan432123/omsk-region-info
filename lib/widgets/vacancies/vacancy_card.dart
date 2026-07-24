@@ -40,8 +40,8 @@ class VacancyCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 vacancy.salary!,
-                style: const TextStyle(
-                  color: AppTheme.primaryBlue,
+                style: TextStyle(
+                  color: AppTheme.primaryBlueText(context),
                   fontWeight: FontWeight.w700,
                 ),
               ),

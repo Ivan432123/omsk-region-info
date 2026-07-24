@@ -24,7 +24,7 @@ class BookmarkedOrganizationsScreen extends ConsumerWidget {
         data: (organizations) => organizations.isEmpty
             ? const EmptyStateWidget.noBookmarks()
             : RefreshIndicator(
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primaryBlueText(context),
                 onRefresh: () async =>
                     ref.invalidate(bookmarkedOrganizationsProvider),
                 child: ListView.separated(

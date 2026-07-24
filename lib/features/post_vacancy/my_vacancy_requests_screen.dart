@@ -43,8 +43,9 @@ class _MyVacancyRequestsScreenState extends State<MyVacancyRequestsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Мои заявки на вакансию')),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryBlue))
+          ? Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryBlueText(context)))
           : _requests.isEmpty
               ? Center(
                   child: Padding(

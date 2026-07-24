@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/district_provider.dart';
 import '../../services/fcm_service.dart';
+import '../../widgets/illustrations/fortress_mark.dart';
+import '../../widgets/illustrations/river_ribbon.dart';
 
 /// Экран загрузки.
 /// Показывает логотип и анимацию, параллельно проверяя, выбран ли уже
@@ -99,65 +101,76 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.primaryBlue,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ScaleTransition(
-              scale: Tween(begin: 0.94, end: 1.0).animate(
-                CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-              ),
-              child: Container(
-                width: 104,
-                height: 104,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Тонкая волна Иртыша на фоне — едва заметный региональный акцент,
+          // не спорит с контрастом текста/логотипа поверх (низкая
+          // непрозрачность, лежит строго позади остального содержимого).
+          const RiverRibbon(color: Colors.white, opacity: 0.10),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ScaleTransition(
+                  scale: Tween(begin: 0.94, end: 1.0).animate(
+                    CurvedAnimation(
+                        parent: _controller, curve: Curves.easeInOut),
+                  ),
+                  child: Container(
+                    width: 104,
+                    height: 104,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 24,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Center(
+                      child: FortressMark(
+                        size: 56,
+                        color: AppTheme.primaryBlue,
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.location_city_rounded,
-                  size: 56,
-                  color: AppTheme.primaryBlue,
+                const SizedBox(height: 24),
+                const Text(
+                  'ОМСКРЕГИОН ИНФО',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 6),
+                Text(
+                  'Информационный сервис вашего района',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.6,
+                    valueColor: AlwaysStoppedAnimation(
+                        Colors.white.withValues(alpha: 0.9)),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'ОМСКРЕГИОН ИНФО',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Информационный сервис вашего района',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.6,
-                valueColor:
-                    AlwaysStoppedAnimation(Colors.white.withValues(alpha: 0.9)),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -17,6 +17,7 @@ import '../../providers/news_provider.dart';
 import '../../providers/sponsored_content_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/illustrations/river_ribbon.dart';
 import '../../widgets/news/news_card.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -628,36 +629,53 @@ class _HeroHeader extends StatelessWidget {
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppTheme.primaryBlue, AppTheme.primaryBlueDark],
-            ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(28),
-              bottomRight: Radius.circular(28),
-            ),
+        // ClipRRect вместо borderRadius прямо в decoration Container'а —
+        // теперь под градиентом ещё один слой (RiverRibbon), и скруглённые
+        // углы должны применяться ко всей пачке слоёв разом, а не только к
+        // фону. Волна — едва заметный региональный акцент (Иртыш), лежит
+        // строго ПОД текстом по z-order, поэтому не задевает его контраст.
+        background: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(28),
+            bottomRight: Radius.circular(28),
           ),
-          padding: const EdgeInsets.fromLTRB(20, kToolbarHeight + 16, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              const Text(
-                'ОМСКРЕГИОН ИНФО',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppTheme.primaryBlue, AppTheme.primaryBlueDark],
+                  ),
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Всё самое важное о вашем районе — в одном месте',
-                style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+              const RiverRibbon(color: Colors.white, opacity: 0.10),
+              Padding(
+                padding:
+                    const EdgeInsets.fromLTRB(20, kToolbarHeight + 16, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'ОМСКРЕГИОН ИНФО',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Всё самое важное о вашем районе — в одном месте',
+                      style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

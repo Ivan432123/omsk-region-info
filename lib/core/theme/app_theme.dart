@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Единая тема приложения — светлая и тёмная (следует системной настройке
 /// устройства, см. ThemeMode.system в main.dart).
 /// Стиль: премиальный государственный сервис — синий основной цвет,
 /// красный акцентный для ключевых действий, скруглённые карточки, мягкие
-/// тени, Material 3.
+/// тени, Material 3, шрифт PT Sans (см. _buildTheme).
 ///
 /// Фон/поверхности/текст — не const-цвета, а методы AppTheme.xxx(context),
 /// читающие их из активной темы, поэтому один и тот же код экрана
@@ -19,6 +20,17 @@ class AppTheme {
   static const Color accentRed = Color(0xFFD32F2F);
   static const Color success = Color(0xFF2E7D32);
   static const Color warning = Color(0xFFF9A825);
+
+  /// Региональный акцентный слой — отдельно от семантических цветов выше
+  /// (success/warning/accentRed несут функциональный смысл — "ошибка",
+  /// "успех" — и не должны путаться с брендовой айдентикой). regionGreen —
+  /// степь/лес флага Омской области, regionAzure — Иртыш. Используются
+  /// ТОЛЬКО в иллюстрациях/декоративных акцентах (сплэш, пустые состояния,
+  /// шапка Главной) — не в кодировании категорий организаций/новостей,
+  /// у той системы уже своя, отдельная логика цвета (см.
+  /// organization_icon_helper.dart, category_chip.dart).
+  static const Color regionGreen = Color(0xFF3F7A5C);
+  static const Color regionAzure = Color(0xFF2E6E85);
 
   // ---------- Светлая палитра ----------
   static const Color _lightBackground = Color(0xFFFFFFFF);
@@ -128,6 +140,23 @@ class AppTheme {
           ? _darkErrorText
           : accentRed;
 
+  /// Тот же приём для regionGreen/regionAzure: светлые константы подобраны
+  /// под контраст на белом фоне (~5:1), в тёмной теме отдаются приподнятые
+  /// варианты (~8:1 на _darkBackground) — используются как раз в
+  /// иллюстрациях на затемнённом фоне, где контраст особенно важен.
+  static const Color _darkRegionGreenText = Color(0xFF6FBF95);
+  static const Color _darkRegionAzureText = Color(0xFF5FB8D6);
+
+  static Color regionGreenText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? _darkRegionGreenText
+          : regionGreen;
+
+  static Color regionAzureText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? _darkRegionAzureText
+          : regionAzure;
+
   static ThemeData get lightTheme => _buildTheme(
         brightness: Brightness.light,
         background: _lightBackground,
@@ -163,7 +192,6 @@ class AppTheme {
     final base = ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      fontFamily: 'Roboto',
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryBlue,
         brightness: brightness,
@@ -179,6 +207,19 @@ class AppTheme {
       dividerColor: dividerColor,
     );
 
+    // PT Sans — классика российской госдизайн-системы, устойчивая кириллица
+    // на мелком кегле (в приложении много плотных списков). Применяется
+    // через GoogleFonts.ptSansTextTheme() как основа textTheme (даёт
+    // fontFamily всем 15 именованным M3-стилям сразу, включая те, что
+    // приложение нигде явно не переопределяет — bodySmall, labelMedium и
+    // т.п.), а не через ThemeData(fontFamily: ...): тот способ не
+    // сработал бы для стилей, переопределённых явным TextStyle(...) ниже
+    // (TextTheme.copyWith заменяет запись целиком, а не мёржит fontFamily
+    // из шаблона). Поэтому все переопределения ниже — тоже GoogleFonts.ptSans(...),
+    // а не голый TextStyle(...): это единственный способ гарантировать, что
+    // шрифт применится, а не тихо откатится на платформенный дефолт.
+    final ptSansTextTheme = GoogleFonts.ptSansTextTheme(base.textTheme);
+
     return base.copyWith(
       appBarTheme: AppBarTheme(
         backgroundColor: background,
@@ -186,39 +227,40 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: TextStyle(
+        titleTextStyle: GoogleFonts.ptSans(
           color: textPrimaryColor,
           fontSize: 20,
           fontWeight: FontWeight.w700,
         ),
       ),
-      textTheme: base.textTheme.copyWith(
-        headlineLarge: TextStyle(
+      textTheme: ptSansTextTheme.copyWith(
+        headlineLarge: GoogleFonts.ptSans(
           fontSize: 28,
           fontWeight: FontWeight.w800,
           color: textPrimaryColor,
           height: 1.2,
         ),
-        headlineMedium: TextStyle(
+        headlineMedium: GoogleFonts.ptSans(
           fontSize: 22,
           fontWeight: FontWeight.w700,
           color: textPrimaryColor,
         ),
-        titleLarge: TextStyle(
+        titleLarge: GoogleFonts.ptSans(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: textPrimaryColor,
         ),
-        titleMedium: TextStyle(
+        titleMedium: GoogleFonts.ptSans(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: textPrimaryColor,
         ),
         bodyLarge:
-            TextStyle(fontSize: 16, color: textPrimaryColor, height: 1.4),
-        bodyMedium:
-            TextStyle(fontSize: 14, color: textSecondaryColor, height: 1.4),
-        labelLarge: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            GoogleFonts.ptSans(fontSize: 16, color: textPrimaryColor, height: 1.4),
+        bodyMedium: GoogleFonts.ptSans(
+            fontSize: 14, color: textSecondaryColor, height: 1.4),
+        labelLarge:
+            GoogleFonts.ptSans(fontSize: 14, fontWeight: FontWeight.w600),
       ),
       cardTheme: CardThemeData(
         color: surface,
@@ -238,7 +280,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.ptSans(fontSize: 16, fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

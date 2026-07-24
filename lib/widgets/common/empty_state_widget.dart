@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../illustrations/steppe_texture.dart';
 
 /// Универсальный виджет пустого состояния.
 /// Используется для "Нет новостей", "Нет организаций", "Нет уведомлений"
@@ -128,11 +129,12 @@ class EmptyStateWidget extends StatelessWidget {
 }
 
 /// Декоративная композиция вместо одинокой иконки в кружке — большой мягкий
-/// круг фонового цвета плюс два маленьких цветных "блика" вразлёт и сама
-/// иконка в приподнятом (с тенью) круге поверх. Простой приём, знакомый по
-/// пустым состояниям многих приложений, но заметно живее плоской заглушки —
-/// и не требует внешних SVG/PNG-иллюстраций, которых в проекте пока нет
-/// (assets/illustrations/ заведена, но пуста).
+/// круг фонового цвета (с едва заметной степной текстурой у основания —
+/// региональный акцент, см. SteppeTexture) плюс два маленьких цветных
+/// "блика" вразлёт и сама иконка в приподнятом (с тенью) круге поверх.
+/// Простой приём, знакомый по пустым состояниям многих приложений, но
+/// заметно живее плоской заглушки — и не требует внешних SVG/PNG-файлов,
+/// иллюстрации рисуются штатными виджетами/CustomPainter Flutter.
 class _EmptyStateIllustration extends StatelessWidget {
   final IconData icon;
 
@@ -152,6 +154,9 @@ class _EmptyStateIllustration extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppTheme.primaryContainer(context),
               shape: BoxShape.circle,
+            ),
+            child: ClipOval(
+              child: SteppeTexture(color: AppTheme.regionGreenText(context)),
             ),
           ),
           Positioned(

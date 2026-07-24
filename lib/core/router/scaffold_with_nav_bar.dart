@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/organization_provider.dart';
@@ -54,8 +55,12 @@ class ScaffoldWithNavBar extends ConsumerWidget {
     final districtId = district.id ?? '';
     final unreadNotifications =
         ref.watch(unreadNotificationsCountProvider(districtId));
-    final unreadAnnouncements =
-        ref.watch(unreadAnnouncementsCountProvider(districtId)).value ?? 0;
+    final announcementsEnabled =
+        ref.watch(featureFlagsProvider).valueOrNull?.announcementsEnabled ??
+            false;
+    final unreadAnnouncements = announcementsEnabled
+        ? ref.watch(unreadAnnouncementsCountProvider(districtId)).value ?? 0
+        : 0;
     final currentIndex = navigationShell.currentIndex;
 
     void onTap(int index) {
@@ -78,6 +83,19 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         }
       }
       navigationShell.goBranch(index, initialLocation: index == currentIndex);
+    }
+
+    // Раздел "Объявления" (индекс ветки 2) мог быть выключен супер-админом
+    // прямо во время текущей сессии, пока пользователь на нём и находился —
+    // ветка StatefulShellRoute статична (индексы веток нельзя пересобрать в
+    // рантейме), поэтому сама вкладка просто больше не рисуется в баре ниже,
+    // а активную ветку нужно перевести на Главную вручную, иначе пользователь
+    // останется на скрытом разделе без единой видимой кнопки для выхода из
+    // него через таб-бар.
+    if (!announcementsEnabled && currentIndex == 2) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigationShell.currentIndex == 2) onTap(0);
+      });
     }
 
     return PopScope(
@@ -126,16 +144,17 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                       onTap: () => onTap(1),
                     ),
                   ),
-                  Expanded(
-                    child: _NavBarItem(
-                      icon: Icons.campaign_outlined,
-                      selectedIcon: Icons.campaign_rounded,
-                      label: 'Объявления',
-                      badgeCount: unreadAnnouncements,
-                      isSelected: currentIndex == 2,
-                      onTap: () => onTap(2),
+                  if (announcementsEnabled)
+                    Expanded(
+                      child: _NavBarItem(
+                        icon: Icons.campaign_outlined,
+                        selectedIcon: Icons.campaign_rounded,
+                        label: 'Объявления',
+                        badgeCount: unreadAnnouncements,
+                        isSelected: currentIndex == 2,
+                        onTap: () => onTap(2),
+                      ),
                     ),
-                  ),
                   Expanded(
                     child: _NavBarItem(
                       icon: Icons.apartment_outlined,

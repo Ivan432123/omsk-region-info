@@ -429,6 +429,16 @@
                 самого платного продвижения не меняется — только видимость этих опций в форме подачи.
             </div>
             <label style="display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" id="feature-flag-announcements" onchange="saveFeatureFlag(this, 'announcementsEnabled')">
+                Раздел "Объявления"
+            </label>
+            <div class="item-sub" style="margin:4px 0 14px;">
+                Общий выключатель всего раздела "Объявления" в приложении жителей — когда выключено, вкладка
+                "Объявления" полностью скрыта из нижней навигации, зайти в раздел или подать объявление нельзя.
+                Опция "Платные объявления с push" ниже не заменяет этот переключатель — она работает независимо
+                и только когда сам раздел уже включён здесь.
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;">
                 <input type="checkbox" id="feature-flag-paid-push" onchange="saveFeatureFlag(this, 'paidPushEnabled')">
                 Платные объявления с push
             </label>
@@ -2356,6 +2366,7 @@ ${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">
             try {
                 const doc = await db.collection('settings').doc('features').get();
                 const data = doc.exists ? doc.data() : {};
+                document.getElementById('feature-flag-announcements').checked = data.announcementsEnabled === true;
                 document.getElementById('feature-flag-paid-push').checked = data.paidPushEnabled === true;
                 document.getElementById('feature-flag-banner-submission').checked = data.bannerSubmissionEnabled === true;
                 document.getElementById('feature-flag-vacancy-submission').checked = data.vacancySubmissionEnabled === true;

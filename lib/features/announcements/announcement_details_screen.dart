@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../providers/announcement_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../services/local_storage_service.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -61,6 +62,17 @@ class _AnnouncementDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final announcementsEnabled = ref
+            .watch(featureFlagsProvider)
+            .valueOrNull
+            ?.announcementsEnabled ??
+        false;
+    if (!announcementsEnabled) {
+      return const Scaffold(
+        body: EmptyStateWidget.announcementsSectionDisabled(),
+      );
+    }
+
     final announcementAsync =
         ref.watch(announcementDetailsProvider(widget.announcementId));
 

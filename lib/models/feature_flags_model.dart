@@ -5,11 +5,13 @@ class FeatureFlagsModel {
   final bool paidPushEnabled;
   final bool bannerSubmissionEnabled;
   final bool vacancySubmissionEnabled;
+  final bool announcementsEnabled;
 
   const FeatureFlagsModel({
     this.paidPushEnabled = false,
     this.bannerSubmissionEnabled = false,
     this.vacancySubmissionEnabled = false,
+    this.announcementsEnabled = false,
   });
 
   factory FeatureFlagsModel.fromMap(Map<String, dynamic>? data) {
@@ -18,6 +20,7 @@ class FeatureFlagsModel {
       paidPushEnabled: data['paidPushEnabled'] == true,
       bannerSubmissionEnabled: data['bannerSubmissionEnabled'] == true,
       vacancySubmissionEnabled: data['vacancySubmissionEnabled'] == true,
+      announcementsEnabled: data['announcementsEnabled'] == true,
     );
   }
 }

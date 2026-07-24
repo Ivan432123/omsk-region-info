@@ -31,12 +31,13 @@ class HomeScreen extends ConsumerWidget {
     final newsState = ref.watch(newsListProvider(districtId));
     final announcementsAsync =
         ref.watch(importantAnnouncementsProvider(districtId));
-    final promotedAdsAsync =
-        ref.watch(promotedAnnouncementsProvider(districtId));
+    final flags = ref.watch(featureFlagsProvider).valueOrNull;
+    final announcementsEnabled = flags?.announcementsEnabled ?? false;
+    final promotedAdsAsync = announcementsEnabled
+        ? ref.watch(promotedAnnouncementsProvider(districtId))
+        : const AsyncValue<List<AnnouncementModel>>.data([]);
     final sponsoredAsync = ref.watch(sponsoredContentProvider(districtId));
-    final bannerSubmissionEnabled =
-        ref.watch(featureFlagsProvider).valueOrNull?.bannerSubmissionEnabled ??
-            false;
+    final bannerSubmissionEnabled = flags?.bannerSubmissionEnabled ?? false;
 
     return Scaffold(
       body: SafeArea(

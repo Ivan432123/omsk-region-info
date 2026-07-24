@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../providers/search_provider.dart';
 import '../../widgets/announcements/announcement_card.dart';
 import '../../widgets/events/event_card.dart';
@@ -40,6 +41,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final districtId = ref.watch(selectedDistrictProvider).id ?? '';
+    final announcementsEnabled = ref
+            .watch(featureFlagsProvider)
+            .valueOrNull
+            ?.announcementsEnabled ??
+        false;
 
     return Scaffold(
       appBar: AppBar(
@@ -80,7 +86,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             TextStyle(color: AppTheme.textSecondary(context))),
                   ),
                   data: (results) {
-                    if (results.isEmpty) {
+                    final hasVisibleResults = results.news.isNotEmpty ||
+                        results.organizations.isNotEmpty ||
+                        results.vacancies.isNotEmpty ||
+                        (announcementsEnabled &&
+                            results.announcements.isNotEmpty) ||
+                        results.events.isNotEmpty;
+                    if (!hasVisibleResults) {
                       return Center(
                         child: Text(
                           'Ничего не найдено',
@@ -129,7 +141,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                     ))
                                 .toList(),
                           ),
-                        if (results.announcements.isNotEmpty)
+                        if (announcementsEnabled &&
+                            results.announcements.isNotEmpty)
                           ..._section(
                             context,
                             'Объявления',

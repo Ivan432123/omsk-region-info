@@ -73,6 +73,13 @@ class EmptyStateWidget extends StatelessWidget {
         actionLabel = null,
         onAction = null;
 
+  const EmptyStateWidget.announcementsSectionDisabled({super.key})
+      : icon = Icons.campaign_outlined,
+        title = 'Раздел временно недоступен',
+        subtitle = 'Администратор сейчас отключил раздел "Объявления" — загляните позже',
+        actionLabel = null,
+        onAction = null;
+
   factory EmptyStateWidget.error({VoidCallback? onRetry}) {
     return EmptyStateWidget(
       icon: Icons.wifi_off_rounded,

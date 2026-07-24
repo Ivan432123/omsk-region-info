@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/district_provider.dart';
+import '../../providers/feature_flags_provider.dart';
 import '../../services/local_storage_service.dart';
 import '../../widgets/announcements/announcement_card.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -52,6 +53,18 @@ class _AnnouncementsListScreenState
 
   @override
   Widget build(BuildContext context) {
+    final announcementsEnabled = ref
+            .watch(featureFlagsProvider)
+            .valueOrNull
+            ?.announcementsEnabled ??
+        false;
+    if (!announcementsEnabled) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Объявления')),
+        body: const EmptyStateWidget.announcementsSectionDisabled(),
+      );
+    }
+
     final district = ref.watch(selectedDistrictProvider);
     final districtId = district.id ?? '';
     final state = ref.watch(announcementListProvider(districtId));

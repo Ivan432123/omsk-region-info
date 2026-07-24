@@ -14,6 +14,7 @@ import '../../repositories/announcement_repository.dart';
 import '../../services/image_upload_service.dart';
 import '../../services/local_storage_service.dart';
 import '../../widgets/common/duration_price_option.dart';
+import '../../widgets/common/empty_state_widget.dart';
 
 /// Не больше 5 фото на объявление — достаточно, чтобы показать товар/услугу
 /// с разных сторон, и не даёт форме превратиться в фотогалерею.
@@ -170,18 +171,26 @@ class _PostAnnouncementScreenState
 
   @override
   Widget build(BuildContext context) {
+    final announcementsEnabled = ref
+            .watch(featureFlagsProvider)
+            .valueOrNull
+            ?.announcementsEnabled ??
+        false;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Разместить объявление'),
         actions: [
-          TextButton(
-            onPressed: () => context.push('/my-ad-requests'),
-            child: const Text('Мои заявки'),
-          ),
+          if (announcementsEnabled)
+            TextButton(
+              onPressed: () => context.push('/my-ad-requests'),
+              child: const Text('Мои заявки'),
+            ),
         ],
       ),
       body: SafeArea(
-        child: _submittedRequestId != null ? _buildSuccess() : _buildForm(),
+        child: !announcementsEnabled
+            ? const EmptyStateWidget.announcementsSectionDisabled()
+            : (_submittedRequestId != null ? _buildSuccess() : _buildForm()),
       ),
     );
   }
@@ -194,6 +203,8 @@ class _PostAnnouncementScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _FreeAnnouncementNotice(paidPushEnabled: paidPushEnabled),
+          const SizedBox(height: 20),
           Text('Заголовок', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
@@ -460,6 +471,52 @@ class _PostAnnouncementScreenState
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Готово'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Предупреждение о назначении раздела — показано НАД формой, до того как
+/// житель начнёт её заполнять, чтобы коммерческие объявления не подавались
+/// как обычные бесплатные. Текст зависит от paidPushEnabled: если платное
+/// продвижение сейчас включено — указываем на него как на способ разместить
+/// рекламу; если выключено — только общее уточнение, без ссылки на функцию,
+/// которой сейчас всё равно нельзя воспользоваться.
+class _FreeAnnouncementNotice extends StatelessWidget {
+  final bool paidPushEnabled;
+
+  const _FreeAnnouncementNotice({required this.paidPushEnabled});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline_rounded,
+              color: AppTheme.warning, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              paidPushEnabled
+                  ? 'Раздел — для личных бесплатных объявлений жителей (продать, отдать, куплю). '
+                      'Коммерческую и рекламную информацию размещать здесь нельзя — для неё есть '
+                      'платное продвижение с рассылкой по району (доступно ниже, за отдельную плату).'
+                  : 'Раздел — для личных бесплатных объявлений жителей (продать, отдать, куплю). '
+                      'Коммерческую и рекламную информацию размещать здесь нельзя.',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textPrimary(context),
+              ),
             ),
           ),
         ],

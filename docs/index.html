@@ -675,6 +675,30 @@
         <div class="card" id="sponsored-list"></div>
         </details>
 
+        <details class="admin-section" id="useful-offers-section" open>
+        <summary><h2>Полезное (партнёрские офферы)</h2></summary>
+        <div class="card">
+            <div class="item-sub" style="margin-bottom:10px;">
+                Общеплатформенный раздел (карты, страховки, займы и т.п.) — без привязки к району, виден
+                абсолютно всем жителям приложения независимо от выбранного района.
+            </div>
+            <label>Заголовок</label>
+            <input type="text" id="useful-offer-title">
+            <label>Краткое описание</label>
+            <textarea id="useful-offer-description"></textarea>
+            <label>Ссылка на изображение (необязательно)</label>
+            <input type="text" id="useful-offer-image" placeholder="https://...">
+            <input type="file" id="useful-offer-image-file" accept="image/*" style="margin-top:8px;">
+            <button type="button" class="secondary" onclick="uploadUsefulOfferImage(this)">Загрузить фото</button>
+            <label>Партнёрская ссылка (куда ведёт карточка)</label>
+            <input type="text" id="useful-offer-url" placeholder="https://...">
+            <label>Порядок показа (меньше — выше в списке)</label>
+            <input type="number" id="useful-offer-order" value="0">
+            <button id="useful-offer-submit-btn" onclick="withButtonLock(this, addUsefulOffer)">Опубликовать оффер</button>
+        </div>
+        <div class="card" id="useful-offers-list"></div>
+        </details>
+
         <details class="admin-section" id="banner-requests-section" style="display:none;" open>
         <summary><h2>Заявки на баннеры от рекламодателей</h2></summary>
         <div class="card" id="banner-requests-list"></div>
@@ -755,6 +779,7 @@
         let eventCache = {};
         let sponsoredCache = {};
         let busRouteCache = {};
+        let usefulOfferCache = {};
         let editingNewsId = null;
         let editingOrgId = null;
         let editingVacancyId = null;
@@ -762,6 +787,7 @@
         let editingEventId = null;
         let editingSponsoredId = null;
         let editingBusRouteId = null;
+        let editingUsefulOfferId = null;
 
         const SUPER_ADMIN_EMAIL = 'ivansurmanov@yandex.ru';
 
@@ -806,6 +832,7 @@
                 loadVacancyRequests(); // тоже не зависит от выбранного района — все районы сразу
                 loadFeedbackRequests(); // тоже не зависит от выбранного района — все районы сразу
                 loadFeatureFlags();
+                loadUsefulOffers(); // общеплатформенный раздел — тоже не зависит от выбранного района
                 return;
             }
             try {
@@ -849,7 +876,7 @@
                 'paid-ad-requests-section', 'org-admin-fields',
                 'announcement-stats', 'feature-flags-section',
                 'vacancies-section', 'vacancy-requests-section',
-                'feedback-section'
+                'feedback-section', 'useful-offers-section'
             ];
             superOnlyIds.forEach((id) => {
                 const el = document.getElementById(id);
@@ -2832,6 +2859,134 @@ ${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">
                 const data = await response.json();
                 if (data.secure_url) {
                     document.getElementById('sponsored-image').value = data.secure_url;
+                    showStatus('Фото загружено');
+                    if (btn) btn.textContent = '✓ Загружено';
+                } else {
+                    alert('Ошибка загрузки: ' + JSON.stringify(data));
+                }
+            } catch (err) {
+                alert('ОШИБКА ЗАГРУЗКИ ФОТО: ' + err.message);
+            } finally {
+                if (btn) {
+                    setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 1500);
+                }
+            }
+        }
+
+        // ---------- Полезное (useful_offers) ----------
+        // Общеплатформенный раздел (партнёрские офферы) — без district,
+        // поэтому в отличие от новостей/объявлений/вакансий не привязан к
+        // currentDistrictId и не перезагружается в onDistrictChange(),
+        // грузится один раз при входе супер-админа (см. resolveRoleAndInit).
+
+        async function addUsefulOffer() {
+            const title = document.getElementById('useful-offer-title').value.trim();
+            const description = document.getElementById('useful-offer-description').value.trim();
+            const imageUrl = document.getElementById('useful-offer-image').value.trim();
+            const targetUrl = document.getElementById('useful-offer-url').value.trim();
+            const order = parseInt(document.getElementById('useful-offer-order').value, 10) || 0;
+
+            if (!title || !description || !targetUrl) {
+                alert('Заполните заголовок, описание и партнёрскую ссылку');
+                return;
+            }
+
+            if (editingUsefulOfferId) {
+                await db.collection('useful_offers').doc(editingUsefulOfferId).update({
+                    title, description, imageUrl: imageUrl || null, targetUrl, order
+                });
+                editingUsefulOfferId = null;
+                document.getElementById('useful-offer-submit-btn').textContent = 'Опубликовать оффер';
+                showStatus('Оффер обновлён');
+            } else {
+                await db.collection('useful_offers').add({
+                    title, description, imageUrl: imageUrl || null, targetUrl, order,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatus('Оффер опубликован');
+            }
+
+            document.getElementById('useful-offer-title').value = '';
+            document.getElementById('useful-offer-description').value = '';
+            document.getElementById('useful-offer-image').value = '';
+            document.getElementById('useful-offer-url').value = '';
+            document.getElementById('useful-offer-order').value = '0';
+            loadUsefulOffers();
+        }
+
+        async function loadUsefulOffers() {
+            const container = document.getElementById('useful-offers-list');
+            container.innerHTML = 'Загрузка...';
+            try {
+                const snapshot = await db.collection('useful_offers').orderBy('order').get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="item-sub">Пока нет офферов</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const o = doc.data();
+                    usefulOfferCache[doc.id] = o;
+                    const row = document.createElement('div');
+                    row.className = 'item';
+                    row.innerHTML = `
+<div>
+<div class="item-title">${escapeHtml(o.title)}</div>
+<div class="item-sub">Порядок: ${o.order != null ? o.order : 0}</div>
+</div>
+<div>
+<button class="secondary" onclick="editUsefulOffer('${doc.id}')">Изменить</button>
+<button class="danger" onclick="deleteUsefulOffer('${doc.id}')">Удалить</button>
+</div>
+`;
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить офферы: ' + err.message, loadUsefulOffers);
+            }
+        }
+
+        function editUsefulOffer(id) {
+            const o = usefulOfferCache[id];
+            if (!o) return;
+            editingUsefulOfferId = id;
+            document.getElementById('useful-offer-title').value = o.title || '';
+            document.getElementById('useful-offer-description').value = o.description || '';
+            document.getElementById('useful-offer-image').value = o.imageUrl || '';
+            document.getElementById('useful-offer-url').value = o.targetUrl || '';
+            document.getElementById('useful-offer-order').value = o.order != null ? o.order : 0;
+            document.getElementById('useful-offer-submit-btn').textContent = 'Сохранить изменения';
+            document.getElementById('useful-offer-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteUsefulOffer(id) {
+            if (!(await showConfirmDialog('Удалить этот оффер?'))) return;
+            await db.collection('useful_offers').doc(id).delete();
+            loadUsefulOffers();
+        }
+
+        async function uploadUsefulOfferImage(btn) {
+            const fileInput = document.getElementById('useful-offer-image-file');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Сначала выберите файл');
+                return;
+            }
+            const originalText = btn ? btn.textContent : null;
+            if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'my_preset');
+                const response = await fetch('https://api.cloudinary.com/v1_1/agidf3gy/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.secure_url) {
+                    document.getElementById('useful-offer-image').value = data.secure_url;
                     showStatus('Фото загружено');
                     if (btn) btn.textContent = '✓ Загружено';
                 } else {

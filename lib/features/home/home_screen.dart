@@ -36,8 +36,10 @@ class HomeScreen extends ConsumerWidget {
     final promotedAdsAsync = announcementsEnabled
         ? ref.watch(promotedAnnouncementsProvider(districtId))
         : const AsyncValue<List<AnnouncementModel>>.data([]);
-    final sponsoredAsync = ref.watch(sponsoredContentProvider(districtId));
     final bannerSubmissionEnabled = flags?.bannerSubmissionEnabled ?? false;
+    final sponsoredAsync = bannerSubmissionEnabled
+        ? ref.watch(sponsoredContentProvider(districtId))
+        : const AsyncValue<List<SponsoredContentModel>>.data([]);
 
     return Scaffold(
       body: SafeArea(
@@ -72,6 +74,7 @@ class HomeScreen extends ConsumerWidget {
                     onVacancies: () => context.push('/vacancies'),
                     onEvents: () => context.push('/events'),
                     onBusRoutes: () => context.push('/bus-routes'),
+                    onUsefulOffers: () => context.push('/useful-offers'),
                   ),
                 ),
               ),
@@ -128,28 +131,27 @@ class HomeScreen extends ConsumerWidget {
                   );
                 },
               ),
-              sponsoredAsync.when(
-                loading: () =>
-                    const SliverToBoxAdapter(child: _HorizontalStripSkeleton()),
-                error: (_, __) =>
-                    const SliverToBoxAdapter(child: SizedBox.shrink()),
-                data: (sponsored) {
-                  // Заголовок "Реклама" + ссылка "Разместить" показываются
-                  // всегда (это единственная точка входа для самостоятельной
-                  // подачи заявки рекламодателем), даже если баннеров пока
-                  // нет — лента под ним рисуется только когда есть что
-                  // листать. Блок стоит ниже "Важных объявлений": сначала
-                  // жители видят содержательный контент от района, а не
-                  // стороннюю рекламу сразу после шапки.
-                  return SliverToBoxAdapter(
-                    child: _SponsoredSection(
-                      items: sponsored,
-                      ref: ref,
-                      bannerSubmissionEnabled: bannerSubmissionEnabled,
-                    ),
-                  );
-                },
-              ),
+              // Весь блок "Реклама" (заголовок, ссылка "Разместить" и лента
+              // баннеров под ней) целиком завязан на bannerSubmissionEnabled
+              // — когда приём баннеров от жителей выключен супер-админом,
+              // раздел не запрашивается и не показывается вовсе, даже если
+              // в sponsored_content остались активные записи с прошлого
+              // раза. Когда включён — заголовок и ссылка показываются
+              // всегда (единственная точка входа для самостоятельной подачи
+              // заявки рекламодателем), а сама лента карточек — только когда
+              // есть что листать.
+              if (bannerSubmissionEnabled)
+                sponsoredAsync.when(
+                  loading: () => const SliverToBoxAdapter(
+                      child: _HorizontalStripSkeleton()),
+                  error: (_, __) =>
+                      const SliverToBoxAdapter(child: SizedBox.shrink()),
+                  data: (sponsored) {
+                    return SliverToBoxAdapter(
+                      child: _SponsoredSection(items: sponsored, ref: ref),
+                    );
+                  },
+                ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -224,18 +226,18 @@ class HomeScreen extends ConsumerWidget {
 /// Блок партнёрской (спонсорской) ленты на главном экране — заголовок
 /// "Реклама" со ссылкой "Разместить" (единственная точка входа для
 /// самостоятельной подачи заявки рекламодателем, см. PostBannerScreen) и,
-/// если баннеры уже есть, горизонтальная карусель под ним. Заголовок
-/// показывается всегда, даже когда лента пуста — иначе рекламодателю
-/// неоткуда узнать о самостоятельном размещении.
+/// если баннеры уже есть, горизонтальная карусель под ним. Весь виджет
+/// строится только когда bannerSubmissionEnabled включён (см. home_screen
+/// build) — заголовок и ссылка "Разместить" внутри него поэтому показаны
+/// безусловно, даже когда лента пуста — иначе рекламодателю неоткуда узнать
+/// о самостоятельном размещении.
 class _SponsoredSection extends StatelessWidget {
   final List<SponsoredContentModel> items;
   final WidgetRef ref;
-  final bool bannerSubmissionEnabled;
 
   const _SponsoredSection({
     required this.items,
     required this.ref,
-    required this.bannerSubmissionEnabled,
   });
 
   Future<void> _open(String id, String url) async {
@@ -267,18 +269,17 @@ class _SponsoredSection extends StatelessWidget {
                     letterSpacing: 0.3,
                   ),
                 ),
-                if (bannerSubmissionEnabled)
-                  InkWell(
-                    onTap: () => context.push('/post-banner'),
-                    child: const Text(
-                      'Разместить →',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryBlue,
-                      ),
+                InkWell(
+                  onTap: () => context.push('/post-banner'),
+                  child: const Text(
+                    'Разместить →',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryBlue,
                     ),
                   ),
+                ),
               ],
             ),
           ),
@@ -724,11 +725,13 @@ class _QuickNavRow extends StatelessWidget {
   final VoidCallback onVacancies;
   final VoidCallback onEvents;
   final VoidCallback onBusRoutes;
+  final VoidCallback onUsefulOffers;
 
   const _QuickNavRow({
     required this.onVacancies,
     required this.onEvents,
     required this.onBusRoutes,
+    required this.onUsefulOffers,
   });
 
   @override
@@ -756,6 +759,14 @@ class _QuickNavRow extends StatelessWidget {
             icon: Icons.directions_bus_rounded,
             label: 'Автобусы',
             onTap: onBusRoutes,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _QuickNavButton(
+            icon: Icons.local_offer_rounded,
+            label: 'Полезное',
+            onTap: onUsefulOffers,
           ),
         ),
       ],

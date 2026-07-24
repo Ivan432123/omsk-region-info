@@ -30,6 +30,7 @@ import '../../features/feedback/my_feedback_requests_screen.dart';
 import '../../features/feedback/feedback_request_detail_screen.dart';
 import '../../features/bus_routes/bus_routes_list_screen.dart';
 import '../../features/bus_routes/bus_route_details_screen.dart';
+import '../../features/useful_offers/useful_offers_list_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
 class AppRouter {
@@ -127,6 +128,10 @@ class AppRouter {
       GoRoute(
         path: '/bus-routes',
         builder: (context, state) => const BusRoutesListScreen(),
+      ),
+      GoRoute(
+        path: '/useful-offers',
+        builder: (context, state) => const UsefulOffersListScreen(),
       ),
       GoRoute(
         path: '/bookmarks',

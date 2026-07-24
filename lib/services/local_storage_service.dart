@@ -24,6 +24,7 @@ class LocalStorageService {
   static const String _keyBookmarkedAnnouncements = 'bookmarked_announcements';
   static const String _keyDeviceId = 'device_id';
   static const String _keyDistrictCoordsPrefix = 'district_coords_';
+  static const String _keyPushCategoryPrefix = 'notif_pref_';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -324,5 +325,19 @@ class LocalStorageService {
       String districtId, double lat, double lon) async {
     final prefs = await _prefs;
     await prefs.setString('$_keyDistrictCoordsPrefix$districtId', '$lat,$lon');
+  }
+
+  /// Опциональные push-категории (события/вакансии/бесплатные объявления/
+  /// "Полезное" — см. NotificationPreferences) — в отличие от обязательного
+  /// district-топика, по умолчанию ВЫКЛЮЧЕНЫ, житель включает их сам в
+  /// "Настройках". [categoryKey] — PushCategory.storageKey.
+  Future<bool> isPushCategoryEnabled(String categoryKey) async {
+    final prefs = await _prefs;
+    return prefs.getBool('$_keyPushCategoryPrefix$categoryKey') ?? false;
+  }
+
+  Future<void> setPushCategoryEnabled(String categoryKey, bool value) async {
+    final prefs = await _prefs;
+    await prefs.setBool('$_keyPushCategoryPrefix$categoryKey', value);
   }
 }

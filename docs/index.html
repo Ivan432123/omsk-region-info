@@ -1401,6 +1401,14 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${id}', true)">Опубли�
 
             if (withPush) {
                 await sendPushNotification(r.district, r.title, r.description, docRef.id, 'announcement');
+            } else {
+                // Опциональная push-категория ("Новые бесплатные объявления"
+                // в Настройках жителя) — отдельный topic от платного
+                // продвижения выше (тот обязательный, идёт всем в районе).
+                await sendPushNotification(
+                    r.district, r.title, r.description, docRef.id,
+                    'announcement', 'district_' + r.district + '_free_announcements'
+                );
             }
 
             await db.collection('ad_requests').doc(id).update({ status: 'approved' });
@@ -1529,7 +1537,19 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${id}', true)">Опубли�
         const PUSH_WORKER_URL = 'https://throbbing-bird-ef82.ivan55rwszzz.workers.dev/';
         const PUSH_TRIGGERING_CATEGORIES = ['water', 'gas', 'electricity', 'emergency'];
 
-        async function sendPushNotification(districtId, title, body, newsId, type) {
+        // topic (необязательный) — явный override FCM topic для опциональных
+        // push-категорий (события/вакансии/бесплатные объявления/"Полезное",
+        // см. NotificationPreferences во Flutter-приложении). Если не передан,
+        // Worker берёт прежнее поведение (topic = 'district_' + districtId) —
+        // существующие вызовы (срочные новости, платное продвижение,
+        // обратная связь) не передают topic и не меняют поведение.
+        //
+        // ВАЖНО: сам Worker (Cloudflare, не в этом репозитории — см. README.md,
+        // раздел 6) нужно обновить вручную, чтобы он читал это поле:
+        //   const topic = body.topic || ('district_' + body.districtId);
+        // Без этой правки на стороне Worker передача topic отсюда ни на что
+        // не повлияет — он продолжит слать в district_<districtId> как раньше.
+        async function sendPushNotification(districtId, title, body, newsId, type, topic) {
             try {
                 const idToken = await auth.currentUser.getIdToken();
                 const response = await fetch(PUSH_WORKER_URL, {
@@ -1538,7 +1558,7 @@ ${r.wantsPush ? `<button onclick="approveAdRequest('${id}', true)">Опубли�
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + idToken
                     },
-                    body: JSON.stringify({ districtId, title, body, newsId, type: type || 'news' })
+                    body: JSON.stringify({ districtId, title, body, newsId, type: type || 'news', topic })
                 });
                 if (!response.ok) {
                     const text = await response.text();
@@ -2145,7 +2165,7 @@ ${r.salary ? `<div class="item-sub">Зарплата: ${escapeHtml(r.salary)}</d
                 'Опубликовать'
             ))) return;
 
-            await db.collection('vacancies').add({
+            const docRef = await db.collection('vacancies').add({
                 title: r.title,
                 company: r.company,
                 description: r.description,
@@ -2154,6 +2174,14 @@ ${r.salary ? `<div class="item-sub">Зарплата: ${escapeHtml(r.salary)}</d
                 district: r.district,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+
+            // Опциональная push-категория ("Новые вакансии" в Настройках
+            // жителя) — как и у событий, шлём всегда при публикации, без
+            // дополнительных условий.
+            await sendPushNotification(
+                r.district, 'Новая вакансия: ' + r.title, r.company,
+                docRef.id, 'vacancy', 'district_' + r.district + '_vacancies'
+            );
 
             await db.collection('vacancy_requests').doc(id).update({ status: 'approved' });
             showStatus('Вакансия опубликована');
@@ -2637,7 +2665,7 @@ ${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">
                 document.getElementById('event-submit-btn').textContent = 'Опубликовать событие';
                 showStatus('Событие обновлено');
             } else {
-                await db.collection('events').add({
+                const docRef = await db.collection('events').add({
                     title, description,
                     location: location || null,
                     image,
@@ -2645,6 +2673,14 @@ ${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">
                     district: currentDistrictId,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                // Опциональная push-категория ("Новые события в афише" в
+                // Настройках жителя) — в отличие от срочных новостей, эту
+                // категорию житель включает сам, поэтому шлём всегда, без
+                // проверки категории.
+                await sendPushNotification(
+                    currentDistrictId, 'Новое событие: ' + title, description,
+                    docRef.id, 'event', 'district_' + currentDistrictId + '_events'
+                );
                 showStatus('Событие опубликовано');
             }
 
@@ -2904,10 +2940,18 @@ ${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">
                 document.getElementById('useful-offer-submit-btn').textContent = 'Опубликовать оффер';
                 showStatus('Оффер обновлён');
             } else {
-                await db.collection('useful_offers').add({
+                const docRef = await db.collection('useful_offers').add({
                     title, description, imageUrl: imageUrl || null, targetUrl, order,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                // Опциональная push-категория ("Новые предложения в Полезном"
+                // в Настройках жителя) — topic общий на всё приложение, без
+                // района, поэтому districtId здесь фактически не используется
+                // Worker'ом (topic передан явно и перекрывает district_<id>).
+                await sendPushNotification(
+                    currentDistrictId, 'Новое предложение: ' + title, description,
+                    docRef.id, 'useful_offer', 'useful_offers'
+                );
                 showStatus('Оффер опубликован');
             }
 

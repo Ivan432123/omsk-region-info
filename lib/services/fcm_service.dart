@@ -9,13 +9,22 @@ import 'local_storage_service.dart';
 /// Возвращает null, если уведомление не ссылается на конкретную запись
 /// (например, обычный информационный пуш без data.newsId).
 String? notificationDeepLinkPath(RemoteMessage message) {
+  final type = message.data['type'];
+  // "Полезное" — общеплатформенный раздел без отдельного экрана по id
+  // (см. UsefulOffersListScreen), поэтому пуш всегда ведёт на сам список,
+  // itemId ему не нужен.
+  if (type == 'useful_offer') return '/useful-offers';
+
   final itemId = message.data['newsId'];
   if (itemId == null || itemId.toString().isEmpty) return null;
 
-  final type = message.data['type'];
   switch (type) {
     case 'announcement':
       return '/announcements/$itemId';
+    case 'event':
+      return '/events/$itemId';
+    case 'vacancy':
+      return '/vacancies/$itemId';
     case 'feedback':
       return '/feedback-requests/$itemId';
     default:
@@ -40,6 +49,28 @@ class FcmService {
   static String topicForDistrict(String districtId) => 'district_$districtId';
 
   static String topicForDevice(String deviceId) => 'feedback_$deviceId';
+
+  /// Topic опциональных push-категорий (события/вакансии/бесплатные
+  /// объявления — см. NotificationPreferences) — отдельный от
+  /// topicForDistrict(), чтобы житель мог включать/выключать их по
+  /// отдельности, не трогая обязательный topic (срочные новости и платные
+  /// объявления продолжают идти в topicForDistrict()).
+  static String topicForDistrictCategory(String districtId, String category) =>
+      'district_${districtId}_$category';
+
+  /// "Полезное" — общеплатформенный раздел без district (см.
+  /// UsefulOfferModel), поэтому topic один на всё приложение, а не на район.
+  static const String usefulOffersTopic = 'useful_offers';
+
+  /// Generic подписка/отписка — используется NotificationPreferences для
+  /// опциональных категорий (topicForDistrictCategory/usefulOffersTopic),
+  /// в отличие от subscribeToDistrict/subscribeToFeedbackTopic ниже, которые
+  /// инкапсулируют ещё и свою специфичную логику идемпотентности.
+  Future<void> subscribeToTopic(String topic) =>
+      _messaging.subscribeToTopic(topic);
+
+  Future<void> unsubscribeFromTopic(String topic) =>
+      _messaging.unsubscribeFromTopic(topic);
 
   Future<void> initialize() async {
     await _messaging.requestPermission(

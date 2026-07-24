@@ -3,6 +3,7 @@ import '../models/district_model.dart';
 import '../repositories/district_repository.dart';
 import '../services/local_storage_service.dart';
 import '../services/fcm_service.dart';
+import 'notification_preferences_provider.dart';
 
 final districtRepositoryProvider = Provider((ref) => DistrictRepository());
 final localStorageServiceProvider = Provider((ref) => LocalStorageService());
@@ -47,8 +48,9 @@ class SelectedDistrictState {
 class SelectedDistrictNotifier extends StateNotifier<SelectedDistrictState> {
   final LocalStorageService _storage;
   final FcmService _fcm;
+  final Ref _ref;
 
-  SelectedDistrictNotifier(this._storage, this._fcm)
+  SelectedDistrictNotifier(this._storage, this._fcm, this._ref)
       : super(const SelectedDistrictState()) {
     _loadPersisted();
   }
@@ -82,6 +84,14 @@ class SelectedDistrictNotifier extends StateNotifier<SelectedDistrictState> {
     final previousId = state.id;
     if (previousId != null && previousId != newId) {
       await _unsubscribeSafely(previousId);
+      // Переносит уже включённые опциональные push-подписки (события/
+      // вакансии/бесплатные объявления — см. NotificationPreferences) со
+      // старого района на новый — без этого житель либо продолжил бы
+      // получать чужие push, либо молча перестал бы получать те, что сам
+      // включил себе в "Настройках".
+      await _ref
+          .read(notificationPreferencesProvider.notifier)
+          .migrateDistrict(previousId, newId);
     }
     await _storage.saveSelectedDistrict(
         districtId: newId, districtName: newName);
@@ -122,5 +132,6 @@ final selectedDistrictProvider =
   return SelectedDistrictNotifier(
     ref.watch(localStorageServiceProvider),
     ref.watch(fcmServiceProvider),
+    ref,
   );
 });

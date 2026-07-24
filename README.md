@@ -185,17 +185,13 @@ topic (`district_<id>_events`, `district_<id>_vacancies`,
 
 `sendPushNotification()` в `docs/index.html` принимает необязательный 6-й
 аргумент `topic` — явный override FCM topic, который она передаёт Worker'у
-в теле POST-запроса. **Worker нужно доработать вручную** (см. пункт 3 выше —
-он не в этом репозитории), чтобы он читал это поле:
-```js
-const topic = body.topic || ('district_' + body.districtId);
-```
-Без этой правки на стороне Worker передача `topic` из `docs/index.html` ни
-на что не влияет — Worker продолжит слать в `district_<districtId>`, то есть
-новые категории будут уходить ВСЕМ жителям района (тем же топиком, что и
-срочные новости), а не только тем, кто включил их в настройках. Существующие
-вызовы (срочные новости, платное продвижение, обратная связь) `topic` не
-передают и это поведение не меняет — правка полностью обратно совместима.
+в теле POST-запроса. Доработка Worker'а НЕ понадобилась: он уже поддерживает
+это поле (`const { ..., topic: explicitTopic } = payload; const topic =
+explicitTopic || \`district_${districtId}\`;`) — тот же механизм, что уже
+используется персональным push с ответом на обращение
+(`sendFeedbackReplyPush` шлёт `topic: 'feedback_' + deviceId` напрямую, в
+обход `sendPushNotification()`). Контракт совпал 1-в-1 без каких-либо правок
+на стороне Worker.
 
 ## 7. Настройка Firebase
 

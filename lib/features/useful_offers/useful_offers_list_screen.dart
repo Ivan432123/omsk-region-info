@@ -11,7 +11,13 @@ class UsefulOffersListScreen extends ConsumerWidget {
   const UsefulOffersListScreen({super.key});
 
   Future<void> _open(BuildContext context, String url) async {
-    final uri = Uri.tryParse(url);
+    // Админка не заставляет вводить схему — если оффер добавлен без
+    // "http(s)://" (например, просто "vk.com/..."), Uri.tryParse отдаёт
+    // URI без scheme, и launchUrl молча не находит, чем его открыть (тап
+    // выглядит так, будто ничего не произошло). Та же нормализация, что
+    // уже используется для сайта организации в organization_details_screen.
+    final normalized = url.startsWith('http') ? url : 'https://$url';
+    final uri = Uri.tryParse(normalized);
     final opened = uri != null &&
         await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened) {

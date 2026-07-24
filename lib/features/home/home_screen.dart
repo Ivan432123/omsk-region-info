@@ -242,7 +242,11 @@ class _SponsoredSection extends StatelessWidget {
 
   Future<void> _open(String id, String url) async {
     unawaited(recordSponsoredClick(ref, id));
-    final uri = Uri.tryParse(url);
+    // Та же нормализация схемы, что и в UsefulOffersListScreen._open — без
+    // неё баннер, чья ссылка введена в админке без "http(s)://", молча не
+    // открывается по тапу.
+    final normalized = url.startsWith('http') ? url : 'https://$url';
+    final uri = Uri.tryParse(normalized);
     if (uri == null) return;
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
@@ -162,6 +163,18 @@ class _OrganizationDetailsScreenState
                 : Icons.bookmark_border_rounded),
             onPressed: _toggleBookmark,
           ),
+          if (orgAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () {
+                final org = orgAsync.value!;
+                Share.share(
+                  '${org.name}\n${org.category}\n\n${org.description}\n\n'
+                  'Телефон: ${PhoneFormatter.format(org.phone)}',
+                  subject: org.name,
+                );
+              },
+            ),
         ],
       ),
       body: orgAsync.when(

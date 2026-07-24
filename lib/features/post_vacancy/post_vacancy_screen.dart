@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,6 +106,8 @@ class _PostVacancyScreenState extends ConsumerState<PostVacancyScreen> {
         'banks': PaymentInfo.banks,
         'createdAt': DateTime.now().toIso8601String(),
       });
+
+      unawaited(ref.read(analyticsServiceProvider).logVacancyRequestSubmitted());
 
       if (!mounted) return;
       setState(() => _submittedRequestId = id);

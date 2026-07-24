@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/splash_screen.dart';
@@ -51,6 +52,13 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
+    // Автоматический screen_view в Firebase Analytics при каждом переходе
+    // между роутами — без этого пришлось бы вручную логировать открытие
+    // каждого из ~25 экранов по отдельности. Видно в Firebase Console
+    // (DebugView/Realtime/Retention), НЕ в собственной супер-админке —
+    // там показываются только счётчики, специально написанные в Firestore
+    // (см. docs/index.html, раздел "Аналитика").
+    observers: [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)],
     routes: [
       GoRoute(
         path: '/',

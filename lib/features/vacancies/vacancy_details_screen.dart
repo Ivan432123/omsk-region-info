@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
@@ -31,7 +32,19 @@ class VacancyDetailsScreen extends ConsumerWidget {
     final vacancyAsync = ref.watch(vacancyDetailsProvider(vacancyId));
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          if (vacancyAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () {
+                final v = vacancyAsync.value!;
+                Share.share('${v.title} (${v.company})\n\n${v.description}',
+                    subject: v.title);
+              },
+            ),
+        ],
+      ),
       body: vacancyAsync.when(
         loading: () => const LoadingIndicatorWidget(),
         error: (_, __) => EmptyStateWidget.error(

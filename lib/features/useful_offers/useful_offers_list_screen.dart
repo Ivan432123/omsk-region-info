@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../providers/district_provider.dart';
 import '../../providers/useful_offer_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -10,7 +13,11 @@ import '../../widgets/useful_offers/useful_offer_card.dart';
 class UsefulOffersListScreen extends ConsumerWidget {
   const UsefulOffersListScreen({super.key});
 
-  Future<void> _open(BuildContext context, String url) async {
+  Future<void> _open(
+      BuildContext context, WidgetRef ref, String id, String url) async {
+    unawaited(recordUsefulOfferClick(ref, id));
+    unawaited(ref.read(analyticsServiceProvider).logUsefulOfferTapped(id));
+
     // Админка не заставляет вводить схему — если оффер добавлен без
     // "http(s)://" (например, просто "vk.com/..."), Uri.tryParse отдаёт
     // URI без scheme, и launchUrl молча не находит, чем его открыть (тап
@@ -62,7 +69,8 @@ class UsefulOffersListScreen extends ConsumerWidget {
                     return UsefulOfferCard(
                       key: ValueKey(offer.id),
                       offer: offer,
-                      onTap: () => _open(context, offer.targetUrl),
+                      onTap: () =>
+                          _open(context, ref, offer.id, offer.targetUrl),
                     );
                   },
                 ),

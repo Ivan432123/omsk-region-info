@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../providers/event_provider.dart';
@@ -18,7 +19,21 @@ class EventDetailsScreen extends ConsumerWidget {
     final eventAsync = ref.watch(eventDetailsProvider(eventId));
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          if (eventAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () {
+                final e = eventAsync.value!;
+                final when = DateFormatter.formatDateTime(e.eventDate);
+                final where = e.location != null ? ' — ${e.location}' : '';
+                Share.share('${e.title}\n$when$where\n\n${e.description}',
+                    subject: e.title);
+              },
+            ),
+        ],
+      ),
       body: eventAsync.when(
         loading: () => const LoadingIndicatorWidget(),
         error: (_, __) => EmptyStateWidget.error(

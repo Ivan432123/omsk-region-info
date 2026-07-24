@@ -13,3 +13,12 @@ final usefulOffersProvider =
   final repo = ref.watch(usefulOfferRepositoryProvider);
   return repo.getOffers();
 });
+
+/// Фиксирует переход по офферу. Ошибки намеренно проглатываются — не
+/// должны мешать пользователю открыть партнёрскую ссылку (тот же приём,
+/// что и у recordSponsoredClick в sponsored_content_provider.dart).
+Future<void> recordUsefulOfferClick(WidgetRef ref, String id) async {
+  try {
+    await ref.read(usefulOfferRepositoryProvider).recordClick(id);
+  } catch (_) {}
+}

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -144,6 +146,10 @@ class _PostAnnouncementScreenState
         'banks': PaymentInfo.banks,
         'createdAt': DateTime.now().toIso8601String(),
       });
+
+      unawaited(ref
+          .read(analyticsServiceProvider)
+          .logAnnouncementSubmitted(wantsPush: _wantsPush));
 
       if (!mounted) return;
       setState(() => _submittedRequestId = id);

@@ -193,6 +193,59 @@ explicitTopic || \`district_${districtId}\`;`) — тот же механизм,
 обход `sendPushNotification()`). Контракт совпал 1-в-1 без каких-либо правок
 на стороне Worker.
 
+**Мягкий запрос разрешения (primer):** системный диалог `requestPermission()`
+раньше вызывался безусловно в `main.dart` при каждом запуске приложения — ОС
+показывает его только один раз за установку, но этот единственный шанс
+"сгорал" холодным, необъяснённым запросом сразу при первом старте. Теперь
+`FcmService.initialize()` вызывается только в двух местах: (1) из
+`DistrictSelectionScreen._showPushPermissionPrimer` — свой диалог с
+объяснением ценности сразу после первого выбора района, показывается один
+раз (сам первый выбор района — one-time событие), и только при согласии
+житель видит системный запрос; (2) из
+`NotificationPreferencesNotifier.setEnabled` — если житель отказался в
+primer'е, включение любой опциональной push-категории в "Настройках"
+запрашивает разрешение повторно (ОС не покажет диалог снова, если статус уже
+решён, — вызов безопасен).
+
+## 6a. Аналитика
+
+Два независимых, не подменяющих друг друга канала:
+
+1. **Firebase Analytics (GA4)** — `AnalyticsService` (`lib/services/analytics_service.dart`)
+   логирует именованные события (`announcement_submitted`,
+   `vacancy_request_submitted`, `banner_request_submitted`,
+   `useful_offer_tapped`, `sponsored_banner_tapped`, `push_category_toggled`);
+   автоматический `screen_view` на каждый переход между роутами настроен через
+   `FirebaseAnalyticsObserver` в `AppRouter`. Смотреть — в Firebase Console
+   (DebugView/Realtime/Retention/Funnels). **В собственную веб-админку
+   (docs/index.html) эти данные не проксируются** — GA4 Data API требует
+   OAuth и бэкенд, которого у проекта на бесплатном тарифе Spark нет (та же
+   причина, по которой недоступны Cloud Functions, см. раздел 6).
+2. **Счётчики в Firestore, показываются в супер-админке** (раздел
+   "Аналитика", `docs/index.html`) — то немногое, что реально нужно видеть
+   в собственной панели, а не в Firebase Console:
+   - `analytics_push_opt_ins/{category}` — сколько устройств СЕЙЧАС
+     подписано на каждую опциональную push-категорию (`count`, ±1 за
+     переключение, пишет `NotificationPreferencesNotifier._recordOptInChange`).
+     Без этого счётчика узнать реальный охват опциональных категорий было бы
+     нечем — сами предпочтения хранятся только локально на устройстве
+     (SharedPreferences) и никогда не попадают в Firestore иначе.
+   - `useful_offers/{id}.clickCount` — клики по офферу, та же схема, что и у
+     `sponsored_content.clickCount` (см. раздел 5).
+   - Остальное — простые `count()`-агрегаты по существующим коллекциям
+     (новости/организации/вакансии/события/объявления/активные баннеры/
+     офферы), без чтения самих документов.
+
+**Требуется правка Firestore Rules** (см. `firestore.rules`, применить
+вручную через Firebase Console — как и все остальные правки правил в этом
+проекте):
+- `useful_offers`: `allow write: if isAdmin();` заменено на раздельные
+  `create/delete` (только `isAdmin()`) и `update` (тот же паттерн ±1-дельты,
+  что у `sponsored_content.clickCount`).
+- Новый коллекшн `analytics_push_opt_ins`: `read` только `isAdmin()`,
+  `write` — `isAdmin()` либо анонимная дельта ровно ±1 по единственному
+  полю `count`, с полом на 0.
+
 ## 7. Настройка Firebase
 
 1. Создайте проект в [Firebase Console](https://console.firebase.google.com).

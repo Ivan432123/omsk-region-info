@@ -463,6 +463,19 @@
         </div>
         </details>
 
+        <details class="admin-section" id="analytics-section" open>
+        <summary><h2>Аналитика</h2></summary>
+        <div class="card">
+            <div class="item-sub" style="margin-bottom:10px;">
+                Подробная аналитика (открытия экранов, воронки) — в Firebase Console → Analytics, сюда не
+                проксируется. Здесь — числа, которых нет больше нигде: сколько устройств реально включили
+                опциональные push-категории, и общие объёмы контента.
+            </div>
+            <div id="analytics-content">Загрузка...</div>
+            <button type="button" class="secondary" onclick="loadAnalytics()" style="margin-top:10px;">Обновить</button>
+        </div>
+        </details>
+
         <details class="admin-section" id="news-section" open>
         <summary><h2>Добавить новость</h2></summary>
         <div class="card">
@@ -833,6 +846,7 @@
                 loadFeedbackRequests(); // тоже не зависит от выбранного района — все районы сразу
                 loadFeatureFlags();
                 loadUsefulOffers(); // общеплатформенный раздел — тоже не зависит от выбранного района
+                loadAnalytics(); // тоже не зависит от выбранного района — сводка по всему приложению
                 return;
             }
             try {
@@ -877,7 +891,8 @@
                 'announcement-stats', 'feature-flags-section',
                 'vacancies-section', 'vacancy-requests-section',
                 'feedback-section', 'useful-offers-section',
-                'announcement-list-section', 'ad-requests-section'
+                'announcement-list-section', 'ad-requests-section',
+                'analytics-section'
             ];
             superOnlyIds.forEach((id) => {
                 const el = document.getElementById(id);
@@ -2983,7 +2998,7 @@ ${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">
                     row.innerHTML = `
 <div>
 <div class="item-title">${escapeHtml(o.title)}</div>
-<div class="item-sub">Порядок: ${o.order != null ? o.order : 0}</div>
+<div class="item-sub">Порядок: ${o.order != null ? o.order : 0} · кликов: ${o.clickCount || 0}</div>
 </div>
 <div>
 <button class="secondary" onclick="editUsefulOffer('${doc.id}')">Изменить</button>
@@ -3047,6 +3062,62 @@ ${isAnswered ? `<button class="danger" onclick="deleteFeedbackRequest('${id}')">
                 if (btn) {
                     setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 1500);
                 }
+            }
+        }
+
+        // ---------- Аналитика ----------
+        // Подробная аналитика (screen_view, воронки, retention) уходит в
+        // Firebase Analytics/GA4 (см. AnalyticsService во Flutter-коде) —
+        // сюда, в свою веб-панель, эти данные не проксируются: GA4 Data API
+        // требует OAuth и бэкенд, которого у проекта на бесплатном тарифе
+        // Spark нет (см. README.md, раздел 6, про ту же причину для Cloud
+        // Functions). Здесь — только то, чего в Firebase Console вообще нет:
+        // счётчики opt-in по push-категориям (analytics_push_opt_ins,
+        // пишутся напрямую из NotificationPreferencesNotifier) и общие
+        // объёмы контента через дешёвые count()-агрегаты (не читают сами
+        // документы, в отличие от announcement-stats выше).
+        async function loadAnalytics() {
+            const container = document.getElementById('analytics-content');
+            container.innerHTML = 'Загрузка...';
+            try {
+                const optInIds = ['events', 'vacancies', 'free_announcements', 'useful_offers'];
+                const optInDocs = await Promise.all(
+                    optInIds.map((id) => db.collection('analytics_push_opt_ins').doc(id).get())
+                );
+                const optIn = {};
+                optInIds.forEach((id, i) => {
+                    optIn[id] = optInDocs[i].exists ? (optInDocs[i].data().count || 0) : 0;
+                });
+
+                const [news, orgs, vacancies, events, announcements, offers, activeBanners] =
+                    await Promise.all([
+                        db.collection('news').count().get(),
+                        db.collection('organizations').count().get(),
+                        db.collection('vacancies').count().get(),
+                        db.collection('events').count().get(),
+                        db.collection('announcements').count().get(),
+                        db.collection('useful_offers').count().get(),
+                        db.collection('sponsored_content')
+                            .where('activeUntil', '>', firebase.firestore.Timestamp.now())
+                            .count().get(),
+                    ]);
+
+                container.innerHTML = `
+<div class="item-title">Push-подписки (устройств сейчас подписано на категорию)</div>
+<div class="item-sub">
+    Новые события: ${optIn.events} · Новые вакансии: ${optIn.vacancies} ·
+    Бесплатные объявления: ${optIn.free_announcements} · Полезное: ${optIn.useful_offers}
+</div>
+<div class="item-title" style="margin-top:14px;">Контент в приложении (всего)</div>
+<div class="item-sub">
+    Новости: ${news.data().count} · Организации: ${orgs.data().count} ·
+    Вакансии: ${vacancies.data().count} · События: ${events.data().count} ·
+    Объявления: ${announcements.data().count} · Активные баннеры: ${activeBanners.data().count} ·
+    Полезное: ${offers.data().count}
+</div>
+`;
+            } catch (err) {
+                renderLoadError(container, 'Не удалось загрузить аналитику: ' + err.message, loadAnalytics);
             }
         }
 

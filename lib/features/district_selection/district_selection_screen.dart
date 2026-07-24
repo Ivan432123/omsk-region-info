@@ -198,7 +198,50 @@ class _DistrictSelectionScreenState
         .read(selectedDistrictProvider.notifier)
         .selectDistrict(_chosen!.id, _chosen!.name);
     if (!mounted) return;
+
+    // Мягкий запрос push-разрешения — вместо "холодного" системного диалога
+    // сразу при первом запуске приложения (как было раньше, см. main.dart),
+    // сначала объясняем ценность своими словами и запрашиваем разрешение у
+    // ОС только если житель сам согласился. ОС показывает свой диалог не
+    // больше одного раза за установку — если здесь ответить "Не сейчас", он
+    // не "сгорает": ФС-разрешение останется в состоянии "не решено" и его
+    // можно будет запросить позже (например, при включении конкретной
+    // push-категории в Настройках — см. NotificationPreferencesNotifier).
+    await _showPushPermissionPrimer(context);
+    if (!mounted) return;
     context.go('/home');
+  }
+
+  Future<void> _showPushPermissionPrimer(BuildContext context) async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.notifications_active_outlined,
+            color: AppTheme.primaryBlue, size: 32),
+        title: const Text('Включить уведомления?'),
+        content: const Text(
+          'Мы сообщим о срочных ситуациях в вашем районе — отключениях воды, '
+          'газа, света и экстренных случаях. Остальные уведомления '
+          '(события, вакансии, объявления) — по желанию, их можно включить '
+          'позже в Настройках.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Не сейчас'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Включить'),
+          ),
+        ],
+      ),
+    );
+
+    if (accepted == true && mounted) {
+      await ref.read(fcmServiceProvider).initialize();
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/district_model.dart';
 import '../repositories/district_repository.dart';
+import '../services/analytics_service.dart';
 import '../services/local_storage_service.dart';
 import '../services/fcm_service.dart';
 import 'notification_preferences_provider.dart';
@@ -8,6 +9,7 @@ import 'notification_preferences_provider.dart';
 final districtRepositoryProvider = Provider((ref) => DistrictRepository());
 final localStorageServiceProvider = Provider((ref) => LocalStorageService());
 final fcmServiceProvider = Provider((ref) => FcmService());
+final analyticsServiceProvider = Provider((ref) => AnalyticsService());
 
 /// Результат выбора района, возвращаемый экраном District Selection, когда
 /// он открыт в режиме смены района (из "Настроек") через context.pop(result).

@@ -1,5 +1,10 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/analytics_service.dart';
 import '../services/fcm_service.dart';
+import '../services/firestore_service.dart';
 import '../services/local_storage_service.dart';
 import 'district_provider.dart';
 
@@ -60,8 +65,9 @@ class NotificationPreferencesNotifier
     extends StateNotifier<NotificationPreferencesState> {
   final LocalStorageService _storage;
   final FcmService _fcm;
+  final AnalyticsService _analytics;
 
-  NotificationPreferencesNotifier(this._storage, this._fcm)
+  NotificationPreferencesNotifier(this._storage, this._fcm, this._analytics)
       : super(const NotificationPreferencesState()) {
     _load();
   }
@@ -84,6 +90,8 @@ class NotificationPreferencesNotifier
       PushCategory category, bool value, String? districtId) async {
     await _storage.setPushCategoryEnabled(category.storageKey, value);
     state = state._copyWith(category, value);
+    unawaited(_recordOptInChange(category, value));
+    unawaited(_analytics.logPushCategoryToggled(category.storageKey, value));
 
     final topic = category.isDistrictScoped
         ? (districtId != null && districtId.isNotEmpty
@@ -95,6 +103,14 @@ class NotificationPreferencesNotifier
 
     try {
       if (value) {
+        // Житель мог отказаться от системного диалога разрешений в
+        // мягком запросе при первом выборе района (см.
+        // DistrictSelectionScreen._showPushPermissionPrimer) — включение
+        // конкретной категории здесь означает явный интерес именно к
+        // push, поэтому запрашиваем разрешение снова прямо сейчас. Если
+        // оно уже решено (разрешено или запрещено), ОС просто вернёт
+        // текущий статус без повторного показа диалога.
+        await _fcm.initialize();
         await _fcm.subscribeToTopic(topic);
       } else {
         await _fcm.unsubscribeFromTopic(topic);
@@ -103,6 +119,25 @@ class NotificationPreferencesNotifier
       // Подписка повторится при следующем изменении настройки — не
       // критично для остального функционала приложения.
     }
+  }
+
+  /// Счётчик "сколько устройств сейчас подписано на эту категорию" —
+  /// показывается в супер-админке (docs/index.html, раздел "Аналитика").
+  /// Единственный способ увидеть эффект от опциональных push-категорий
+  /// без полноценной аналитики: сами предпочтения хранятся только локально
+  /// на устройстве (SharedPreferences) и никогда не попали бы в Firestore
+  /// иначе. ±1 — та же "грубая граница дельты вместо полной верификации",
+  /// что уже применяется для sponsored_content.clickCount/news.viewCount;
+  /// сбой здесь не должен мешать самой подписке, поэтому вызывается через
+  /// unawaited и проглатывает ошибки.
+  Future<void> _recordOptInChange(PushCategory category, bool enabled) async {
+    try {
+      await FirestoreService()
+          .collection('analytics_push_opt_ins')
+          .doc(category.storageKey)
+          .set({'count': FieldValue.increment(enabled ? 1 : -1)},
+              SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Переносит уже включённые district-специфичные подписки со старого
@@ -129,5 +164,6 @@ final notificationPreferencesProvider = StateNotifierProvider<
   return NotificationPreferencesNotifier(
     ref.watch(localStorageServiceProvider),
     ref.watch(fcmServiceProvider),
+    ref.watch(analyticsServiceProvider),
   );
 });

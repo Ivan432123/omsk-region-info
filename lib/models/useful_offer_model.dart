@@ -13,6 +13,7 @@ class UsefulOfferModel extends Equatable {
   final String targetUrl;
   final int order;
   final DateTime createdAt;
+  final int clickCount;
 
   const UsefulOfferModel({
     required this.id,
@@ -22,6 +23,7 @@ class UsefulOfferModel extends Equatable {
     required this.targetUrl,
     this.order = 0,
     required this.createdAt,
+    this.clickCount = 0,
   });
 
   factory UsefulOfferModel.fromFirestore(
@@ -35,10 +37,19 @@ class UsefulOfferModel extends Equatable {
       targetUrl: data['targetUrl'] as String? ?? '',
       order: (data['order'] as num?)?.toInt() ?? 0,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      clickCount: (data['clickCount'] as num?)?.toInt() ?? 0,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, title, description, imageUrl, targetUrl, order, createdAt];
+  List<Object?> get props => [
+        id,
+        title,
+        description,
+        imageUrl,
+        targetUrl,
+        order,
+        createdAt,
+        clickCount
+      ];
 }

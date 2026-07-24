@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_formatter.dart';
@@ -85,6 +86,14 @@ class _AnnouncementDetailsScreenState
                 : Icons.bookmark_border_rounded),
             onPressed: _toggleBookmark,
           ),
+          if (announcementAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () {
+                final a = announcementAsync.value!;
+                Share.share('${a.title}\n\n${a.description}', subject: a.title);
+              },
+            ),
         ],
       ),
       body: announcementAsync.when(

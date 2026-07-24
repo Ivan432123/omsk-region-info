@@ -164,7 +164,33 @@ service cloud.firestore {
     // только супер-админ.
     match /useful_offers/{offerId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      // Анонимный инкремент clickCount при тапе по офферу — та же схема,
+      // что и у sponsored_content.clickCount выше: показывается в
+      // супер-админке как метрика популярности, без полноценной аналитики.
+      allow update: if isAdmin() ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clickCount']) &&
+           request.resource.data.clickCount == resource.data.get('clickCount', 0) + 1);
+    }
+
+    // Счётчики "сколько устройств сейчас подписано на опциональную
+    // push-категорию" (события/вакансии/бесплатные объявления/"Полезное" —
+    // см. NotificationPreferences во Flutter-приложении) — единственный
+    // способ увидеть в супер-админке эффект от фичи, чьё реальное состояние
+    // (SharedPreferences) иначе никогда не попадает в Firestore. Один
+    // документ на категорию (id = 'events'|'vacancies'|'free_announcements'|
+    // 'useful_offers'), поле count меняется ровно на ±1 за раз — та же
+    // "грубая граница дельты" что и у sponsored_content.clickCount, только
+    // с обеих сторон (включение/выключение), а не только вверх.
+    match /analytics_push_opt_ins/{categoryId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['count']) &&
+          request.resource.data.count is int &&
+          request.resource.data.count >= 0 &&
+          (request.resource.data.count == resource.data.get('count', 0) + 1 ||
+           request.resource.data.count == resource.data.get('count', 0) - 1)
+        );
     }
 
     match /ad_requests/{requestId} {

@@ -35,9 +35,19 @@ class _OmskRegionInfoAppState extends ConsumerState<OmskRegionInfoApp> {
   @override
   void initState() {
     super.initState();
-    // Инициализация push-уведомлений (запрос разрешений) сразу при старте.
+    // Запрос разрешения на push (FcmService.initialize) больше НЕ вызывается
+    // здесь безусловно при каждом старте — ОС показывает системный диалог
+    // только один раз за установку, и раньше он "сгорал" сразу при первом
+    // запуске, до того как житель успевал увидеть хоть что-то в приложении.
+    // Теперь его запрашивает сам DistrictSelectionScreen после первого
+    // выбора района, предварительно объяснив ценность в своём диалоге (см.
+    // _showPushPermissionPrimer) — а для тех, кто там отказался,
+    // NotificationPreferencesNotifier запрашивает разрешение повторно при
+    // первом включении любой push-категории в Настройках. Слушатели входящих
+    // push ниже по-прежнему настраиваются безусловно — без разрешения
+    // сообщения просто не будут приходить, слушать их в этом случае
+    // безвредно.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fcmServiceProvider).initialize();
       _setupPushHandling();
     });
   }

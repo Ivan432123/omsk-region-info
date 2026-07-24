@@ -184,12 +184,24 @@ service cloud.firestore {
     // с обеих сторон (включение/выключение), а не только вверх.
     match /analytics_push_opt_ins/{categoryId} {
       allow read: if isAdmin();
+      // Документ на категорию ленивый — не создаётся заранее (в отличие от
+      // sponsored_content/useful_offers, которые всегда сперва создаёт
+      // admin): его рождает самое первое включение тумблера с любого
+      // устройства. resource == null в этот момент (документа ещё нет),
+      // а обращение к resource.data при null-resource падает — поэтому
+      // ветка создания проверяется ДО любого обращения к resource.data,
+      // а не полагается на resource.data.get(..., 0) как для update.
       allow write: if isAdmin() || (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['count']) &&
+          request.resource.data.keys().hasOnly(['count']) &&
           request.resource.data.count is int &&
           request.resource.data.count >= 0 &&
-          (request.resource.data.count == resource.data.get('count', 0) + 1 ||
-           request.resource.data.count == resource.data.get('count', 0) - 1)
+          (
+            (resource == null && request.resource.data.count == 1) ||
+            (resource != null &&
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['count']) &&
+             (request.resource.data.count == resource.data.get('count', 0) + 1 ||
+              request.resource.data.count == resource.data.get('count', 0) - 1))
+          )
         );
     }
 
